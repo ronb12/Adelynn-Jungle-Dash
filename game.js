@@ -49,9 +49,9 @@ function drawBackground() {
     // Blue sky
     ctx.fillStyle = '#87ceeb';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Green ground
+    // Green ground (fixed height at bottom)
     ctx.fillStyle = '#4caf50';
-    ctx.fillRect(0, groundY + playerHeight, canvas.width, canvas.height - (groundY + playerHeight));
+    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
     // Optional: clouds
     ctx.fillStyle = '#fff';
     ctx.beginPath();
@@ -105,7 +105,9 @@ marioCoin.src = 'sprites/mario_coin.gif';
 
 function drawCoins() {
     coins.forEach(coin => {
-        ctx.drawImage(marioCoin, coin.x - 8, coin.y - 7, 16, 14); // Center the 16x14 coin
+        if (marioCoin.complete && marioCoin.naturalWidth > 0) {
+            ctx.drawImage(marioCoin, coin.x - 8, coin.y - 7, 16, 14);
+        }
     });
 }
 

@@ -45,12 +45,19 @@ canvas.addEventListener('touchstart', function(e) {
 
 // Jungle background gradient
 function drawBackground() {
-    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    grad.addColorStop(0, '#4caf50'); // jungle green
-    grad.addColorStop(0.5, '#aee571'); // lighter green
-    grad.addColorStop(1, '#fffde4'); // light yellow
-    ctx.fillStyle = grad;
+    // Blue sky
+    ctx.fillStyle = '#87ceeb';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Green ground
+    ctx.fillStyle = '#4caf50';
+    ctx.fillRect(0, groundY + playerHeight, canvas.width, canvas.height - (groundY + playerHeight));
+    // Optional: clouds
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(80, 80, 30, Math.PI * 2, false);
+    ctx.arc(110, 80, 40, Math.PI * 2, false);
+    ctx.arc(150, 80, 30, Math.PI * 2, false);
+    ctx.fill();
 }
 
 function drawInitialScreen() {
@@ -66,10 +73,18 @@ function drawInitialScreen() {
 }
 
 function drawPlayer() {
-    // Always draw the character on the ground, facing right
+    // Animate running
+    if (gameRunning && !isJumping) {
+        runFrameTick++;
+        if (runFrameTick % 6 === 0) {
+            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
+        }
+    } else if (!gameRunning || isJumping) {
+        runFrameIndex = 0;
+    }
     ctx.drawImage(
         girlRunSprite,
-        0, 0, runFrameWidth, runFrameHeight,
+        runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
         playerY - jumpY,
         playerWidth, playerHeight
@@ -99,7 +114,7 @@ function updateGame() {
         return;
     }
     // Move coins left
-    coins.forEach(coin => coin.x -= 12); // Temple Run-like speed
+    coins.forEach(coin => coin.x -= 5); // Slower speed
     // Remove off-screen coins
     coins = coins.filter(coin => coin.x > -30);
     // Animate jump

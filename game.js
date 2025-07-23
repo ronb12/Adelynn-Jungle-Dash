@@ -5,6 +5,8 @@ const startBtn = document.getElementById('startBtn');
 const scoreboard = document.getElementById('scoreboard');
 
 // Side-scrolling runner: character runs left-to-right, coins move right-to-left
+const playerWidth = 60;
+const playerHeight = 100;
 const groundY = canvas.height - playerHeight - 20;
 let playerX = 40; // Start near the left
 let playerY = groundY;

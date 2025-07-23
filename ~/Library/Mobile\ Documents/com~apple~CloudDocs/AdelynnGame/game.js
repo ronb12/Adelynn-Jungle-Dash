@@ -21,13 +21,23 @@ document.addEventListener('DOMContentLoaded', function() {
     magnet: new Image(),
     shield: new Image(),
   };
+  assets.player.src = 'sprites/player.png'; // legacy, not used
+  assets.playerRun.src = 'sprites/player_run.png';
+  assets.coin.src = 'sprites/coin.png';
+  assets.obstacle.src = 'sprites/obstacle.png';
+  assets.obstacle2.src = 'sprites/obstacle2.png';
+  assets.obstacle3.src = 'sprites/obstacle3.png';
+  assets.bg.src = 'sprites/jungle_bg.png';
+  assets.coinSound.src = 'audio/coin.wav';
+  assets.jumpSound.src = 'audio/jump.wav';
+  assets.magnet.src = 'sprites/magnet.png';
+  assets.shield.src = 'sprites/shield.png';
 
   // --- GAME CONSTANTS ---
   const GROUND_Y = H - 120;
-  const PLAYER_WIDTH = 120;
-  const PLAYER_HEIGHT = 120;
-  const PLAYER_FRAMES = 6; // Number of frames in the sprite sheet
-  const PLAYER_ANIM_SPEED = 0.18; // Animation speed (tweak as needed)
+  const PLAYER_WIDTH = 100; // new player_run.png frame width
+  const PLAYER_HEIGHT = 100; // new player_run.png frame height
+  const PLAYER_FRAMES = 8; // new player_run.png has 8 frames horizontally
   const COIN_SIZE = 40;
   const OBSTACLE_SIZE = 60;
   const LANES = [W/4, W/2, 3*W/4];
@@ -98,6 +108,9 @@ document.addEventListener('DOMContentLoaded', function() {
   let bgY = 0;
   let score = 0;
   let highScore = Number(localStorage.getItem('ajs_highscore') || 0);
+  let gameOver = false;
+  let gameStarted = false;
+  let gamePaused = false;
   let soundOn = true;
   let powerups = [];
   let magnetActive = false, magnetTimer = 0;
@@ -144,18 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
     encouragementFrequency: 600 // 10 seconds
   };
 
-  // Game state
-  let gameStarted = false;
-  let gamePaused = false;
-  let gameOver = false;
-  let lives = 25; // Add 25 lives
-  let gameTime = 60; // 60 seconds for timed mode
-  let gameMode = 'timed'; // 'timed' or 'endless'
-  let timeRemaining = gameTime;
-  let gameStartTime = 0;
-  let coinMultiplier = 1;
-  let coinMultiplierTimer = 0; // Frames remaining for multiplier
-
   // Initialize parallax layers for depth effect
   function initParallaxLayers() {
     parallaxLayers = [
@@ -175,8 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
       life: 1.0,
       decay: 0.02 + Math.random() * 0.03,
       size: Math.random() * 4 + 2,
-      color: type === 'coin' ? '#FFD700' : type === 'hit' ? '#FF4444' : type === 'multiplier' ? '#FFD700' : '#FFFFFF',
-      emoji: type === 'multiplier' ? '⚡️' : undefined,
+      color: type === 'coin' ? '#FFD700' : type === 'hit' ? '#FF4444' : '#FFFFFF',
       type: type
     };
     particles.push(particle);
@@ -337,18 +337,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showGame() {
-    console.log('Starting game...');
     document.getElementById('landingPage').style.display = 'none';
     document.getElementById('gameMenu').style.display = 'none';
     document.getElementById('startBtn').style.display = 'none';
     resetGame();
-    gameOver = false; // Explicitly ensure gameOver is false
     gameStarted = true;
-    gameStartTime = Date.now(); // Start the timer
-    console.log('Game state after reset:', { gameOver, gameStarted, gamePaused });
-    console.log('Initial player position:', { x: player.x, y: player.y, lane: player.lane });
-    console.log('Initial distance:', distance);
-    console.log('Game mode:', gameMode, 'Time remaining:', timeRemaining);
     loop();
   }
 
@@ -406,60 +399,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showGameOverScreen() {
-    // Hide all other screens
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('gameMenu').style.display = 'none';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, W, H);
     
-    // Create game over overlay
-    let gameOverOverlay = document.getElementById('gameOverOverlay');
-    if (!gameOverOverlay) {
-      gameOverOverlay = document.createElement('div');
-      gameOverOverlay.id = 'gameOverOverlay';
-      gameOverOverlay.className = 'overlay flex-center game-over-fade';
-      document.body.appendChild(gameOverOverlay);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '36px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over!', W/2, H/2 - 80);
+    
+    ctx.font = '24px Arial, sans-serif';
+    ctx.fillText(`Score: ${score}`, W/2, H/2 - 40);
+    ctx.fillText(`Distance: ${Math.floor(distance)}m`, W/2, H/2 - 10);
+    ctx.fillText(`Coins: ${coinsCollected}`, W/2, H/2 + 20);
+    ctx.fillText(`Max Combo: ${maxCombo}`, W/2, H/2 + 50);
+    
+    if (score > highScore) {
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('NEW HIGH SCORE!', W/2, H/2 + 80);
     }
-    gameOverOverlay.innerHTML = `
-      <div class="gameover-card">
-        <div class="gameover-header">
-          <h2 class="game-title">Game Over</h2>
-        </div>
-        <div class="gameover-stats">
-          <div class="stat-item"><span class="stat-icon">🏆</span> <span class="stat-label">Score:</span> <span class="stat-value">${score}</span></div>
-          <div class="stat-item"><span class="stat-icon">🪙</span> <span class="stat-label">Coins:</span> <span class="stat-value">${coinsCollected}</span></div>
-          <div class="stat-item"><span class="stat-icon">📏</span> <span class="stat-label">Distance:</span> <span class="stat-value">${Math.floor(distance)}m</span></div>
-          <div class="stat-item"><span class="stat-icon">💥</span> <span class="stat-label">Max Combo:</span> <span class="stat-value">${maxCombo}</span></div>
-          <div class="stat-item"><span class="stat-icon">❤️</span> <span class="stat-label">Lives Left:</span> <span class="stat-value">${lives}</span></div>
-          ${gameMode === 'timed' ? `<div class="stat-item"><span class="stat-icon">⏰</span> <span class="stat-label">Time Used:</span> <span class="stat-value">${Math.floor((gameTime - timeRemaining) * 10) / 10}s</span></div>` : ''}
-        </div>
-        <div class="gameover-buttons">
-          <button id="playAgainBtn" class="main-btn play-btn"><span class="btn-text">🔄 Play Again</span></button>
-          <button id="backToMenuBtn" class="main-btn back-btn"><span class="btn-text">⬅️ Back to Menu</span></button>
-        </div>
-        <div class="character-preview-bottom">
-          <canvas id="characterPreviewCanvas" width="100" height="100"></canvas>
-        </div>
-      </div>
-    `;
-    gameOverOverlay.style.display = 'flex';
-    // Animate fade-in
-    setTimeout(() => { gameOverOverlay.classList.add('visible'); }, 10);
-    // Draw character preview at the bottom
-    const previewCanvas = document.getElementById('characterPreviewCanvas');
-    if (previewCanvas) {
-      const pctx = previewCanvas.getContext('2d');
-      pctx.clearRect(0, 0, 100, 100);
-      // Draw current player frame (side view)
-      pctx.drawImage(assets.playerRun, player.frame * PLAYER_WIDTH, 0, PLAYER_WIDTH, PLAYER_HEIGHT, 0, 0, 100, 100);
-    }
-    // Add event listeners
-    document.getElementById('playAgainBtn').onclick = () => {
-      gameOverOverlay.style.display = 'none';
-      showGame();
-    };
-    document.getElementById('backToMenuBtn').onclick = () => {
-      gameOverOverlay.style.display = 'none';
-      showLandingPage();
-    };
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '20px Arial, sans-serif';
+    ctx.fillText('Click Start to Play Again', W/2, H/2 + 120);
+    
+    showStartButton();
   }
 
   // --- PLAYER CONTROLS ---
@@ -650,10 +613,6 @@ document.addEventListener('DOMContentLoaded', function() {
     coinsCollected = 0;
     obstaclesAvoided = 0;
     gameOver = false;
-    lives = 25; // Reset lives
-    gameTime = 60; // Reset timer
-    timeRemaining = gameTime;
-    gameStartTime = 0;
     gameSpeed = 1;
     screenShake = 0;
     cameraY = 0;
@@ -720,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (Math.random() > 0.02) return; // 2% chance per frame
     
     const lane = Math.floor(Math.random() * LANES.length);
-    const powerupTypes = ['magnet', 'shield', 'multiplier']; // Added 'multiplier'
+    const powerupTypes = ['magnet', 'shield'];
     const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
     
     const powerup = {
@@ -728,8 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
       y: -POWERUP_SIZE,
       lane: lane,
       type: type,
-      rotation: 0,
-      value: type === 'multiplier' ? 2 : undefined // Added value for multiplier
+      rotation: 0
     };
     powerups.push(powerup);
   }
@@ -782,28 +740,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function update() {
     if (gamePaused || !gameStarted) return;
 
-    // Debug: Check if gameOver is true at the start of update
-    if (gameOver) {
-      console.log('Game over detected in update function');
-      return;
-    }
-
     // Update game speed and distance
     gameSpeed += 0.001;
     distance += gameSpeed;
-    
-    // Update timer for timed mode
-    if (gameMode === 'timed' && gameStarted && !gameOver) {
-      timeRemaining = Math.max(0, gameTime - (Date.now() - gameStartTime) / 1000);
-      if (timeRemaining <= 0) {
-        // Time's up!
-        gameOver = true;
-        console.log('Time\'s up! Game over.');
-        updateHighScore();
-        showGameOverScreen();
-        return;
-      }
-    }
     
     // Update player
     player.vy += GRAVITY;
@@ -837,7 +776,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Update player animation
-    updatePlayerAnimation();
+    player.frameTick++;
+    if (player.moving && player.runSpeed > 2) {
+      // Only animate when moving fast enough
+      if (player.frameTick >= 6) { // Faster animation when running
+        player.frame = (player.frame + 1) % PLAYER_FRAMES;
+        player.frameTick = 0;
+      }
+    } else {
+      // Idle animation - stay on first frame
+      player.frame = 0;
+      player.frameTick = 0;
+    }
     
     // Update Temple Run style abilities
     if (player.sliding) {
@@ -870,13 +820,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (shieldActive) {
       shieldTimer--;
       if (shieldTimer <= 0) shieldActive = false;
-    }
-    // Update coin multiplier timer
-    if (coinMultiplierTimer > 0) {
-      coinMultiplierTimer--;
-      if (coinMultiplierTimer === 0) {
-        coinMultiplier = 1;
-      }
     }
     
     // Update screen shake
@@ -929,16 +872,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Spawn objects
     if (Math.random() > 0.98) spawnCoin();
-    if (Math.random() > 0.998 && distance > 100) { // Only spawn obstacles after 100 distance units
-      console.log('Spawning obstacle at distance:', distance);
-      spawnObstacle();
-    }
+    if (Math.random() > 0.995) spawnObstacle();
     spawnPowerup();
     
     // Spawn Temple Run style obstacles
-    if (distance > 150) spawnGap();
-    if (distance > 200) spawnWall();
-    if (distance > 120) spawnFireTrap();
+    spawnGap();
+    spawnWall();
+    spawnFireTrap();
     
     // Update coins
     coins.forEach((coin, index) => {
@@ -967,7 +907,7 @@ document.addEventListener('DOMContentLoaded', function() {
         score += 10 * (1 + combo * 0.1);
         combo++;
         maxCombo = Math.max(maxCombo, combo);
-        coinsCollected += coinMultiplier;
+        coinsCollected++;
         if (soundOn) assets.coinSound.play();
         spawnParticles(coin.x + COIN_SIZE/2, coin.y + COIN_SIZE/2, '#FFD700');
         coins.splice(index, 1);
@@ -996,30 +936,15 @@ document.addEventListener('DOMContentLoaded', function() {
           player.y < obstacle.y + OBSTACLE_SIZE &&
           player.y + PLAYER_HEIGHT > obstacle.y) {
         
-        console.log('Collision detected!');
-        console.log('Player position:', { x: player.x, y: player.y, width: PLAYER_WIDTH, height: PLAYER_HEIGHT });
-        console.log('Obstacle position:', { x: obstacle.x, y: obstacle.y, size: OBSTACLE_SIZE });
-        
         if (shieldActive) {
           // Shield blocks the hit
           createParticle(obstacle.x + OBSTACLE_SIZE/2, obstacle.y + OBSTACLE_SIZE/2, 'shield');
         } else {
-          // Player gets hit - lose a life
-          lives--;
-          console.log(`Player hit obstacle - Lives remaining: ${lives}`);
+          // Player gets hit
+          gameOver = true;
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          
-          // Make player invincible briefly
-          player.invincible = true;
-          player.invincibleTimer = 120; // 2 seconds at 60fps
-          
-          if (lives <= 0) {
-            // Game over when no lives left
-            gameOver = true;
-            updateHighScore();
-            showGameOverScreen();
-          }
+          updateHighScore();
         }
       }
       
@@ -1049,10 +974,6 @@ document.addEventListener('DOMContentLoaded', function() {
           shieldActive = true;
           shieldTimer = 300; // 5 seconds at 60fps
           createParticle(powerup.x + POWERUP_SIZE/2, powerup.y + POWERUP_SIZE/2, 'shield');
-        } else if (powerup.type === 'multiplier') {
-          coinMultiplier = powerup.value || 2;
-          coinMultiplierTimer = 600; // 10 seconds at 60fps
-          createParticle(powerup.x + POWERUP_SIZE/2, powerup.y + POWERUP_SIZE/2, 'multiplier');
         }
         
         powerups.splice(index, 1);
@@ -1078,20 +999,10 @@ document.addEventListener('DOMContentLoaded', function() {
           player.x + PLAYER_WIDTH/2 < gap.x + gap.width &&
           player.y + PLAYER_HEIGHT > gap.y &&
           player.y + PLAYER_HEIGHT < gap.y + gap.height) {
-        lives--;
-        console.log(`Player fell into gap - Lives remaining: ${lives}`);
+        gameOver = true;
         screenShake = 15;
         createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-        
-        // Make player invincible briefly
-        player.invincible = true;
-        player.invincibleTimer = 120;
-        
-        if (lives <= 0) {
-          gameOver = true;
-          updateHighScore();
-          showGameOverScreen();
-        }
+        updateHighScore();
       }
       
       // Mark gap as passed
@@ -1123,20 +1034,10 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (wall.side === 1 && player.lane === 2) {
           wallRun(1);
         } else {
-          lives--;
-          console.log(`Player hit wall - Lives remaining: ${lives}`);
+          gameOver = true;
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          
-          // Make player invincible briefly
-          player.invincible = true;
-          player.invincibleTimer = 120;
-          
-          if (lives <= 0) {
-            gameOver = true;
-            updateHighScore();
-            showGameOverScreen(); // Show the HTML game over screen
-          }
+          updateHighScore();
         }
       }
       
@@ -1168,20 +1069,10 @@ document.addEventListener('DOMContentLoaded', function() {
           // Shield blocks the fire
           createParticle(fireTrap.x + fireTrap.width/2, fireTrap.y + fireTrap.height/2, 'shield');
         } else {
-          lives--;
-          console.log(`Player hit fire trap - Lives remaining: ${lives}`);
+          gameOver = true;
           screenShake = 15;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          
-          // Make player invincible briefly
-          player.invincible = true;
-          player.invincibleTimer = 120;
-          
-          if (lives <= 0) {
-            gameOver = true;
-            updateHighScore();
-            showGameOverScreen();
-          }
+          updateHighScore();
         }
       }
       
@@ -1201,46 +1092,76 @@ document.addEventListener('DOMContentLoaded', function() {
     score += gameSpeed;
   }
 
-  // --- LOAD PLAYER SPRITE ---
-  const playerSprite = new Image();
-  playerSprite.src = 'sprites/player_run.png';
-
-  // --- UPDATE PLAYER ANIMATION ---
-  function updatePlayerAnimation() {
-    if (!player.jumping) {
-      player.frameTick++;
-      if (player.frameTick >= 6) { // Faster animation when running
-        player.frame = (player.frame + 1) % PLAYER_FRAMES;
-        player.frameTick = 0;
-      }
-    } else {
-      player.frame = 0; // Optionally use a different frame for jumping
-    }
-  }
-
-  // --- DRAW PLAYER ---
   function drawPlayer() {
+    // Screen shake effect
+    const shakeX = (Math.random() - 0.5) * screenShake;
+    const shakeY = (Math.random() - 0.5) * screenShake;
+    
+    // Invincibility flicker
+    if (player.invincible && Math.floor(player.invincibleTimer / 5) % 2) {
+      ctx.globalAlpha = 0.5;
+    }
+    
+    // Save context for transformations
     ctx.save();
-    ctx.translate(player.x, player.y);
+    ctx.translate(player.x + PLAYER_WIDTH/2 + shakeX, player.y + PLAYER_HEIGHT/2 + shakeY + cameraY);
+    
+    // Apply transformations based on player state
+    if (player.sliding) {
+      // Scale down for sliding effect
+      ctx.scale(1.2, 0.6);
+      ctx.globalAlpha = 0.8;
+    } else if (player.wallRunning) {
+      // Rotate for wall running effect
+      ctx.rotate(player.wallRunSide * 0.3);
+      ctx.scale(0.9, 1.1);
+      ctx.globalAlpha = 0.9;
+    }
+    
+    // Movement blur effect
+    if (player.moving && player.runSpeed > 4 && !player.sliding && !player.wallRunning) {
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(
+        assets.playerRun,
+        player.frame * PLAYER_WIDTH, 0,
+        PLAYER_WIDTH, PLAYER_HEIGHT,
+        -PLAYER_WIDTH/2 - player.direction * 5, -PLAYER_HEIGHT/2,
+        PLAYER_WIDTH, PLAYER_HEIGHT
+      );
+      ctx.globalAlpha = 1;
+    }
+    
+    // Draw the actual player sprite
     ctx.drawImage(
-      playerSprite,
-      player.frame * PLAYER_WIDTH, 0, // Source x, y
-      PLAYER_WIDTH, PLAYER_HEIGHT,    // Source w, h
-      0, 0,                          // Dest x, y
-      PLAYER_WIDTH, PLAYER_HEIGHT    // Dest w, h
+      assets.playerRun,
+      player.frame * PLAYER_WIDTH, 0, // source x, y (frame)
+      PLAYER_WIDTH, PLAYER_HEIGHT,    // source width, height
+      -PLAYER_WIDTH/2, -PLAYER_HEIGHT/2, // destination x, y (centered)
+      PLAYER_WIDTH, PLAYER_HEIGHT     // destination width, height
     );
+    
     ctx.restore();
+    
+    // Shield effect
+    if (shieldActive) {
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(assets.shield, 
+        player.x - 8 + shakeX, player.y - 8 + shakeY + cameraY, 
+        PLAYER_WIDTH + 16, PLAYER_HEIGHT + 16);
+      ctx.globalAlpha = 1;
+    }
+    
+    // Magnet effect
+    if (magnetActive) {
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(assets.magnet, 
+        player.x - 20 + shakeX, player.y - 20 + shakeY + cameraY, 
+        PLAYER_WIDTH + 40, PLAYER_HEIGHT + 40);
+      ctx.globalAlpha = 1;
+    }
   }
 
   function draw() {
-    // Only draw game content if the game is actually running
-    if (!gameStarted || gameOver) {
-      // Clear canvas with a simple background when not playing
-      ctx.fillStyle = '#2e7d32';
-      ctx.fillRect(0, 0, W, H);
-      return;
-    }
-
     // Clear canvas
     ctx.fillStyle = '#2e7d32';
     ctx.fillRect(0, 0, W, H);
@@ -1268,15 +1189,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Draw particles
     particles.forEach(particle => {
       ctx.globalAlpha = particle.life;
-      if (particle.emoji) {
-        ctx.font = `${particle.size * 3}px Arial`;
-        ctx.fillText(particle.emoji, particle.x, particle.y);
-      } else {
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, 2 * Math.PI);
-        ctx.fillStyle = particle.color;
-        ctx.fill();
-      }
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+      ctx.fill();
     });
     ctx.globalAlpha = 1;
     
@@ -1308,11 +1224,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.drawImage(assets.magnet, -POWERUP_SIZE/2, -POWERUP_SIZE/2, POWERUP_SIZE, POWERUP_SIZE);
       } else if (powerup.type === 'shield') {
         ctx.drawImage(assets.shield, -POWERUP_SIZE/2, -POWERUP_SIZE/2, POWERUP_SIZE, POWERUP_SIZE);
-      } else if (powerup.type === 'multiplier') {
-        ctx.font = `${POWERUP_SIZE * 0.8}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡️', 0, 0);
       }
       
       ctx.restore();
@@ -1391,6 +1302,11 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.textAlign = 'center';
       ctx.fillText(`${Math.ceil(shieldTimer/60)}s`, W - 35, 130);
     }
+    
+    // Draw game over screen
+    if (gameOver) {
+      showGameOverScreen();
+    }
   }
 
   function loop() {
@@ -1416,71 +1332,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- ASSET LOADING ---
   let loaded = 0;
-  const totalAssets = 11; // Updated to match actual number of assets with handlers
-  let assetLoadTimeout;
-  let failedAssets = [];
-  
+  const totalAssets = 5; // Changed from 4 to 5
   function checkLoaded() {
     loaded++;
-    console.log(`Asset loaded: ${loaded}/${totalAssets}`);
     if (loaded >= totalAssets) {
-      clearTimeout(assetLoadTimeout);
-      if (failedAssets.length > 0) {
-        console.warn('Some assets failed to load:', failedAssets);
-      }
-      console.log('All assets loaded successfully!');
       showLandingPage(); // Changed from resetGame() to showLandingPage()
     }
   }
-  
-  function handleAssetError(assetName) {
-    console.warn(`Failed to load asset: ${assetName}`);
-    failedAssets.push(assetName);
-    checkLoaded(); // Still count it as loaded to prevent hanging
-  }
-  
-  // Set up a timeout to start the game even if some assets fail to load
-  assetLoadTimeout = setTimeout(() => {
-    console.warn('Asset loading timeout - starting game anyway');
-    showLandingPage();
-  }, 15000); // 15 second timeout
-  
-  // Set up load and error handlers for all assets BEFORE setting src
   assets.player.onload = checkLoaded;
-  assets.player.onerror = () => handleAssetError('player');
-  assets.playerRun.onload = checkLoaded;
-  assets.playerRun.onerror = () => handleAssetError('playerRun');
+  assets.playerRun.onload = checkLoaded; // Added this line
   assets.coin.onload = checkLoaded;
-  assets.coin.onerror = () => handleAssetError('coin');
   assets.obstacle.onload = checkLoaded;
-  assets.obstacle.onerror = () => handleAssetError('obstacle');
-  assets.obstacle2.onload = checkLoaded;
-  assets.obstacle2.onerror = () => handleAssetError('obstacle2');
-  assets.obstacle3.onload = checkLoaded;
-  assets.obstacle3.onerror = () => handleAssetError('obstacle3');
   assets.bg.onload = checkLoaded;
-  assets.bg.onerror = () => handleAssetError('bg');
-  assets.magnet.onload = checkLoaded;
-  assets.magnet.onerror = () => handleAssetError('magnet');
-  assets.shield.onload = checkLoaded;
-  assets.shield.onerror = () => handleAssetError('shield');
-  assets.coinSound.oncanplaythrough = checkLoaded;
-  assets.coinSound.onerror = () => handleAssetError('coinSound');
-  assets.jumpSound.oncanplaythrough = checkLoaded;
-  assets.jumpSound.onerror = () => handleAssetError('jumpSound');
-  
-  // NOW set the src properties after handlers are set up
-  assets.player.src = 'sprites/player_run.png'; // Use player_run.png instead of missing player.png
-  assets.playerRun.src = 'sprites/player_run.png';
-  assets.coin.src = 'sprites/coin.png';
-  assets.obstacle.src = 'sprites/obstacle.png';
-  assets.obstacle2.src = 'sprites/obstacle2.png';
-  assets.obstacle3.src = 'sprites/obstacle3.png';
-  assets.bg.src = 'sprites/jungle_bg.png';
-  assets.coinSound.src = 'audio/coin.wav';
-  assets.jumpSound.src = 'audio/jump.wav';
-  assets.magnet.src = 'sprites/magnet.png';
-  assets.shield.src = 'sprites/shield.png';
 
   function updateHighScore() {
     if (score > highScore) {
@@ -1507,26 +1370,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const comboElement = document.getElementById('combo');
     if (comboElement) comboElement.textContent = `Combo: ${combo}`;
     
-    // Update lives display
-    const livesElement = document.getElementById('lives');
-    if (livesElement) livesElement.textContent = `Lives: ${lives}`;
-    
-    // Update timer display for timed mode
-    const timerElement = document.getElementById('timer');
-    if (timerElement && gameMode === 'timed') {
-      const minutes = Math.floor(timeRemaining / 60);
-      const seconds = Math.floor(timeRemaining % 60);
-      timerElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
-    
     // Update high score displays
     const landingHighScore = document.getElementById('landingHighScore');
     const menuHighScore = document.getElementById('menuHighScore');
     if (landingHighScore) landingHighScore.textContent = highScore;
     if (menuHighScore) menuHighScore.textContent = highScore;
-
-    // Update multiplier display
-    const multiplierElement = document.getElementById('multiplier');
-    if (multiplierElement) multiplierElement.textContent = `Multiplier: x${coinMultiplier}`;
   }
 }); 

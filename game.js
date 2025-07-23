@@ -19,6 +19,7 @@ let obstacles = [];
 let score = 0;
 let gameRunning = false;
 let gameInterval;
+let gameStarted = false;
 
 // Sprite sheet for girl character (running)
 const girlRunSprite = new Image();
@@ -50,6 +51,12 @@ canvas.addEventListener('touchend', function(e) {
     if (touchStartX === null || touchStartY === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
+    if (!gameStarted && dy < -30) {
+        gameStarted = true;
+        gameRunning = true;
+        return;
+    }
+    if (!gameRunning) return;
     if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe
         if (dx > 30 && playerLane < laneCount - 1) playerLane++;
@@ -68,13 +75,42 @@ function resetGame() {
     coins = [];
     obstacles = [];
     score = 0;
-    gameRunning = true;
+    gameRunning = false;
+    gameStarted = false;
     scoreDisplay.textContent = 'Score: 0';
     startBtn.textContent = 'Restart Game';
     startBtn.disabled = true; // Disable start button during game
+    runFrameIndex = 0;
+    runFrameTick = 0;
+    isJumping = false;
+    jumpY = 0;
+    jumpTick = 0;
+    isDashing = false;
+    dashTick = 0;
+    drawInitialScreen();
+}
+
+function drawInitialScreen() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPlayer();
+    ctx.fillStyle = '#fff';
+    ctx.font = '1.2em Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Swipe up or press ↑ to start!', canvas.width / 2, canvas.height / 2);
 }
 
 function drawPlayer() {
+    // Standing frame if not started, running animation if started
+    if (!gameStarted) {
+        ctx.drawImage(
+            girlRunSprite,
+            0, 0, runFrameWidth, runFrameHeight,
+            playerLane * laneWidth + (laneWidth - playerWidth) / 2,
+            playerY,
+            playerWidth, playerHeight
+        );
+        return;
+    }
     // Animate running
     if (gameRunning) {
         runFrameTick++;
@@ -129,6 +165,10 @@ function spawnObstacle() {
 
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!gameStarted) {
+        drawInitialScreen();
+        return;
+    }
     // Animate player
     if (isJumping) {
         jumpTick++;
@@ -220,6 +260,11 @@ startBtn.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
+    if (!gameStarted && (e.key === 'ArrowUp' || e.key === 'w')) {
+        gameStarted = true;
+        gameRunning = true;
+        return;
+    }
     if (!gameRunning) return;
     if (e.key === 'ArrowLeft' && playerLane > 0) {
         playerLane--;

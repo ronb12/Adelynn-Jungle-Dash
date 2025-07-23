@@ -7,7 +7,7 @@ const scoreboard = document.getElementById('scoreboard');
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
 const playerHeight = 100;
-const groundY = canvas.height - 20;
+const groundY = canvas.height - 40; // Adjusted for horizontal layout
 let playerX = 100; // Start player at fixed position on screen
 let playerY = groundY - playerHeight;
 let worldOffset = 0; // How much the world has moved
@@ -82,7 +82,7 @@ function drawBackground() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     // Green ground (fixed height at bottom)
     ctx.fillStyle = '#4caf50';
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
     // Optional: clouds
     ctx.fillStyle = '#fff';
     ctx.beginPath();
@@ -212,13 +212,13 @@ function spawnCoin() {
     const coinX = Math.random() * 2000 + worldOffset + canvas.width;
     coins.push({
         x: coinX,
-        y: canvas.height - 30
+        y: canvas.height - 60 // Higher up for better visibility
     });
 }
 
 function spawnPlatform() {
     const platformX = Math.random() * 2000 + worldOffset + canvas.width;
-    const platformY = canvas.height - 100 - Math.random() * 150;
+    const platformY = canvas.height - 120 - Math.random() * 200; // More varied heights
     const platformWidth = 80 + Math.random() * 120;
     
     platforms.push({
@@ -237,17 +237,17 @@ function spawnObstacle() {
     if (obstacleType === OBJECT_TYPES.PIPE) {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 80,
+            y: canvas.height - 100, // Higher up for better jumping
             width: 40,
-            height: 80,
+            height: 100,
             type: obstacleType
         });
     } else {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 40,
+            y: canvas.height - 60, // Higher up for better jumping
             width: 40,
-            height: 40,
+            height: 60,
             type: obstacleType
         });
     }
@@ -257,7 +257,7 @@ function spawnEnemy() {
     const enemyX = Math.random() * 2000 + worldOffset + canvas.width;
     enemies.push({
         x: enemyX,
-        y: canvas.height - 30,
+        y: canvas.height - 50, // Higher up for better visibility
         width: 30,
         height: 30,
         velocityX: -1,

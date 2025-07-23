@@ -24,6 +24,19 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+
+        .game-frame {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        #gameCanvas {
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -32,7 +45,7 @@
         <div class="infinite-lives">♾️ INFINITE LIVES MODE</div>
         <button id="startBtn">Start Game</button>
         <div class="game-frame">
-            <canvas id="gameCanvas" width="400" height="600"></canvas>
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
         </div>
         <button id="backToMenu" onclick="backToMenu()" style="margin-top: 10px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">← Back to Menu</button>
     </div>

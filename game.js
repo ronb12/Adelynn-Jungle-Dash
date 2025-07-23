@@ -15,6 +15,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (gameMenu) gameMenu.style.display = 'none';
   }
 
+  // Add after DOMContentLoaded and after showLandingPage
+  function showGameMenu() {
+    const landingPage = document.getElementById('landingPage');
+    const gameMenu = document.getElementById('gameMenu');
+    if (landingPage) landingPage.style.display = 'none';
+    if (gameMenu) gameMenu.style.display = 'flex';
+  }
+
+  function showGame() {
+    const landingPage = document.getElementById('landingPage');
+    const gameMenu = document.getElementById('gameMenu');
+    if (landingPage) landingPage.style.display = 'none';
+    if (gameMenu) gameMenu.style.display = 'none';
+    resetGame();
+    gameOver = false;
+    gameStarted = true;
+    gameStartTime = Date.now();
+    loop();
+  }
+
   // --- ASSET LOADING ---
   const assets = {
     player: new Image(),

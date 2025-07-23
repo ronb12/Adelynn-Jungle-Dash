@@ -19,6 +19,15 @@ let score = 0;
 let gameRunning = false;
 let gameInterval;
 
+// Sprite sheet for girl character (running)
+const girlRunSprite = new Image();
+girlRunSprite.src = 'sprites/girl_run.png';
+const runFrameWidth = 180; // Based on asset pixel dimensions
+const runFrameHeight = 480;
+const runFrameCount = 8; // This asset has 8 frames per row
+let runFrameIndex = 0;
+let runFrameTick = 0;
+
 function resetGame() {
     playerLane = 1;
     coins = [];
@@ -27,26 +36,43 @@ function resetGame() {
     gameRunning = true;
     scoreDisplay.textContent = 'Score: 0';
     startBtn.textContent = 'Restart Game';
+    startBtn.disabled = true; // Disable start button during game
 }
 
 function drawPlayer() {
-    ctx.fillStyle = '#4caf50';
-    ctx.fillRect(playerLane * laneWidth + (laneWidth - playerWidth) / 2, playerY, playerWidth, playerHeight);
+    // Animate running
+    if (gameRunning) {
+        runFrameTick++;
+        if (runFrameTick % 6 === 0) { // Adjust speed as needed
+            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
+        }
+    } else {
+        runFrameIndex = 0;
+    }
+    ctx.drawImage(
+        girlRunSprite,
+        runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
+        playerLane * laneWidth + (laneWidth - runFrameWidth / 3) / 2,
+        playerY - (runFrameHeight / 3 - playerHeight),
+        runFrameWidth / 3, runFrameHeight / 3 // Scale down to fit canvas
+    );
 }
 
 function drawCoins() {
-    ctx.fillStyle = 'gold';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     coins.forEach(coin => {
-        ctx.beginPath();
-        ctx.arc(coin.x, coin.y, coinRadius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillText('🪙', coin.x, coin.y);
     });
 }
 
 function drawObstacles() {
-    ctx.fillStyle = '#f44336';
+    ctx.font = '36px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     obstacles.forEach(obs => {
-        ctx.fillRect(obs.x, obs.y, obstacleWidth, obstacleHeight);
+        ctx.fillText('🪨', obs.x + obstacleWidth / 2, obs.y + obstacleHeight / 2);
     });
 }
 
@@ -66,8 +92,35 @@ function spawnObstacle() {
     });
 }
 
+// Add jump and dash logic
+let isJumping = false;
+let jumpY = 0;
+let jumpTick = 0;
+let isDashing = false;
+let dashTick = 0;
+
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Animate player
+    if (isJumping) {
+        // playerState = 'jump'; // This line is no longer needed as playerState is removed
+        jumpTick++;
+        jumpY = Math.sin((jumpTick / 20) * Math.PI) * 80;
+        if (jumpTick > 20) {
+            isJumping = false;
+            jumpTick = 0;
+            jumpY = 0;
+        }
+    } else if (isDashing) {
+        // playerState = 'dash'; // This line is no longer needed as playerState is removed
+        dashTick++;
+        if (dashTick > 10) {
+            isDashing = false;
+            dashTick = 0;
+        }
+    } else {
+        // playerState = 'run'; // This line is no longer needed as playerState is removed
+    }
     // Move coins
     coins.forEach(coin => coin.y += 5);
     // Move obstacles
@@ -127,6 +180,7 @@ function endGame() {
     ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
     ctx.font = '1.5em Arial';
     ctx.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
+    startBtn.disabled = false; // Enable start button after game over
 }
 
 function gameLoop() {
@@ -136,6 +190,7 @@ function gameLoop() {
 }
 
 startBtn.addEventListener('click', () => {
+    console.log('Start button clicked');
     resetGame();
     clearInterval(gameInterval);
     gameInterval = setInterval(gameLoop, 1000 / 60);
@@ -147,10 +202,17 @@ document.addEventListener('keydown', (e) => {
         playerLane--;
     } else if (e.key === 'ArrowRight' && playerLane < laneCount - 1) {
         playerLane++;
+    } else if (e.key === 'ArrowUp' && !isJumping) {
+        isJumping = true;
+        jumpTick = 0;
+    } else if (e.key === ' ' && !isDashing) {
+        isDashing = true;
+        dashTick = 0;
     }
 });
 
 // Initial draw
+ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear before drawing
 ctx.fillStyle = '#fff';
 ctx.font = '1.2em Arial';
 ctx.textAlign = 'center';

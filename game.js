@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     magnet: new Image(),
     shield: new Image(),
   };
-  assets.player.src = 'sprites/player.png'; // legacy, not used
+  assets.player.src = 'sprites/player_run.png'; // Use player_run.png instead of missing player.png
   assets.playerRun.src = 'sprites/player_run.png';
   assets.coin.src = 'sprites/coin.png';
   assets.obstacle.src = 'sprites/obstacle.png';
@@ -1332,18 +1332,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- ASSET LOADING ---
   let loaded = 0;
-  const totalAssets = 5; // Changed from 4 to 5
+  const totalAssets = 12; // Updated to include all assets
+  let assetLoadTimeout;
+  let failedAssets = [];
+  
   function checkLoaded() {
     loaded++;
     if (loaded >= totalAssets) {
+      clearTimeout(assetLoadTimeout);
+      if (failedAssets.length > 0) {
+        console.warn('Some assets failed to load:', failedAssets);
+      }
       showLandingPage(); // Changed from resetGame() to showLandingPage()
     }
   }
+  
+  function handleAssetError(assetName) {
+    console.warn(`Failed to load asset: ${assetName}`);
+    failedAssets.push(assetName);
+    checkLoaded(); // Still count it as loaded to prevent hanging
+  }
+  
+  // Set up a timeout to start the game even if some assets fail to load
+  assetLoadTimeout = setTimeout(() => {
+    console.warn('Asset loading timeout - starting game anyway');
+    showLandingPage();
+  }, 15000); // 15 second timeout
+  
+  // Set up load and error handlers for all assets
   assets.player.onload = checkLoaded;
-  assets.playerRun.onload = checkLoaded; // Added this line
+  assets.player.onerror = () => handleAssetError('player');
+  assets.playerRun.onload = checkLoaded;
+  assets.playerRun.onerror = () => handleAssetError('playerRun');
   assets.coin.onload = checkLoaded;
+  assets.coin.onerror = () => handleAssetError('coin');
   assets.obstacle.onload = checkLoaded;
+  assets.obstacle.onerror = () => handleAssetError('obstacle');
+  assets.obstacle2.onload = checkLoaded;
+  assets.obstacle2.onerror = () => handleAssetError('obstacle2');
+  assets.obstacle3.onload = checkLoaded;
+  assets.obstacle3.onerror = () => handleAssetError('obstacle3');
   assets.bg.onload = checkLoaded;
+  assets.bg.onerror = () => handleAssetError('bg');
+  assets.magnet.onload = checkLoaded;
+  assets.magnet.onerror = () => handleAssetError('magnet');
+  assets.shield.onload = checkLoaded;
+  assets.shield.onerror = () => handleAssetError('shield');
+  assets.coinSound.oncanplaythrough = checkLoaded;
+  assets.coinSound.onerror = () => handleAssetError('coinSound');
+  assets.jumpSound.oncanplaythrough = checkLoaded;
+  assets.jumpSound.onerror = () => handleAssetError('jumpSound');
 
   function updateHighScore() {
     if (score > highScore) {

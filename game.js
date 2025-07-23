@@ -5,11 +5,12 @@ const startBtn = document.getElementById('startBtn');
 const scoreboard = document.getElementById('scoreboard');
 
 // Side-scrolling runner: character runs left-to-right, coins move right-to-left
+// Align character feet with ground
 const playerWidth = 60;
 const playerHeight = 100;
-const groundY = canvas.height - playerHeight - 20;
-let playerX = 40; // Start near the left
-let playerY = groundY;
+const groundY = canvas.height - 20; // groundY is now the top of the green ground
+let playerX = 40;
+let playerY = groundY - playerHeight; // character's feet touch the ground
 let coins = [];
 let score = 0;
 let gameRunning = false;
@@ -73,13 +74,21 @@ function drawInitialScreen() {
 }
 
 function drawPlayer() {
+    // Draw shadow
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.ellipse(playerX + playerWidth / 2, groundY - 5, playerWidth / 2.5, 10, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#222';
+    ctx.fill();
+    ctx.restore();
     // Animate running
     if (gameRunning && !isJumping) {
         runFrameTick++;
         if (runFrameTick % 6 === 0) {
             runFrameIndex = (runFrameIndex + 1) % runFrameCount;
         }
-    } else if (!gameRunning || isJumping) {
+    } else if (!gameRunning) {
         runFrameIndex = 0;
     }
     ctx.drawImage(

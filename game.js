@@ -97,9 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
   let bgY = 0;
   let score = 0;
   let highScore = Number(localStorage.getItem('ajs_highscore') || 0);
-  let gameOver = false;
-  let gameStarted = false;
-  let gamePaused = false;
   let soundOn = true;
   let powerups = [];
   let magnetActive = false, magnetTimer = 0;

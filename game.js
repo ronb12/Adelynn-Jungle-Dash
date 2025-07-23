@@ -35,6 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
     loop();
   }
 
+  // Ensure event listeners are set up after DOM is loaded
+  const playBtn = document.getElementById('playBtn');
+  const menuStartBtn = document.getElementById('menuStartBtn');
+  const startBtn = document.getElementById('startBtn');
+  if (playBtn) playBtn.onclick = showGameMenu;
+  if (menuStartBtn) menuStartBtn.onclick = showGame;
+  if (startBtn) startBtn.onclick = showGame;
+
   // --- ASSET LOADING ---
   const assets = {
     player: new Image(),

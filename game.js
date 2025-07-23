@@ -1321,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- ASSET LOADING ---
   let loaded = 0;
-  const totalAssets = 12; // Updated to include all assets
+  const totalAssets = 11; // Updated to match actual number of assets with handlers
   let assetLoadTimeout;
   let failedAssets = [];
   

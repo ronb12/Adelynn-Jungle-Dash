@@ -2,20 +2,13 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
 const startBtn = document.getElementById('startBtn');
+const scoreboard = document.getElementById('scoreboard');
 
-// Temple Run-style: lanes are vertical, character always faces forward
-const laneCount = 3;
-const laneWidth = canvas.width / laneCount;
-const playerWidth = 60;
-const playerHeight = 100;
-const coinRadius = 15;
-const obstacleWidth = 40;
-const obstacleHeight = 40;
-
-let playerLane = 1; // 0 = left, 1 = center, 2 = right
-let playerY = canvas.height - playerHeight - 20;
+// Side-scrolling runner: character runs left-to-right, coins move right-to-left
+const groundY = canvas.height - playerHeight - 20;
+let playerX = 40; // Start near the left
+let playerY = groundY;
 let coins = [];
-let obstacles = [];
 let score = 0;
 let gameRunning = false;
 let gameInterval;
@@ -71,31 +64,11 @@ function drawInitialScreen() {
 }
 
 function drawPlayer() {
-    // Standing frame if not started, running animation if started
-    if (!gameStarted) {
-        // Draw standing frame (first frame of sprite sheet)
-        ctx.drawImage(
-            girlRunSprite,
-            0, 0, runFrameWidth, runFrameHeight,
-            playerLane * laneWidth + (laneWidth - playerWidth) / 2,
-            playerY,
-            playerWidth, playerHeight
-        );
-        return;
-    }
-    // Animate running
-    if (gameRunning) {
-        runFrameTick++;
-        if (runFrameTick % 6 === 0) {
-            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
-        }
-    } else {
-        runFrameIndex = 0;
-    }
+    // Always draw the character on the ground, facing right
     ctx.drawImage(
         girlRunSprite,
-        runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
-        playerLane * laneWidth + (laneWidth - playerWidth) / 2,
+        0, 0, runFrameWidth, runFrameHeight,
+        playerX,
         playerY - jumpY,
         playerWidth, playerHeight
     );
@@ -110,28 +83,10 @@ function drawCoins() {
     });
 }
 
-function drawObstacles() {
-    ctx.font = '36px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    obstacles.forEach(obs => {
-        ctx.fillText('🪨', obs.x + 20, obs.y + 20);
-    });
-}
-
 function spawnCoin() {
-    const lane = Math.floor(Math.random() * laneCount);
     coins.push({
-        x: lane * laneWidth + laneWidth / 2,
-        y: -20
-    });
-}
-
-function spawnObstacle() {
-    const lane = Math.floor(Math.random() * laneCount);
-    obstacles.push({
-        x: lane * laneWidth + laneWidth / 2 - 20,
-        y: -40
+        x: canvas.width + 20, // spawn off right edge
+        y: groundY + playerHeight / 2 // on the ground
     });
 }
 
@@ -141,7 +96,11 @@ function updateGame() {
         drawInitialScreen();
         return;
     }
-    // Animate player
+    // Move coins left
+    coins.forEach(coin => coin.x -= 12); // Temple Run-like speed
+    // Remove off-screen coins
+    coins = coins.filter(coin => coin.x > -30);
+    // Animate jump
     if (isJumping) {
         jumpTick++;
         jumpY = Math.sin((jumpTick / 20) * Math.PI) * 80;
@@ -150,42 +109,25 @@ function updateGame() {
             jumpTick = 0;
             jumpY = 0;
         }
-    } else if (isDashing) {
-        dashTick++;
-        if (dashTick > 10) {
-            isDashing = false;
-            dashTick = 0;
-        }
     }
-    // Move coins and obstacles down the screen
-    coins.forEach(coin => coin.y += 7);
-    obstacles.forEach(obs => obs.y += 9);
-    // Remove off-screen coins/obstacles
-    coins = coins.filter(coin => coin.y < canvas.height + 30);
-    obstacles = obstacles.filter(obs => obs.y < canvas.height + 40);
+    // Check for coin collisions
+    checkCoinCollision();
     // Draw everything
     drawPlayer();
     drawCoins();
-    drawObstacles();
-    // Check collisions
-    checkCoinCollision();
-    if (checkObstacleCollision()) {
-        endGame();
-        return;
-    }
-    // Randomly spawn coins/obstacles
-    if (Math.random() < 0.04) spawnCoin();
-    if (Math.random() < 0.03) spawnObstacle();
+    // Randomly spawn coins
+    if (Math.random() < 0.06) spawnCoin();
 }
 
 function checkCoinCollision() {
     coins = coins.filter(coin => {
-        const playerX = playerLane * laneWidth + (laneWidth - playerWidth) / 2;
-        const distX = Math.abs(coin.x - (playerX + playerWidth / 2));
-        const distY = Math.abs(coin.y - (playerY + playerHeight / 2));
-        if (distX < playerWidth / 2 + coinRadius && distY < playerHeight / 2 + coinRadius) {
+        const playerCenterX = playerX + playerWidth / 2;
+        const playerCenterY = playerY + playerHeight / 2 - jumpY;
+        const distX = Math.abs(coin.x - playerCenterX);
+        const distY = Math.abs(coin.y - playerCenterY);
+        if (distX < playerWidth / 2 && distY < playerHeight / 2) {
             score++;
-            scoreDisplay.textContent = 'Score: ' + score;
+            scoreboard.textContent = 'Score: ' + score;
             return false;
         }
         return true;
@@ -292,7 +234,7 @@ function resetGame() {
     score = 0;
     gameRunning = false;
     gameStarted = false;
-    scoreDisplay.textContent = 'Score: 0';
+    scoreboard.textContent = 'Score: 0';
     startBtn.textContent = 'Restart Game';
     startBtn.disabled = true;
     runFrameIndex = 0;

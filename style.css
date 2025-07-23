@@ -71,6 +71,25 @@ body::before {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+.lives-display {
+  background: rgba(220, 53, 69, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  animation: pulse 2s infinite;
+}
+
+.timer-display {
+  background: rgba(255, 193, 7, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #000 !important;
+  font-weight: bold;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 /* Game Controls */
 .game-controls {
   position: absolute;

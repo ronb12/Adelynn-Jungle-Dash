@@ -146,6 +146,16 @@ document.addEventListener('DOMContentLoaded', function() {
     encouragementFrequency: 600 // 10 seconds
   };
 
+  // Game state
+  let gameStarted = false;
+  let gamePaused = false;
+  let gameOver = false;
+  let lives = 25; // Add 25 lives
+  let gameTime = 60; // 60 seconds for timed mode
+  let gameMode = 'timed'; // 'timed' or 'endless'
+  let timeRemaining = gameTime;
+  let gameStartTime = 0;
+
   // Initialize parallax layers for depth effect
   function initParallaxLayers() {
     parallaxLayers = [
@@ -333,9 +343,11 @@ document.addEventListener('DOMContentLoaded', function() {
     resetGame();
     gameOver = false; // Explicitly ensure gameOver is false
     gameStarted = true;
+    gameStartTime = Date.now(); // Start the timer
     console.log('Game state after reset:', { gameOver, gameStarted, gamePaused });
     console.log('Initial player position:', { x: player.x, y: player.y, lane: player.lane });
     console.log('Initial distance:', distance);
+    console.log('Game mode:', gameMode, 'Time remaining:', timeRemaining);
     loop();
   }
 
@@ -426,6 +438,16 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="stat-label">Max Combo:</span>
             <span class="stat-value">${maxCombo}</span>
           </div>
+          <div class="stat-item">
+            <span class="stat-label">Lives Remaining:</span>
+            <span class="stat-value">${lives}</span>
+          </div>
+          ${gameMode === 'timed' ? `
+          <div class="stat-item">
+            <span class="stat-label">Time Used:</span>
+            <span class="stat-value">${Math.floor((gameTime - timeRemaining) * 10) / 10}s</span>
+          </div>
+          ` : ''}
         </div>
         ${score > highScore ? '<div class="high-score-value" style="color: #FFD700; font-size: 1.5rem; margin: 20px 0;">🏆 NEW HIGH SCORE! 🏆</div>' : ''}
         <div class="menu-buttons">
@@ -641,6 +663,10 @@ document.addEventListener('DOMContentLoaded', function() {
     coinsCollected = 0;
     obstaclesAvoided = 0;
     gameOver = false;
+    lives = 25; // Reset lives
+    gameTime = 60; // Reset timer
+    timeRemaining = gameTime;
+    gameStartTime = 0;
     gameSpeed = 1;
     screenShake = 0;
     cameraY = 0;
@@ -777,6 +803,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update game speed and distance
     gameSpeed += 0.001;
     distance += gameSpeed;
+    
+    // Update timer for timed mode
+    if (gameMode === 'timed' && gameStarted && !gameOver) {
+      timeRemaining = Math.max(0, gameTime - (Date.now() - gameStartTime) / 1000);
+      if (timeRemaining <= 0) {
+        // Time's up!
+        gameOver = true;
+        console.log('Time\'s up! Game over.');
+        updateHighScore();
+        showGameOverScreen();
+        return;
+      }
+    }
     
     // Update player
     player.vy += GRAVITY;
@@ -981,13 +1020,22 @@ document.addEventListener('DOMContentLoaded', function() {
           // Shield blocks the hit
           createParticle(obstacle.x + OBSTACLE_SIZE/2, obstacle.y + OBSTACLE_SIZE/2, 'shield');
         } else {
-          // Player gets hit
-          console.log('Player hit obstacle - setting game over');
-          gameOver = true;
+          // Player gets hit - lose a life
+          lives--;
+          console.log(`Player hit obstacle - Lives remaining: ${lives}`);
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          updateHighScore();
-          showGameOverScreen(); // Show the HTML game over screen
+          
+          // Make player invincible briefly
+          player.invincible = true;
+          player.invincibleTimer = 120; // 2 seconds at 60fps
+          
+          if (lives <= 0) {
+            // Game over when no lives left
+            gameOver = true;
+            updateHighScore();
+            showGameOverScreen();
+          }
         }
       }
       
@@ -1042,11 +1090,20 @@ document.addEventListener('DOMContentLoaded', function() {
           player.x + PLAYER_WIDTH/2 < gap.x + gap.width &&
           player.y + PLAYER_HEIGHT > gap.y &&
           player.y + PLAYER_HEIGHT < gap.y + gap.height) {
-        gameOver = true;
+        lives--;
+        console.log(`Player fell into gap - Lives remaining: ${lives}`);
         screenShake = 15;
         createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-        updateHighScore();
-        showGameOverScreen(); // Show the HTML game over screen
+        
+        // Make player invincible briefly
+        player.invincible = true;
+        player.invincibleTimer = 120;
+        
+        if (lives <= 0) {
+          gameOver = true;
+          updateHighScore();
+          showGameOverScreen();
+        }
       }
       
       // Mark gap as passed
@@ -1078,11 +1135,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (wall.side === 1 && player.lane === 2) {
           wallRun(1);
         } else {
-          gameOver = true;
+          lives--;
+          console.log(`Player hit wall - Lives remaining: ${lives}`);
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          updateHighScore();
-          showGameOverScreen(); // Show the HTML game over screen
+          
+          // Make player invincible briefly
+          player.invincible = true;
+          player.invincibleTimer = 120;
+          
+          if (lives <= 0) {
+            gameOver = true;
+            updateHighScore();
+            showGameOverScreen(); // Show the HTML game over screen
+          }
         }
       }
       
@@ -1114,11 +1180,20 @@ document.addEventListener('DOMContentLoaded', function() {
           // Shield blocks the fire
           createParticle(fireTrap.x + fireTrap.width/2, fireTrap.y + fireTrap.height/2, 'shield');
         } else {
-          gameOver = true;
+          lives--;
+          console.log(`Player hit fire trap - Lives remaining: ${lives}`);
           screenShake = 15;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
-          updateHighScore();
-          showGameOverScreen(); // Show the HTML game over screen
+          
+          // Make player invincible briefly
+          player.invincible = true;
+          player.invincibleTimer = 120;
+          
+          if (lives <= 0) {
+            gameOver = true;
+            updateHighScore();
+            showGameOverScreen();
+          }
         }
       }
       
@@ -1471,6 +1546,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update combo display
     const comboElement = document.getElementById('combo');
     if (comboElement) comboElement.textContent = `Combo: ${combo}`;
+    
+    // Update lives display
+    const livesElement = document.getElementById('lives');
+    if (livesElement) livesElement.textContent = `Lives: ${lives}`;
+    
+    // Update timer display for timed mode
+    const timerElement = document.getElementById('timer');
+    if (timerElement && gameMode === 'timed') {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = Math.floor(timeRemaining % 60);
+      timerElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
     
     // Update high score displays
     const landingHighScore = document.getElementById('landingHighScore');

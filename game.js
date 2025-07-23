@@ -326,11 +326,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showGame() {
+    console.log('Starting game...');
     document.getElementById('landingPage').style.display = 'none';
     document.getElementById('gameMenu').style.display = 'none';
     document.getElementById('startBtn').style.display = 'none';
     resetGame();
+    gameOver = false; // Explicitly ensure gameOver is false
     gameStarted = true;
+    console.log('Game state after reset:', { gameOver, gameStarted, gamePaused });
     loop();
   }
 
@@ -861,7 +864,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Spawn objects
     if (Math.random() > 0.98) spawnCoin();
-    if (Math.random() > 0.995) spawnObstacle();
+    if (Math.random() > 0.998) spawnObstacle(); // Reduced from 0.995 to 0.998 (0.2% chance instead of 0.5%)
     spawnPowerup();
     
     // Spawn Temple Run style obstacles
@@ -1294,6 +1297,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Draw game over screen
     if (gameOver) {
+      console.log('Drawing game over screen - gameOver is true');
       showGameOverScreen();
     }
   }

@@ -275,28 +275,21 @@ function updatePlayer() {
         playerVelocityX *= 0.8; // Friction
     }
     
-    // Apply velocity to player position first (Mario-style)
+    // Apply velocity to player position
     playerX += playerVelocityX;
     
-    // Mario-style camera: character moves to edge, then camera follows
-    const cameraThreshold = 200; // Distance from center before camera moves
+    // Simple Mario-style camera: move world when player reaches edges
+    const edgeThreshold = 150; // Distance from edge before camera moves
     
-    if (playerX < cameraThreshold) {
-        // Player is on the left side, don't move camera
+    if (playerX < edgeThreshold) {
+        // Player near left edge, don't move camera
         if (playerX < 50) {
             playerX = 50; // Keep player on screen
         }
-    } else if (playerX > canvas.width - cameraThreshold) {
-        // Player is on the right side, don't move camera
-        if (playerX > canvas.width - playerWidth - 50) {
-            playerX = canvas.width - playerWidth - 50; // Keep player on screen
-        }
-    } else {
-        // Player is in the center area, move camera to follow
-        const centerX = canvas.width / 2 - playerWidth / 2;
-        const cameraMove = playerX - centerX;
-        worldOffset += cameraMove;
-        playerX = centerX; // Center player
+    } else if (playerX > canvas.width - edgeThreshold) {
+        // Player near right edge, move camera to follow
+        worldOffset += playerVelocityX;
+        playerX = canvas.width - edgeThreshold; // Keep player at edge
     }
     
     // Handle jumping

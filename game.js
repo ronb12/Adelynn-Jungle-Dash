@@ -766,6 +766,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function update() {
     if (gamePaused || !gameStarted) return;
 
+    // Debug: Check if gameOver is true at the start of update
+    if (gameOver) {
+      console.log('Game over detected in update function');
+      return;
+    }
+
     // Update game speed and distance
     gameSpeed += 0.001;
     distance += gameSpeed;
@@ -898,7 +904,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Spawn objects
     if (Math.random() > 0.98) spawnCoin();
-    if (Math.random() > 0.998) spawnObstacle(); // Reduced from 0.995 to 0.998 (0.2% chance instead of 0.5%)
+    if (Math.random() > 0.998) {
+      console.log('Spawning obstacle at distance:', distance);
+      spawnObstacle();
+    }
     spawnPowerup();
     
     // Spawn Temple Run style obstacles
@@ -962,11 +971,16 @@ document.addEventListener('DOMContentLoaded', function() {
           player.y < obstacle.y + OBSTACLE_SIZE &&
           player.y + PLAYER_HEIGHT > obstacle.y) {
         
+        console.log('Collision detected!');
+        console.log('Player position:', { x: player.x, y: player.y, width: PLAYER_WIDTH, height: PLAYER_HEIGHT });
+        console.log('Obstacle position:', { x: obstacle.x, y: obstacle.y, size: OBSTACLE_SIZE });
+        
         if (shieldActive) {
           // Shield blocks the hit
           createParticle(obstacle.x + OBSTACLE_SIZE/2, obstacle.y + OBSTACLE_SIZE/2, 'shield');
         } else {
           // Player gets hit
+          console.log('Player hit obstacle - setting game over');
           gameOver = true;
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');

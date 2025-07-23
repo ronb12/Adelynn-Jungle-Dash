@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
   let W = canvas.width;
   let H = canvas.height;
 
+  // Add this function after DOMContentLoaded and before any asset loading or game logic
+  function showLandingPage() {
+    const landingPage = document.getElementById('landingPage');
+    const gameMenu = document.getElementById('gameMenu');
+    if (landingPage) landingPage.style.display = 'flex';
+    if (gameMenu) gameMenu.style.display = 'none';
+  }
+
   // --- ASSET LOADING ---
   const assets = {
     player: new Image(),

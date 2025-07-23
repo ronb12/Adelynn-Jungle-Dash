@@ -1,5 +1,5 @@
 // Service Worker for Adelynn's Jungle Dash
-const CACHE_NAME = 'adelynn-jungle-dash-v1';
+const CACHE_NAME = 'adelynn-jungle-dash-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -22,28 +22,38 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', event => {
+  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        // Cache files individually to avoid failures
-        return Promise.allSettled(
-          urlsToCache.map(url => 
-            cache.add(url).catch(err => {
-              console.warn('Failed to cache:', url, err);
-              return null;
-            })
-          )
-        );
+        // Try to cache files but don't fail if some don't work
+        const cachePromises = urlsToCache.map(url => {
+          return cache.add(url).catch(err => {
+            console.log(`Skipping cache for ${url}: ${err.message}`);
+            return null; // Don't fail the entire cache operation
+          });
+        });
+        return Promise.allSettled(cachePromises);
+      })
+      .then(results => {
+        const successful = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+        console.log(`Cache installation complete: ${successful} successful, ${failed} failed`);
       })
       .catch(err => {
-        console.warn('Cache installation failed:', err);
+        console.log('Cache installation failed, but continuing:', err.message);
       })
   );
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
 // Fetch event - serve from cache if available
 self.addEventListener('fetch', event => {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
+  
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -51,10 +61,7 @@ self.addEventListener('fetch', event => {
         return response || fetch(event.request);
       })
       .catch(() => {
-        // If both cache and network fail, return a fallback
-        if (event.request.destination === 'image') {
-          return new Response('', { status: 404 });
-        }
+        // If both cache and network fail, just fetch from network
         return fetch(event.request);
       })
   );
@@ -62,6 +69,7 @@ self.addEventListener('fetch', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
+  console.log('Service Worker activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -74,4 +82,6 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  // Take control immediately
+  event.waitUntil(self.clients.claim());
 }); 

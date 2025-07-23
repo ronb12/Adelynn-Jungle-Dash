@@ -212,13 +212,13 @@ function spawnCoin() {
     const coinX = Math.random() * 2000 + worldOffset + canvas.width;
     coins.push({
         x: coinX,
-        y: canvas.height - 40 // Adjusted for Mario-style ground
+        y: canvas.height - 50 // Higher up so coins are visible
     });
 }
 
 function spawnPlatform() {
     const platformX = Math.random() * 2000 + worldOffset + canvas.width;
-    const platformY = canvas.height - 100 - Math.random() * 200; // More varied heights
+    const platformY = canvas.height - 120 - Math.random() * 150; // More varied heights
     const platformWidth = 80 + Math.random() * 120;
     
     platforms.push({
@@ -237,17 +237,17 @@ function spawnObstacle() {
     if (obstacleType === OBJECT_TYPES.PIPE) {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 80, // Adjusted for Mario-style ground
+            y: canvas.height - 100, // Higher up for better jumping
             width: 40,
-            height: 80,
+            height: 100,
             type: obstacleType
         });
     } else {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 40, // Adjusted for Mario-style ground
+            y: canvas.height - 60, // Higher up for better jumping
             width: 40,
-            height: 40,
+            height: 60,
             type: obstacleType
         });
     }
@@ -257,7 +257,7 @@ function spawnEnemy() {
     const enemyX = Math.random() * 2000 + worldOffset + canvas.width;
     enemies.push({
         x: enemyX,
-        y: canvas.height - 30, // Adjusted for Mario-style ground
+        y: canvas.height - 40, // Higher up for better visibility
         width: 30,
         height: 30,
         velocityX: -1,
@@ -377,8 +377,8 @@ function updateGame() {
     drawPlayer();
     drawCoins();
     
-    // Spawn objects occasionally (only after game has been running for a bit)
-    if (gameRunning && worldOffset > 100) {
+    // Spawn objects occasionally (start spawning immediately)
+    if (gameRunning) {
         if (Math.random() < 0.01) spawnCoin();
         if (Math.random() < 0.005) spawnPlatform();
         if (Math.random() < 0.003) spawnObstacle();
@@ -465,8 +465,9 @@ function startGameLoop() {
 startBtn.addEventListener('click', () => {
     console.log('Start button clicked');
     resetGame();
-    clearInterval(gameInterval);
-    gameInterval = setInterval(gameLoop, 1000 / 60);
+    gameStarted = true;
+    gameRunning = true;
+    startGameLoop();
 });
 
 canvas.addEventListener('touchend', function(e) {

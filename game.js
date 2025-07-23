@@ -47,61 +47,33 @@ canvas.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;
     }
 });
-canvas.addEventListener('touchend', function(e) {
-    if (touchStartX === null || touchStartY === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    if (!gameStarted && dy < -30) {
-        gameStarted = true;
-        gameRunning = true;
-        return;
-    }
-    if (!gameRunning) return;
-    if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal swipe
-        if (dx > 30 && playerLane < laneCount - 1) playerLane++;
-        else if (dx < -30 && playerLane > 0) playerLane--;
-    } else {
-        // Vertical swipe
-        if (dy < -30 && !isJumping) { isJumping = true; jumpTick = 0; }
-        else if (dy > 30 && !isDashing) { isDashing = true; dashTick = 0; }
-    }
-    touchStartX = null;
-    touchStartY = null;
-});
 
-function resetGame() {
-    playerLane = 1;
-    coins = [];
-    obstacles = [];
-    score = 0;
-    gameRunning = false;
-    gameStarted = false;
-    scoreDisplay.textContent = 'Score: 0';
-    startBtn.textContent = 'Restart Game';
-    startBtn.disabled = true; // Disable start button during game
-    runFrameIndex = 0;
-    runFrameTick = 0;
-    isJumping = false;
-    jumpY = 0;
-    jumpTick = 0;
-    isDashing = false;
-    dashTick = 0;
-    drawInitialScreen();
+// Jungle background gradient
+function drawBackground() {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#4caf50'); // jungle green
+    grad.addColorStop(0.5, '#aee571'); // lighter green
+    grad.addColorStop(1, '#fffde4'); // light yellow
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawInitialScreen() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground();
     drawPlayer();
     ctx.fillStyle = '#fff';
-    ctx.font = '1.2em Arial';
+    ctx.font = 'bold 1.5em Comic Sans MS, Comic Sans, cursive';
     ctx.textAlign = 'center';
+    ctx.shadowColor = '#222';
+    ctx.shadowBlur = 8;
     ctx.fillText('Swipe up or press ↑ to start!', canvas.width / 2, canvas.height / 2);
+    ctx.shadowBlur = 0;
 }
 
 function drawPlayer() {
     // Standing frame if not started, running animation if started
     if (!gameStarted) {
+        // Draw standing frame (first frame of sprite sheet)
         ctx.drawImage(
             girlRunSprite,
             0, 0, runFrameWidth, runFrameHeight,
@@ -164,7 +136,7 @@ function spawnObstacle() {
 }
 
 function updateGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground();
     if (!gameStarted) {
         drawInitialScreen();
         return;
@@ -259,8 +231,33 @@ startBtn.addEventListener('click', () => {
     gameInterval = setInterval(gameLoop, 1000 / 60);
 });
 
+canvas.addEventListener('touchend', function(e) {
+    if (touchStartX === null || touchStartY === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (!gameStarted && dy < -30) {
+        console.log('Game started by swipe up');
+        gameStarted = true;
+        gameRunning = true;
+        return;
+    }
+    if (!gameRunning) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        if (dx > 30 && playerLane < laneCount - 1) playerLane++;
+        else if (dx < -30 && playerLane > 0) playerLane--;
+    } else {
+        // Vertical swipe
+        if (dy < -30 && !isJumping) { isJumping = true; jumpTick = 0; }
+        else if (dy > 30 && !isDashing) { isDashing = true; dashTick = 0; }
+    }
+    touchStartX = null;
+    touchStartY = null;
+});
+
 document.addEventListener('keydown', (e) => {
     if (!gameStarted && (e.key === 'ArrowUp' || e.key === 'w')) {
+        console.log('Game started by key up');
         gameStarted = true;
         gameRunning = true;
         return;
@@ -278,6 +275,26 @@ document.addEventListener('keydown', (e) => {
         dashTick = 0;
     }
 });
+
+function resetGame() {
+    playerLane = 1;
+    coins = [];
+    obstacles = [];
+    score = 0;
+    gameRunning = false;
+    gameStarted = false;
+    scoreDisplay.textContent = 'Score: 0';
+    startBtn.textContent = 'Restart Game';
+    startBtn.disabled = true; // Disable start button during game
+    runFrameIndex = 0;
+    runFrameTick = 0;
+    isJumping = false;
+    jumpY = 0;
+    jumpTick = 0;
+    isDashing = false;
+    dashTick = 0;
+    drawInitialScreen();
+}
 
 // Initial draw
 ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear before drawing

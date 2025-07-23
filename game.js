@@ -74,12 +74,12 @@ function drawPlayer() {
     );
 }
 
+const marioCoin = new Image();
+marioCoin.src = 'sprites/mario_coin.gif';
+
 function drawCoins() {
-    ctx.font = '30px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
     coins.forEach(coin => {
-        ctx.fillText('🪙', coin.x, coin.y);
+        ctx.drawImage(marioCoin, coin.x - 8, coin.y - 7, 16, 14); // Center the 16x14 coin
     });
 }
 

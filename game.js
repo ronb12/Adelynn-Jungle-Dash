@@ -4,25 +4,32 @@ const scoreDisplay = document.getElementById('score');
 const startBtn = document.getElementById('startBtn');
 const scoreboard = document.getElementById('scoreboard');
 
-// Side-scrolling runner: character runs left-to-right, coins move right-to-left
-// Align character feet with ground
+// Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
 const playerHeight = 100;
-const groundY = canvas.height - 20; // groundY is now the top of the green ground
-let playerX = 40;
-let playerY = groundY - playerHeight; // character's feet touch the ground
+const groundY = canvas.height - 20;
+let playerX = 100; // Start player at fixed position on screen
+let playerY = groundY - playerHeight;
+let worldOffset = 0; // How much the world has moved
 let coins = [];
 let score = 0;
 let gameRunning = false;
 let gameInterval;
 let gameStarted = false;
 
+// Player movement variables
+let playerVelocityX = 0;
+let playerVelocityY = 0;
+const playerSpeed = 5;
+const gravity = 0.8;
+const jumpPower = -15;
+
 // Sprite sheet for girl character (running)
 const girlRunSprite = new Image();
 girlRunSprite.src = 'sprites/girl_run.png';
-const runFrameWidth = 180; // Based on asset pixel dimensions
+const runFrameWidth = 180;
 const runFrameHeight = 480;
-const runFrameCount = 8; // This asset has 8 frames per row
+const runFrameCount = 8;
 let runFrameIndex = 0;
 let runFrameTick = 0;
 
@@ -36,6 +43,14 @@ let dashTick = 0;
 // Touch/swipe variables
 let touchStartX = null;
 let touchStartY = null;
+
+// Input state
+let keys = {
+    left: false,
+    right: false,
+    up: false,
+    down: false
+};
 
 canvas.addEventListener('touchstart', function(e) {
     if (e.touches.length === 1) {
@@ -69,7 +84,7 @@ function drawInitialScreen() {
     ctx.textAlign = 'center';
     ctx.shadowColor = '#222';
     ctx.shadowBlur = 8;
-    ctx.fillText('Swipe up or press ↑ to start!', canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Use arrow keys or WASD to move!', canvas.width / 2, canvas.height / 2);
     ctx.shadowBlur = 0;
 }
 
@@ -82,8 +97,9 @@ function drawPlayer() {
     ctx.fillStyle = '#222';
     ctx.fill();
     ctx.restore();
+    
     // Animate running
-    if (gameRunning && !isJumping) {
+    if (gameRunning && Math.abs(playerVelocityX) > 0 && !isJumping) {
         runFrameTick++;
         if (runFrameTick % 6 === 0) {
             runFrameIndex = (runFrameIndex + 1) % runFrameCount;
@@ -91,11 +107,12 @@ function drawPlayer() {
     } else if (!gameRunning) {
         runFrameIndex = 0;
     }
+    
     ctx.drawImage(
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY - jumpY,
+        playerY + playerVelocityY,
         playerWidth, playerHeight
     );
 }
@@ -106,16 +123,58 @@ marioCoin.src = 'sprites/mario_coin.gif';
 function drawCoins() {
     coins.forEach(coin => {
         if (marioCoin.complete && marioCoin.naturalWidth > 0) {
-            ctx.drawImage(marioCoin, coin.x - 8, coin.y - 7, 16, 14);
+            ctx.drawImage(marioCoin, coin.x - worldOffset - 8, coin.y - 7, 16, 14);
         }
     });
 }
 
 function spawnCoin() {
+    const coinX = Math.random() * 2000 + worldOffset + canvas.width; // Spawn ahead of player
     coins.push({
-        x: canvas.width + 20, // spawn off right edge
-        y: canvas.height - 30 // just above the green ground
+        x: coinX,
+        y: canvas.height - 30
     });
+}
+
+function updatePlayer() {
+    // Handle horizontal movement
+    if (keys.left) {
+        playerVelocityX = -playerSpeed;
+    } else if (keys.right) {
+        playerVelocityX = playerSpeed;
+    } else {
+        playerVelocityX *= 0.8; // Friction
+    }
+    
+    // Apply velocity
+    playerX += playerVelocityX;
+    
+    // Keep player on screen
+    if (playerX < 50) {
+        playerX = 50;
+        playerVelocityX = 0;
+    } else if (playerX > canvas.width - playerWidth - 50) {
+        // Move world instead of player
+        worldOffset += playerVelocityX;
+        playerX = canvas.width - playerWidth - 50;
+    }
+    
+    // Handle jumping
+    if (keys.up && !isJumping && playerVelocityY === 0) {
+        playerVelocityY = jumpPower;
+        isJumping = true;
+    }
+    
+    // Apply gravity
+    playerVelocityY += gravity;
+    playerY += playerVelocityY;
+    
+    // Ground collision
+    if (playerY >= groundY - playerHeight) {
+        playerY = groundY - playerHeight;
+        playerVelocityY = 0;
+        isJumping = false;
+    }
 }
 
 function updateGame() {
@@ -124,37 +183,26 @@ function updateGame() {
         drawInitialScreen();
         return;
     }
-    // Move character right
-    playerX += 3; // Adjust speed as needed
-    if (playerX > canvas.width - playerWidth) {
-        playerX = 0; // Loop back to left
-    }
-    // Move coins left
-    coins.forEach(coin => coin.x -= 5);
-    coins = coins.filter(coin => coin.x > -30);
-    // Animate jump
-    if (isJumping) {
-        jumpTick++;
-        jumpY = Math.sin((jumpTick / 20) * Math.PI) * 80;
-        if (jumpTick > 20) {
-            isJumping = false;
-            jumpTick = 0;
-            jumpY = 0;
-        }
-    }
+    
+    updatePlayer();
+    
     // Check for coin collisions
     checkCoinCollision();
+    
     // Draw everything
     drawPlayer();
     drawCoins();
-    if (Math.random() < 0.06) spawnCoin();
+    
+    // Spawn coins occasionally
+    if (Math.random() < 0.02) spawnCoin();
 }
 
 function checkCoinCollision() {
     coins = coins.filter(coin => {
+        const coinScreenX = coin.x - worldOffset;
         const playerCenterX = playerX + playerWidth / 2;
-        const playerCenterY = playerY + playerHeight / 2 - jumpY;
-        const distX = Math.abs(coin.x - playerCenterX);
+        const playerCenterY = playerY + playerHeight / 2 + playerVelocityY;
+        const distX = Math.abs(coinScreenX - playerCenterX);
         const distY = Math.abs(coin.y - playerCenterY);
         if (distX < playerWidth / 2 && distY < playerHeight / 2) {
             score++;
@@ -162,18 +210,6 @@ function checkCoinCollision() {
             return false;
         }
         return true;
-    });
-}
-
-function checkObstacleCollision() {
-    return obstacles.some(obs => {
-        const playerX = playerLane * laneWidth + (laneWidth - playerWidth) / 2;
-        return (
-            obs.x < playerX + playerWidth &&
-            obs.x + obstacleWidth > playerX &&
-            obs.y < playerY + playerHeight &&
-            obs.y + obstacleHeight > playerY
-        );
     });
 }
 
@@ -188,7 +224,7 @@ function endGame() {
     ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
     ctx.font = '1.5em Arial';
     ctx.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
-    startBtn.disabled = false; // Enable start button after game over
+    startBtn.disabled = false;
 }
 
 function gameLoop() {
@@ -214,6 +250,7 @@ canvas.addEventListener('touchend', function(e) {
     if (touchStartX === null || touchStartY === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
+    
     if (!gameStarted && dy < -30) {
         console.log('Game started by swipe up');
         gameStarted = true;
@@ -221,16 +258,19 @@ canvas.addEventListener('touchend', function(e) {
         startGameLoop();
         return;
     }
+    
     if (!gameRunning) return;
+    
     if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe
-        if (dx > 30 && playerLane < laneCount - 1) playerLane++;
-        else if (dx < -30 && playerLane > 0) playerLane--;
+        if (dx > 30) keys.right = true;
+        else if (dx < -30) keys.left = true;
     } else {
         // Vertical swipe
-        if (dy < -30 && !isJumping) { isJumping = true; jumpTick = 0; }
-        else if (dy > 30 && !isDashing) { isDashing = true; dashTick = 0; }
+        if (dy < -30) keys.up = true;
+        else if (dy > 30) keys.down = true;
     }
+    
     touchStartX = null;
     touchStartY = null;
 });
@@ -243,25 +283,65 @@ document.addEventListener('keydown', (e) => {
         startGameLoop();
         return;
     }
+    
     if (!gameRunning) return;
-    if (e.key === 'ArrowLeft' && playerLane > 0) {
-        playerLane--;
-    } else if (e.key === 'ArrowRight' && playerLane < laneCount - 1) {
-        playerLane++;
-    } else if ((e.key === 'ArrowUp' || e.key === 'w') && !isJumping) {
-        isJumping = true;
-        jumpTick = 0;
-    } else if ((e.key === 'ArrowDown' || e.key === 's' || e.key === ' ') && !isDashing) {
-        isDashing = true;
-        dashTick = 0;
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            keys.left = true;
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            keys.right = true;
+            break;
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            keys.up = true;
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            keys.down = true;
+            break;
     }
 });
 
-// On reset, stop the game loop
+document.addEventListener('keyup', (e) => {
+    switch(e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            keys.left = false;
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            keys.right = false;
+            break;
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            keys.up = false;
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            keys.down = false;
+            break;
+    }
+});
+
 function resetGame() {
-    playerLane = 1;
+    playerX = 100;
+    playerY = groundY - playerHeight;
+    worldOffset = 0;
+    playerVelocityX = 0;
+    playerVelocityY = 0;
     coins = [];
-    obstacles = [];
     score = 0;
     gameRunning = false;
     gameStarted = false;
@@ -275,12 +355,13 @@ function resetGame() {
     jumpTick = 0;
     isDashing = false;
     dashTick = 0;
+    keys = { left: false, right: false, up: false, down: false };
     if (gameInterval) clearInterval(gameInterval);
     drawInitialScreen();
 }
 
 // Initial draw
-ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear before drawing
+ctx.clearRect(0, 0, canvas.width, canvas.height);
 ctx.fillStyle = '#fff';
 ctx.font = '1.2em Arial';
 ctx.textAlign = 'center';

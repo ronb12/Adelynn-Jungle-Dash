@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameMenu = document.getElementById('gameMenu');
     if (landingPage) landingPage.style.display = 'none';
     if (gameMenu) gameMenu.style.display = 'none';
+    // Optionally hide any other overlays that could block the canvas
     resetGame();
     gameOver = false;
     gameStarted = true;

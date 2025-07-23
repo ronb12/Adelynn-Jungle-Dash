@@ -3,16 +3,17 @@ const ctx = canvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
 const startBtn = document.getElementById('startBtn');
 
+// Temple Run-style: lanes are vertical, character always faces forward
 const laneCount = 3;
 const laneWidth = canvas.width / laneCount;
-const playerWidth = 40;
-const playerHeight = 40;
+const playerWidth = 60;
+const playerHeight = 100;
 const coinRadius = 15;
 const obstacleWidth = 40;
 const obstacleHeight = 40;
 
 let playerLane = 1; // 0 = left, 1 = center, 2 = right
-let playerY = canvas.height - playerHeight - 10;
+let playerY = canvas.height - playerHeight - 20;
 let coins = [];
 let obstacles = [];
 let score = 0;
@@ -27,6 +28,40 @@ const runFrameHeight = 480;
 const runFrameCount = 8; // This asset has 8 frames per row
 let runFrameIndex = 0;
 let runFrameTick = 0;
+
+// Add jump and dash logic
+let isJumping = false;
+let jumpY = 0;
+let jumpTick = 0;
+let isDashing = false;
+let dashTick = 0;
+
+// Touch/swipe variables
+let touchStartX = null;
+let touchStartY = null;
+
+canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }
+});
+canvas.addEventListener('touchend', function(e) {
+    if (touchStartX === null || touchStartY === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        if (dx > 30 && playerLane < laneCount - 1) playerLane++;
+        else if (dx < -30 && playerLane > 0) playerLane--;
+    } else {
+        // Vertical swipe
+        if (dy < -30 && !isJumping) { isJumping = true; jumpTick = 0; }
+        else if (dy > 30 && !isDashing) { isDashing = true; dashTick = 0; }
+    }
+    touchStartX = null;
+    touchStartY = null;
+});
 
 function resetGame() {
     playerLane = 1;
@@ -43,7 +78,7 @@ function drawPlayer() {
     // Animate running
     if (gameRunning) {
         runFrameTick++;
-        if (runFrameTick % 6 === 0) { // Adjust speed as needed
+        if (runFrameTick % 6 === 0) {
             runFrameIndex = (runFrameIndex + 1) % runFrameCount;
         }
     } else {
@@ -52,9 +87,9 @@ function drawPlayer() {
     ctx.drawImage(
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
-        playerLane * laneWidth + (laneWidth - runFrameWidth / 3) / 2,
-        playerY - (runFrameHeight / 3 - playerHeight),
-        runFrameWidth / 3, runFrameHeight / 3 // Scale down to fit canvas
+        playerLane * laneWidth + (laneWidth - playerWidth) / 2,
+        playerY - jumpY,
+        playerWidth, playerHeight
     );
 }
 
@@ -72,7 +107,7 @@ function drawObstacles() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     obstacles.forEach(obs => {
-        ctx.fillText('🪨', obs.x + obstacleWidth / 2, obs.y + obstacleHeight / 2);
+        ctx.fillText('🪨', obs.x + 20, obs.y + 20);
     });
 }
 
@@ -80,30 +115,22 @@ function spawnCoin() {
     const lane = Math.floor(Math.random() * laneCount);
     coins.push({
         x: lane * laneWidth + laneWidth / 2,
-        y: -coinRadius
+        y: -20
     });
 }
 
 function spawnObstacle() {
     const lane = Math.floor(Math.random() * laneCount);
     obstacles.push({
-        x: lane * laneWidth + (laneWidth - obstacleWidth) / 2,
-        y: -obstacleHeight
+        x: lane * laneWidth + laneWidth / 2 - 20,
+        y: -40
     });
 }
-
-// Add jump and dash logic
-let isJumping = false;
-let jumpY = 0;
-let jumpTick = 0;
-let isDashing = false;
-let dashTick = 0;
 
 function updateGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Animate player
     if (isJumping) {
-        // playerState = 'jump'; // This line is no longer needed as playerState is removed
         jumpTick++;
         jumpY = Math.sin((jumpTick / 20) * Math.PI) * 80;
         if (jumpTick > 20) {
@@ -112,22 +139,18 @@ function updateGame() {
             jumpY = 0;
         }
     } else if (isDashing) {
-        // playerState = 'dash'; // This line is no longer needed as playerState is removed
         dashTick++;
         if (dashTick > 10) {
             isDashing = false;
             dashTick = 0;
         }
-    } else {
-        // playerState = 'run'; // This line is no longer needed as playerState is removed
     }
-    // Move coins
-    coins.forEach(coin => coin.y += 5);
-    // Move obstacles
-    obstacles.forEach(obs => obs.y += 7);
+    // Move coins and obstacles down the screen
+    coins.forEach(coin => coin.y += 7);
+    obstacles.forEach(obs => obs.y += 9);
     // Remove off-screen coins/obstacles
-    coins = coins.filter(coin => coin.y < canvas.height + coinRadius);
-    obstacles = obstacles.filter(obs => obs.y < canvas.height + obstacleHeight);
+    coins = coins.filter(coin => coin.y < canvas.height + 30);
+    obstacles = obstacles.filter(obs => obs.y < canvas.height + 40);
     // Draw everything
     drawPlayer();
     drawCoins();
@@ -202,10 +225,10 @@ document.addEventListener('keydown', (e) => {
         playerLane--;
     } else if (e.key === 'ArrowRight' && playerLane < laneCount - 1) {
         playerLane++;
-    } else if (e.key === 'ArrowUp' && !isJumping) {
+    } else if ((e.key === 'ArrowUp' || e.key === 'w') && !isJumping) {
         isJumping = true;
         jumpTick = 0;
-    } else if (e.key === ' ' && !isDashing) {
+    } else if ((e.key === 'ArrowDown' || e.key === 's' || e.key === ' ') && !isDashing) {
         isDashing = true;
         dashTick = 0;
     }

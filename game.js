@@ -36,6 +36,10 @@ const runFrameCount = 8;
 let runFrameIndex = 0;
 let runFrameTick = 0;
 
+// Jungle menu background
+const jungleMenuBg = new Image();
+jungleMenuBg.src = 'sprites/jungle_menu_bg.jpg';
+
 // Add jump and dash logic
 let isJumping = false;
 let jumpY = 0;
@@ -89,14 +93,36 @@ function drawBackground() {
 }
 
 function drawInitialScreen() {
-    drawBackground();
+    // Draw jungle background for menu
+    if (jungleMenuBg.complete && jungleMenuBg.naturalWidth > 0) {
+        ctx.drawImage(jungleMenuBg, 0, 0, canvas.width, canvas.height);
+    } else {
+        drawBackground();
+    }
+    
+    // Add a semi-transparent overlay for better text readability
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
     drawPlayer();
+    
+    // Game title
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 3em Comic Sans MS, Comic Sans, cursive';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#222';
+    ctx.shadowBlur = 10;
+    ctx.fillText('Adelynn\'s Jungle Dash', canvas.width / 2, canvas.height / 2 - 80);
+    ctx.shadowBlur = 0;
+    
+    // Instructions
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 1.5em Comic Sans MS, Comic Sans, cursive';
     ctx.textAlign = 'center';
     ctx.shadowColor = '#222';
     ctx.shadowBlur = 8;
     ctx.fillText('Use arrow keys or WASD to move!', canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Jump on enemies to defeat them!', canvas.width / 2, canvas.height / 2 + 30);
     ctx.shadowBlur = 0;
 }
 

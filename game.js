@@ -7,8 +7,8 @@ const scoreboard = document.getElementById('scoreboard');
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
 const playerHeight = 100;
-const groundY = canvas.height - 40; // Adjusted for horizontal layout
-let playerX = canvas.width / 2 - playerWidth / 2; // Center player on screen
+const groundY = canvas.height - 20; // Mario-style ground (thinner)
+let playerX = 100; // Start player at fixed position, not centered
 let playerY = groundY - playerHeight;
 let worldOffset = 0; // How much the world has moved
 let coins = [];
@@ -80,9 +80,9 @@ function drawBackground() {
     // Blue sky
     ctx.fillStyle = '#87ceeb';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Green ground (fixed height at bottom)
+    // Green ground (Mario-style thin ground)
     ctx.fillStyle = '#4caf50';
-    ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
     // Optional: clouds
     ctx.fillStyle = '#fff';
     ctx.beginPath();
@@ -212,13 +212,13 @@ function spawnCoin() {
     const coinX = Math.random() * 2000 + worldOffset + canvas.width;
     coins.push({
         x: coinX,
-        y: canvas.height - 60 // Higher up for better visibility
+        y: canvas.height - 40 // Adjusted for Mario-style ground
     });
 }
 
 function spawnPlatform() {
     const platformX = Math.random() * 2000 + worldOffset + canvas.width;
-    const platformY = canvas.height - 120 - Math.random() * 200; // More varied heights
+    const platformY = canvas.height - 100 - Math.random() * 200; // More varied heights
     const platformWidth = 80 + Math.random() * 120;
     
     platforms.push({
@@ -237,17 +237,17 @@ function spawnObstacle() {
     if (obstacleType === OBJECT_TYPES.PIPE) {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 100, // Higher up for better jumping
+            y: canvas.height - 80, // Adjusted for Mario-style ground
             width: 40,
-            height: 100,
+            height: 80,
             type: obstacleType
         });
     } else {
         obstacles.push({
             x: obstacleX,
-            y: canvas.height - 60, // Higher up for better jumping
+            y: canvas.height - 40, // Adjusted for Mario-style ground
             width: 40,
-            height: 60,
+            height: 40,
             type: obstacleType
         });
     }
@@ -257,7 +257,7 @@ function spawnEnemy() {
     const enemyX = Math.random() * 2000 + worldOffset + canvas.width;
     enemies.push({
         x: enemyX,
-        y: canvas.height - 50, // Higher up for better visibility
+        y: canvas.height - 30, // Adjusted for Mario-style ground
         width: 30,
         height: 30,
         velocityX: -1,
@@ -275,13 +275,28 @@ function updatePlayer() {
         playerVelocityX *= 0.8; // Friction
     }
     
-    // Apply velocity to world offset instead of player position
-    if (keys.left || keys.right) {
-        worldOffset -= playerVelocityX; // Move world opposite to player direction
-    }
+    // Apply velocity to player position first (Mario-style)
+    playerX += playerVelocityX;
     
-    // Keep player centered on screen (Mario-style camera)
-    playerX = canvas.width / 2 - playerWidth / 2;
+    // Mario-style camera: character moves to edge, then camera follows
+    const cameraThreshold = 200; // Distance from center before camera moves
+    
+    if (playerX < cameraThreshold) {
+        // Player is on the left side, don't move camera
+        if (playerX < 50) {
+            playerX = 50; // Keep player on screen
+        }
+    } else if (playerX > canvas.width - cameraThreshold) {
+        // Player is on the right side, don't move camera
+        if (playerX > canvas.width - playerWidth - 50) {
+            playerX = canvas.width - playerWidth - 50; // Keep player on screen
+        }
+    } else {
+        // Player is in the center area, move camera to follow
+        const targetCameraX = playerX - canvas.width / 2 + playerWidth / 2;
+        worldOffset += targetCameraX - (playerX - worldOffset);
+        playerX = canvas.width / 2 - playerWidth / 2; // Center player
+    }
     
     // Handle jumping
     if (keys.up && !isJumping && playerVelocityY === 0) {
@@ -322,11 +337,11 @@ function updatePlayer() {
             playerX < obstacleScreenX + obstacle.width &&
             playerY + playerHeight > obstacle.y &&
             playerY < obstacle.y + obstacle.height) {
-            // Collision detected - push player back by moving world
+            // Collision detected - push player back
             if (playerVelocityX > 0) {
-                worldOffset += 5; // Move world back
+                playerX = obstacleScreenX - playerWidth;
             } else if (playerVelocityX < 0) {
-                worldOffset -= 5; // Move world forward
+                playerX = obstacleScreenX + obstacle.width;
             }
             playerVelocityX = 0;
         }
@@ -550,7 +565,7 @@ document.addEventListener('keyup', (e) => {
 });
 
 function resetGame() {
-    playerX = canvas.width / 2 - playerWidth / 2; // Center player on screen
+    playerX = 100; // Mario-style starting position, not centered
     playerY = groundY - playerHeight;
     worldOffset = 0;
     playerVelocityX = 0;

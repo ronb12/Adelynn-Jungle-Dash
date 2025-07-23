@@ -8,7 +8,7 @@ const scoreboard = document.getElementById('scoreboard');
 const playerWidth = 60;
 const playerHeight = 100;
 const groundY = canvas.height - 40; // Adjusted for horizontal layout
-let playerX = 100; // Start player at fixed position on screen
+let playerX = canvas.width / 2 - playerWidth / 2; // Center player on screen
 let playerY = groundY - playerHeight;
 let worldOffset = 0; // How much the world has moved
 let coins = [];
@@ -275,18 +275,13 @@ function updatePlayer() {
         playerVelocityX *= 0.8; // Friction
     }
     
-    // Apply velocity
-    playerX += playerVelocityX;
-    
-    // Keep player on screen
-    if (playerX < 50) {
-        playerX = 50;
-        playerVelocityX = 0;
-    } else if (playerX > canvas.width - playerWidth - 50) {
-        // Move world instead of player
-        worldOffset += playerVelocityX;
-        playerX = canvas.width - playerWidth - 50;
+    // Apply velocity to world offset instead of player position
+    if (keys.left || keys.right) {
+        worldOffset -= playerVelocityX; // Move world opposite to player direction
     }
+    
+    // Keep player centered on screen (Mario-style camera)
+    playerX = canvas.width / 2 - playerWidth / 2;
     
     // Handle jumping
     if (keys.up && !isJumping && playerVelocityY === 0) {
@@ -327,11 +322,11 @@ function updatePlayer() {
             playerX < obstacleScreenX + obstacle.width &&
             playerY + playerHeight > obstacle.y &&
             playerY < obstacle.y + obstacle.height) {
-            // Collision detected - push player back
+            // Collision detected - push player back by moving world
             if (playerVelocityX > 0) {
-                playerX = obstacleScreenX - playerWidth;
+                worldOffset += 5; // Move world back
             } else if (playerVelocityX < 0) {
-                playerX = obstacleScreenX + obstacle.width;
+                worldOffset -= 5; // Move world forward
             }
             playerVelocityX = 0;
         }
@@ -418,11 +413,11 @@ function checkEnemyCollision() {
                 return;
             } else {
                 // Player gets hit from the side - INFINITE LIVES MODE
-                // Just bounce the player back instead of ending game
+                // Bounce the player back by moving the world
                 if (playerVelocityX > 0) {
-                    playerX = enemyScreenX - playerWidth - 5;
+                    worldOffset += 10; // Move world back
                 } else {
-                    playerX = enemyScreenX + enemy.width + 5;
+                    worldOffset -= 10; // Move world forward
                 }
                 playerVelocityX = 0;
                 // Add a small bounce effect
@@ -555,7 +550,7 @@ document.addEventListener('keyup', (e) => {
 });
 
 function resetGame() {
-    playerX = 100;
+    playerX = canvas.width / 2 - playerWidth / 2; // Center player on screen
     playerY = groundY - playerHeight;
     worldOffset = 0;
     playerVelocityX = 0;

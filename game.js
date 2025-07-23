@@ -21,17 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
     magnet: new Image(),
     shield: new Image(),
   };
-  assets.player.src = 'sprites/player_run.png'; // Use player_run.png instead of missing player.png
-  assets.playerRun.src = 'sprites/player_run.png';
-  assets.coin.src = 'sprites/coin.png';
-  assets.obstacle.src = 'sprites/obstacle.png';
-  assets.obstacle2.src = 'sprites/obstacle2.png';
-  assets.obstacle3.src = 'sprites/obstacle3.png';
-  assets.bg.src = 'sprites/jungle_bg.png';
-  assets.coinSound.src = 'audio/coin.wav';
-  assets.jumpSound.src = 'audio/jump.wav';
-  assets.magnet.src = 'sprites/magnet.png';
-  assets.shield.src = 'sprites/shield.png';
 
   // --- GAME CONSTANTS ---
   const GROUND_Y = H - 120;
@@ -1338,11 +1327,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
   function checkLoaded() {
     loaded++;
+    console.log(`Asset loaded: ${loaded}/${totalAssets}`);
     if (loaded >= totalAssets) {
       clearTimeout(assetLoadTimeout);
       if (failedAssets.length > 0) {
         console.warn('Some assets failed to load:', failedAssets);
       }
+      console.log('All assets loaded successfully!');
       showLandingPage(); // Changed from resetGame() to showLandingPage()
     }
   }
@@ -1359,7 +1350,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showLandingPage();
   }, 15000); // 15 second timeout
   
-  // Set up load and error handlers for all assets
+  // Set up load and error handlers for all assets BEFORE setting src
   assets.player.onload = checkLoaded;
   assets.player.onerror = () => handleAssetError('player');
   assets.playerRun.onload = checkLoaded;
@@ -1382,6 +1373,19 @@ document.addEventListener('DOMContentLoaded', function() {
   assets.coinSound.onerror = () => handleAssetError('coinSound');
   assets.jumpSound.oncanplaythrough = checkLoaded;
   assets.jumpSound.onerror = () => handleAssetError('jumpSound');
+  
+  // NOW set the src properties after handlers are set up
+  assets.player.src = 'sprites/player_run.png'; // Use player_run.png instead of missing player.png
+  assets.playerRun.src = 'sprites/player_run.png';
+  assets.coin.src = 'sprites/coin.png';
+  assets.obstacle.src = 'sprites/obstacle.png';
+  assets.obstacle2.src = 'sprites/obstacle2.png';
+  assets.obstacle3.src = 'sprites/obstacle3.png';
+  assets.bg.src = 'sprites/jungle_bg.png';
+  assets.coinSound.src = 'audio/coin.wav';
+  assets.jumpSound.src = 'audio/jump.wav';
+  assets.magnet.src = 'sprites/magnet.png';
+  assets.shield.src = 'sprites/shield.png';
 
   function updateHighScore() {
     if (score > highScore) {

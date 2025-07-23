@@ -391,30 +391,64 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showGameOverScreen() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, W, H);
+    // Hide all other screens
+    document.getElementById('landingPage').style.display = 'none';
+    document.getElementById('gameMenu').style.display = 'none';
     
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '36px Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over!', W/2, H/2 - 80);
-    
-    ctx.font = '24px Arial, sans-serif';
-    ctx.fillText(`Score: ${score}`, W/2, H/2 - 40);
-    ctx.fillText(`Distance: ${Math.floor(distance)}m`, W/2, H/2 - 10);
-    ctx.fillText(`Coins: ${coinsCollected}`, W/2, H/2 + 20);
-    ctx.fillText(`Max Combo: ${maxCombo}`, W/2, H/2 + 50);
-    
-    if (score > highScore) {
-      ctx.fillStyle = '#FFD700';
-      ctx.fillText('NEW HIGH SCORE!', W/2, H/2 + 80);
+    // Create game over overlay
+    let gameOverOverlay = document.getElementById('gameOverOverlay');
+    if (!gameOverOverlay) {
+      gameOverOverlay = document.createElement('div');
+      gameOverOverlay.id = 'gameOverOverlay';
+      gameOverOverlay.className = 'overlay flex-center';
+      document.body.appendChild(gameOverOverlay);
     }
     
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '20px Arial, sans-serif';
-    ctx.fillText('Click Start to Play Again', W/2, H/2 + 120);
+    gameOverOverlay.innerHTML = `
+      <div class="landing-content">
+        <h2 class="game-title" style="font-size: 3rem; margin-bottom: 20px;">Game Over!</h2>
+        <div class="game-stats">
+          <div class="stat-item">
+            <span class="stat-label">Score:</span>
+            <span class="stat-value">${score}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Distance:</span>
+            <span class="stat-value">${Math.floor(distance)}m</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Coins:</span>
+            <span class="stat-value">${coinsCollected}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Max Combo:</span>
+            <span class="stat-value">${maxCombo}</span>
+          </div>
+        </div>
+        ${score > highScore ? '<div class="high-score-value" style="color: #FFD700; font-size: 1.5rem; margin: 20px 0;">🏆 NEW HIGH SCORE! 🏆</div>' : ''}
+        <div class="menu-buttons">
+          <button id="playAgainBtn" class="main-btn play-btn">
+            <span class="btn-text">🔄 Play Again</span>
+          </button>
+          <button id="backToMenuBtn" class="main-btn back-btn">
+            <span class="btn-text">⬅️ Back to Menu</span>
+          </button>
+        </div>
+      </div>
+    `;
     
-    showStartButton();
+    gameOverOverlay.style.display = 'flex';
+    
+    // Add event listeners
+    document.getElementById('playAgainBtn').onclick = () => {
+      gameOverOverlay.style.display = 'none';
+      showGame();
+    };
+    
+    document.getElementById('backToMenuBtn').onclick = () => {
+      gameOverOverlay.style.display = 'none';
+      showLandingPage();
+    };
   }
 
   // --- PLAYER CONTROLS ---
@@ -937,6 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
           updateHighScore();
+          showGameOverScreen(); // Show the HTML game over screen
         }
       }
       
@@ -995,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         screenShake = 15;
         createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
         updateHighScore();
+        showGameOverScreen(); // Show the HTML game over screen
       }
       
       // Mark gap as passed
@@ -1030,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', function() {
           screenShake = 20;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
           updateHighScore();
+          showGameOverScreen(); // Show the HTML game over screen
         }
       }
       
@@ -1065,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', function() {
           screenShake = 15;
           createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, 'hit');
           updateHighScore();
+          showGameOverScreen(); // Show the HTML game over screen
         }
       }
       
@@ -1154,6 +1192,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function draw() {
+    // Only draw game content if the game is actually running
+    if (!gameStarted || gameOver) {
+      // Clear canvas with a simple background when not playing
+      ctx.fillStyle = '#2e7d32';
+      ctx.fillRect(0, 0, W, H);
+      return;
+    }
+
     // Clear canvas
     ctx.fillStyle = '#2e7d32';
     ctx.fillRect(0, 0, W, H);
@@ -1293,12 +1339,6 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.font = '12px Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(`${Math.ceil(shieldTimer/60)}s`, W - 35, 130);
-    }
-    
-    // Draw game over screen
-    if (gameOver) {
-      console.log('Drawing game over screen - gameOver is true');
-      showGameOverScreen();
     }
   }
 

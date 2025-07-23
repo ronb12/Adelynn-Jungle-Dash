@@ -598,6 +598,41 @@ body::before {
   background: linear-gradient(135deg, rgba(139, 0, 0, 0.9) 0%, rgba(255, 0, 0, 0.9) 100%);
 }
 
+.game-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.game-stats .stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-stats .stat-item:last-child {
+  border-bottom: none;
+}
+
+.game-stats .stat-label {
+  font-size: 1.1rem;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.game-stats .stat-value {
+  font-size: 1.2rem;
+  color: #ffd700;
+  font-weight: bold;
+}
+
 /* Success Screen Enhancement */
 .success {
   background: linear-gradient(135deg, rgba(0, 100, 0, 0.9) 0%, rgba(0, 255, 0, 0.9) 100%);

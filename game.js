@@ -124,9 +124,13 @@ function updateGame() {
         drawInitialScreen();
         return;
     }
+    // Move character right
+    playerX += 3; // Adjust speed as needed
+    if (playerX > canvas.width - playerWidth) {
+        playerX = 0; // Loop back to left
+    }
     // Move coins left
-    coins.forEach(coin => coin.x -= 5); // Slower speed
-    // Remove off-screen coins
+    coins.forEach(coin => coin.x -= 5);
     coins = coins.filter(coin => coin.x > -30);
     // Animate jump
     if (isJumping) {
@@ -143,7 +147,6 @@ function updateGame() {
     // Draw everything
     drawPlayer();
     drawCoins();
-    // Randomly spawn coins
     if (Math.random() < 0.06) spawnCoin();
 }
 

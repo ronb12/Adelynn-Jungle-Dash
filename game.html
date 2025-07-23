@@ -6,10 +6,30 @@
     <title>Adelynn's Jungle Dash - Game</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        .infinite-lives {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin: 5px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div id="scoreboard"><span class="coin-emoji">🪙</span> <span id="score-value">0</span></div>
+        <div class="infinite-lives">♾️ INFINITE LIVES MODE</div>
         <button id="startBtn">Start Game</button>
         <div class="game-frame">
             <canvas id="gameCanvas" width="400" height="600"></canvas>

@@ -391,7 +391,7 @@ function checkCoinCollision() {
         const distY = Math.abs(coin.y - playerCenterY);
         if (distX < playerWidth / 2 && distY < playerHeight / 2) {
             score++;
-            scoreboard.textContent = 'Score: ' + score;
+            scoreboard.textContent = 'Score: ' + score + ' ♾️'; // Infinite lives indicator
             return false;
         }
         return true;
@@ -411,14 +411,22 @@ function checkEnemyCollision() {
                 // Defeat enemy
                 enemies = enemies.filter(e => e !== enemy);
                 score += 5;
-                scoreboard.textContent = 'Score: ' + score;
+                scoreboard.textContent = 'Score: ' + score + ' ♾️'; // Infinite lives indicator
                 playerVelocityY = -10; // Bounce
             } else if (playerVelocityY < 0) {
                 // Player is moving upward, don't trigger game over
                 return;
             } else {
-                // Player gets hit from the side
-                endGame();
+                // Player gets hit from the side - INFINITE LIVES MODE
+                // Just bounce the player back instead of ending game
+                if (playerVelocityX > 0) {
+                    playerX = enemyScreenX - playerWidth - 5;
+                } else {
+                    playerX = enemyScreenX + enemy.width + 5;
+                }
+                playerVelocityX = 0;
+                // Add a small bounce effect
+                playerVelocityY = -5;
             }
         }
     });
@@ -559,7 +567,7 @@ function resetGame() {
     score = 0;
     gameRunning = false;
     gameStarted = false;
-    scoreboard.textContent = 'Score: 0';
+    scoreboard.textContent = 'Score: 0 ♾️'; // Infinite lives indicator
     startBtn.textContent = 'Restart Game';
     startBtn.disabled = true;
     runFrameIndex = 0;

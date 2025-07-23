@@ -12,6 +12,9 @@ let playerX = 100; // Start player at fixed position on screen
 let playerY = groundY - playerHeight;
 let worldOffset = 0; // How much the world has moved
 let coins = [];
+let platforms = [];
+let obstacles = [];
+let enemies = [];
 let score = 0;
 let gameRunning = false;
 let gameInterval;
@@ -50,6 +53,15 @@ let keys = {
     right: false,
     up: false,
     down: false
+};
+
+// Object types
+const OBJECT_TYPES = {
+    PLATFORM: 'platform',
+    PIPE: 'pipe',
+    BLOCK: 'block',
+    ENEMY: 'enemy',
+    COIN: 'coin'
 };
 
 canvas.addEventListener('touchstart', function(e) {
@@ -128,11 +140,119 @@ function drawCoins() {
     });
 }
 
+function drawPlatforms() {
+    platforms.forEach(platform => {
+        const screenX = platform.x - worldOffset;
+        if (screenX > -100 && screenX < canvas.width + 100) {
+            // Draw platform with Mario-style design
+            ctx.fillStyle = '#8B4513'; // Brown
+            ctx.fillRect(screenX, platform.y, platform.width, platform.height);
+            
+            // Add some texture
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(screenX, platform.y, platform.width, 5);
+            ctx.fillRect(screenX, platform.y + platform.height - 5, platform.width, 5);
+        }
+    });
+}
+
+function drawObstacles() {
+    obstacles.forEach(obstacle => {
+        const screenX = obstacle.x - worldOffset;
+        if (screenX > -100 && screenX < canvas.width + 100) {
+            if (obstacle.type === OBJECT_TYPES.PIPE) {
+                // Draw Mario-style pipe
+                ctx.fillStyle = '#228B22'; // Green
+                ctx.fillRect(screenX, obstacle.y, obstacle.width, obstacle.height);
+                ctx.fillStyle = '#006400';
+                ctx.fillRect(screenX, obstacle.y, obstacle.width, 10);
+                ctx.fillRect(screenX, obstacle.y + obstacle.height - 10, obstacle.width, 10);
+            } else if (obstacle.type === OBJECT_TYPES.BLOCK) {
+                // Draw Mario-style block
+                ctx.fillStyle = '#FFD700'; // Gold
+                ctx.fillRect(screenX, obstacle.y, obstacle.width, obstacle.height);
+                ctx.fillStyle = '#FFA500';
+                ctx.fillRect(screenX, obstacle.y, obstacle.width, 5);
+                ctx.fillRect(screenX, obstacle.y + obstacle.height - 5, obstacle.width, 5);
+            }
+        }
+    });
+}
+
+function drawEnemies() {
+    enemies.forEach(enemy => {
+        const screenX = enemy.x - worldOffset;
+        if (screenX > -50 && screenX < canvas.width + 50) {
+            // Draw simple enemy (red circle)
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(screenX + enemy.width/2, enemy.y + enemy.height/2, enemy.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(screenX + enemy.width/2 - 5, enemy.y + enemy.height/2 - 5, 2, 0, Math.PI * 2);
+            ctx.arc(screenX + enemy.width/2 + 5, enemy.y + enemy.height/2 - 5, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+}
+
 function spawnCoin() {
-    const coinX = Math.random() * 2000 + worldOffset + canvas.width; // Spawn ahead of player
+    const coinX = Math.random() * 2000 + worldOffset + canvas.width;
     coins.push({
         x: coinX,
         y: canvas.height - 30
+    });
+}
+
+function spawnPlatform() {
+    const platformX = Math.random() * 2000 + worldOffset + canvas.width;
+    const platformY = canvas.height - 100 - Math.random() * 150;
+    const platformWidth = 80 + Math.random() * 120;
+    
+    platforms.push({
+        x: platformX,
+        y: platformY,
+        width: platformWidth,
+        height: 20,
+        type: OBJECT_TYPES.PLATFORM
+    });
+}
+
+function spawnObstacle() {
+    const obstacleX = Math.random() * 2000 + worldOffset + canvas.width;
+    const obstacleType = Math.random() > 0.5 ? OBJECT_TYPES.PIPE : OBJECT_TYPES.BLOCK;
+    
+    if (obstacleType === OBJECT_TYPES.PIPE) {
+        obstacles.push({
+            x: obstacleX,
+            y: canvas.height - 80,
+            width: 40,
+            height: 80,
+            type: obstacleType
+        });
+    } else {
+        obstacles.push({
+            x: obstacleX,
+            y: canvas.height - 40,
+            width: 40,
+            height: 40,
+            type: obstacleType
+        });
+    }
+}
+
+function spawnEnemy() {
+    const enemyX = Math.random() * 2000 + worldOffset + canvas.width;
+    enemies.push({
+        x: enemyX,
+        y: canvas.height - 30,
+        width: 30,
+        height: 30,
+        velocityX: -1,
+        type: OBJECT_TYPES.ENEMY
     });
 }
 
@@ -169,12 +289,56 @@ function updatePlayer() {
     playerVelocityY += gravity;
     playerY += playerVelocityY;
     
-    // Ground collision
-    if (playerY >= groundY - playerHeight) {
+    // Check platform collisions
+    let onPlatform = false;
+    platforms.forEach(platform => {
+        const platformScreenX = platform.x - worldOffset;
+        if (playerX + playerWidth > platformScreenX && 
+            playerX < platformScreenX + platform.width &&
+            playerY + playerHeight >= platform.y &&
+            playerY + playerHeight <= platform.y + 10) {
+            playerY = platform.y - playerHeight;
+            playerVelocityY = 0;
+            isJumping = false;
+            onPlatform = true;
+        }
+    });
+    
+    // Ground collision (only if not on platform)
+    if (!onPlatform && playerY >= groundY - playerHeight) {
         playerY = groundY - playerHeight;
         playerVelocityY = 0;
         isJumping = false;
     }
+    
+    // Check obstacle collisions
+    obstacles.forEach(obstacle => {
+        const obstacleScreenX = obstacle.x - worldOffset;
+        if (playerX + playerWidth > obstacleScreenX && 
+            playerX < obstacleScreenX + obstacle.width &&
+            playerY + playerHeight > obstacle.y &&
+            playerY < obstacle.y + obstacle.height) {
+            // Collision detected - push player back
+            if (playerVelocityX > 0) {
+                playerX = obstacleScreenX - playerWidth;
+            } else if (playerVelocityX < 0) {
+                playerX = obstacleScreenX + obstacle.width;
+            }
+            playerVelocityX = 0;
+        }
+    });
+}
+
+function updateEnemies() {
+    enemies.forEach(enemy => {
+        enemy.x += enemy.velocityX;
+        
+        // Simple AI: turn around at edges
+        const enemyScreenX = enemy.x - worldOffset;
+        if (enemyScreenX < 0 || enemyScreenX > canvas.width) {
+            enemy.velocityX *= -1;
+        }
+    });
 }
 
 function updateGame() {
@@ -185,16 +349,26 @@ function updateGame() {
     }
     
     updatePlayer();
+    updateEnemies();
     
     // Check for coin collisions
     checkCoinCollision();
     
+    // Check for enemy collisions
+    checkEnemyCollision();
+    
     // Draw everything
+    drawPlatforms();
+    drawObstacles();
+    drawEnemies();
     drawPlayer();
     drawCoins();
     
-    // Spawn coins occasionally
-    if (Math.random() < 0.02) spawnCoin();
+    // Spawn objects occasionally
+    if (Math.random() < 0.01) spawnCoin();
+    if (Math.random() < 0.005) spawnPlatform();
+    if (Math.random() < 0.003) spawnObstacle();
+    if (Math.random() < 0.002) spawnEnemy();
 }
 
 function checkCoinCollision() {
@@ -210,6 +384,29 @@ function checkCoinCollision() {
             return false;
         }
         return true;
+    });
+}
+
+function checkEnemyCollision() {
+    enemies.forEach(enemy => {
+        const enemyScreenX = enemy.x - worldOffset;
+        if (playerX + playerWidth > enemyScreenX && 
+            playerX < enemyScreenX + enemy.width &&
+            playerY + playerHeight > enemy.y &&
+            playerY < enemy.y + enemy.height) {
+            
+            // Check if player is jumping on enemy (from above)
+            if (playerVelocityY > 0 && playerY < enemy.y) {
+                // Defeat enemy
+                enemies = enemies.filter(e => e !== enemy);
+                score += 5;
+                scoreboard.textContent = 'Score: ' + score;
+                playerVelocityY = -10; // Bounce
+            } else {
+                // Player gets hit
+                endGame();
+            }
+        }
     });
 }
 
@@ -342,6 +539,9 @@ function resetGame() {
     playerVelocityX = 0;
     playerVelocityY = 0;
     coins = [];
+    platforms = [];
+    obstacles = [];
+    enemies = [];
     score = 0;
     gameRunning = false;
     gameStarted = false;

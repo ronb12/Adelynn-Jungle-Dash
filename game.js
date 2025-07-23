@@ -114,7 +114,7 @@ function drawCoins() {
 function spawnCoin() {
     coins.push({
         x: canvas.width + 20, // spawn off right edge
-        y: groundY + playerHeight / 2 // on the ground
+        y: canvas.height - 30 // just above the green ground
     });
 }
 

@@ -334,6 +334,8 @@ document.addEventListener('DOMContentLoaded', function() {
     gameOver = false; // Explicitly ensure gameOver is false
     gameStarted = true;
     console.log('Game state after reset:', { gameOver, gameStarted, gamePaused });
+    console.log('Initial player position:', { x: player.x, y: player.y, lane: player.lane });
+    console.log('Initial distance:', distance);
     loop();
   }
 
@@ -904,16 +906,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Spawn objects
     if (Math.random() > 0.98) spawnCoin();
-    if (Math.random() > 0.998) {
+    if (Math.random() > 0.998 && distance > 100) { // Only spawn obstacles after 100 distance units
       console.log('Spawning obstacle at distance:', distance);
       spawnObstacle();
     }
     spawnPowerup();
     
     // Spawn Temple Run style obstacles
-    spawnGap();
-    spawnWall();
-    spawnFireTrap();
+    if (distance > 150) spawnGap();
+    if (distance > 200) spawnWall();
+    if (distance > 120) spawnFireTrap();
     
     // Update coins
     coins.forEach((coin, index) => {

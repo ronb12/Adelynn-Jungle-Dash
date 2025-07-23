@@ -224,6 +224,12 @@ function gameLoop() {
     }
 }
 
+function startGameLoop() {
+    if (gameInterval) clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, 1000 / 60);
+    console.log('Game loop started');
+}
+
 startBtn.addEventListener('click', () => {
     console.log('Start button clicked');
     resetGame();
@@ -239,6 +245,7 @@ canvas.addEventListener('touchend', function(e) {
         console.log('Game started by swipe up');
         gameStarted = true;
         gameRunning = true;
+        startGameLoop();
         return;
     }
     if (!gameRunning) return;
@@ -260,6 +267,7 @@ document.addEventListener('keydown', (e) => {
         console.log('Game started by key up');
         gameStarted = true;
         gameRunning = true;
+        startGameLoop();
         return;
     }
     if (!gameRunning) return;
@@ -276,6 +284,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// On reset, stop the game loop
 function resetGame() {
     playerLane = 1;
     coins = [];
@@ -285,7 +294,7 @@ function resetGame() {
     gameStarted = false;
     scoreDisplay.textContent = 'Score: 0';
     startBtn.textContent = 'Restart Game';
-    startBtn.disabled = true; // Disable start button during game
+    startBtn.disabled = true;
     runFrameIndex = 0;
     runFrameTick = 0;
     isJumping = false;
@@ -293,6 +302,7 @@ function resetGame() {
     jumpTick = 0;
     isDashing = false;
     dashTick = 0;
+    if (gameInterval) clearInterval(gameInterval);
     drawInitialScreen();
 }
 

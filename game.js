@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // --- GAME CONSTANTS ---
-  const GROUND_Y = H - 120;
+  const GROUND_OFFSET = 40; // Change this value to adjust how high the player stands above the bottom
+  let GROUND_Y = H - GROUND_OFFSET;
   const PLAYER_WIDTH = 120;
   const PLAYER_HEIGHT = 120;
   const PLAYER_FRAMES = 6; // Number of frames in the sprite sheet
@@ -68,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- GAME STATE ---
   let player = {
     x: LANES[1] - PLAYER_WIDTH/2,
-    y: GROUND_Y - PLAYER_HEIGHT, // Fix: Position player on ground properly
+    y: GROUND_Y - PLAYER_HEIGHT, // Position player on ground properly
     vy: 0,
     lane: 1,
     jumping: false,
@@ -609,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function resetGame() {
     player = {
       x: LANES[1] - PLAYER_WIDTH/2,
-      y: GROUND_Y - PLAYER_HEIGHT, // Fix: Position player on ground properly
+      y: GROUND_Y - PLAYER_HEIGHT, // Position player on ground properly
       vy: 0,
       lane: 1,
       jumping: false,
@@ -809,8 +810,8 @@ document.addEventListener('DOMContentLoaded', function() {
     player.vy += GRAVITY;
     player.y += player.vy;
     
-    if (player.y >= GROUND_Y) {
-      player.y = GROUND_Y;
+    if (player.y >= GROUND_Y - PLAYER_HEIGHT) {
+      player.y = GROUND_Y - PLAYER_HEIGHT;
       player.vy = 0;
       player.jumping = false;
     }
@@ -1405,10 +1406,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function resize() {
     W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
+    GROUND_Y = H - GROUND_OFFSET;
     LANES[0] = W/4;
     LANES[1] = W/2;
     LANES[2] = 3*W/4;
     player.x = LANES[player.lane] - PLAYER_WIDTH/2;
+    // Ensure player stays on the ground after resize
+    if (!player.jumping) player.y = GROUND_Y - PLAYER_HEIGHT;
   }
 
   window.addEventListener('resize', resize);

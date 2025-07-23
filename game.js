@@ -152,6 +152,8 @@ document.addEventListener('DOMContentLoaded', function() {
   let gameMode = 'timed'; // 'timed' or 'endless'
   let timeRemaining = gameTime;
   let gameStartTime = 0;
+  let coinMultiplier = 1;
+  let coinMultiplierTimer = 0; // Frames remaining for multiplier
 
   // Initialize parallax layers for depth effect
   function initParallaxLayers() {
@@ -172,7 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
       life: 1.0,
       decay: 0.02 + Math.random() * 0.03,
       size: Math.random() * 4 + 2,
-      color: type === 'coin' ? '#FFD700' : type === 'hit' ? '#FF4444' : '#FFFFFF',
+      color: type === 'coin' ? '#FFD700' : type === 'hit' ? '#FF4444' : type === 'multiplier' ? '#FFD700' : '#FFFFFF',
+      emoji: type === 'multiplier' ? '⚡️' : undefined,
       type: type
     };
     particles.push(particle);
@@ -730,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (Math.random() > 0.02) return; // 2% chance per frame
     
     const lane = Math.floor(Math.random() * LANES.length);
-    const powerupTypes = ['magnet', 'shield'];
+    const powerupTypes = ['magnet', 'shield', 'multiplier']; // Added 'multiplier'
     const type = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
     
     const powerup = {
@@ -738,7 +741,8 @@ document.addEventListener('DOMContentLoaded', function() {
       y: -POWERUP_SIZE,
       lane: lane,
       type: type,
-      rotation: 0
+      rotation: 0,
+      value: type === 'multiplier' ? 2 : undefined // Added value for multiplier
     };
     powerups.push(powerup);
   }
@@ -891,6 +895,13 @@ document.addEventListener('DOMContentLoaded', function() {
       shieldTimer--;
       if (shieldTimer <= 0) shieldActive = false;
     }
+    // Update coin multiplier timer
+    if (coinMultiplierTimer > 0) {
+      coinMultiplierTimer--;
+      if (coinMultiplierTimer === 0) {
+        coinMultiplier = 1;
+      }
+    }
     
     // Update screen shake
     if (screenShake > 0) {
@@ -980,7 +991,7 @@ document.addEventListener('DOMContentLoaded', function() {
         score += 10 * (1 + combo * 0.1);
         combo++;
         maxCombo = Math.max(maxCombo, combo);
-        coinsCollected++;
+        coinsCollected += coinMultiplier;
         if (soundOn) assets.coinSound.play();
         spawnParticles(coin.x + COIN_SIZE/2, coin.y + COIN_SIZE/2, '#FFD700');
         coins.splice(index, 1);
@@ -1062,6 +1073,10 @@ document.addEventListener('DOMContentLoaded', function() {
           shieldActive = true;
           shieldTimer = 300; // 5 seconds at 60fps
           createParticle(powerup.x + POWERUP_SIZE/2, powerup.y + POWERUP_SIZE/2, 'shield');
+        } else if (powerup.type === 'multiplier') {
+          coinMultiplier = powerup.value || 2;
+          coinMultiplierTimer = 600; // 10 seconds at 60fps
+          createParticle(powerup.x + POWERUP_SIZE/2, powerup.y + POWERUP_SIZE/2, 'multiplier');
         }
         
         powerups.splice(index, 1);
@@ -1315,10 +1330,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Draw particles
     particles.forEach(particle => {
       ctx.globalAlpha = particle.life;
-      ctx.fillStyle = particle.color;
-      ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-      ctx.fill();
+      if (particle.emoji) {
+        ctx.font = `${particle.size * 3}px Arial`;
+        ctx.fillText(particle.emoji, particle.x, particle.y);
+      } else {
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, 2 * Math.PI);
+        ctx.fillStyle = particle.color;
+        ctx.fill();
+      }
     });
     ctx.globalAlpha = 1;
     
@@ -1350,6 +1370,11 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.drawImage(assets.magnet, -POWERUP_SIZE/2, -POWERUP_SIZE/2, POWERUP_SIZE, POWERUP_SIZE);
       } else if (powerup.type === 'shield') {
         ctx.drawImage(assets.shield, -POWERUP_SIZE/2, -POWERUP_SIZE/2, POWERUP_SIZE, POWERUP_SIZE);
+      } else if (powerup.type === 'multiplier') {
+        ctx.font = `${POWERUP_SIZE * 0.8}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡️', 0, 0);
       }
       
       ctx.restore();
@@ -1561,5 +1586,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuHighScore = document.getElementById('menuHighScore');
     if (landingHighScore) landingHighScore.textContent = highScore;
     if (menuHighScore) menuHighScore.textContent = highScore;
+
+    // Update multiplier display
+    const multiplierElement = document.getElementById('multiplier');
+    if (multiplierElement) multiplierElement.textContent = `Multiplier: x${coinMultiplier}`;
   }
 }); 

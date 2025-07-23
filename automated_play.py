@@ -19,6 +19,9 @@ try:
     # Click the canvas to focus (optional, but helps)
     canvas = driver.find_element(By.ID, "gameCanvas")
     driver.execute_script("arguments[0].scrollIntoView();", canvas)
+    play_btn = driver.find_element(By.ID, "playBtn")
+    play_btn.click()
+    time.sleep(1)  # Wait for overlays to be removed
     canvas.click()
     time.sleep(0.5)
 

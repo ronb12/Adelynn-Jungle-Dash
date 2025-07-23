@@ -28,13 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const PLAYER_WIDTH = 120;
   const PLAYER_HEIGHT = 120;
   const PLAYER_FRAMES = 6; // Number of frames in the sprite sheet
-  const PLAYER_ANIM_SPEED = 0.18; // Animation speed (tweak as needed)
+  const PLAYER_ANIM_SPEED = 0.25; // Animation speed (normal speed)
   const COIN_SIZE = 40;
   const OBSTACLE_SIZE = 60;
   const LANES = [W/4, W/2, 3*W/4];
-  const GRAVITY = 1.2;
+  const GRAVITY = 1.5;
   const JUMP_VEL = -18;
-  const BG_SCROLL_SPEED = 6;
+  const BG_SCROLL_SPEED = 8;
   const POWERUP_SIZE = 48;
   
   // Temple Run style enhancements
@@ -44,27 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const GAP_WIDTH = 120;
   const WALL_HEIGHT = 80;
   
-  // Dora-style character enhancements
-  const CHARACTER_PERSONALITY = {
-    name: "Adelynn",
-    catchphrase: "Let's go!",
-    voiceLines: {
-      jump: ["Jump!", "Up we go!", "Wheeee!"],
-      slide: ["Slide!", "Down we go!", "Whoosh!"],
-      coin: ["Coins!", "Great job!", "Awesome!"],
-      powerup: ["Power!", "Super!", "Amazing!"],
-      danger: ["Watch out!", "Be careful!", "Look out!"],
-      encouragement: ["You can do it!", "Keep going!", "You're doing great!"],
-      spanish: ["¡Hola!", "¡Gracias!", "¡Perfecto!"]
-    },
-    educationalElements: {
-      counting: true,
-      colors: true,
-      shapes: true,
-      spanish: true,
-      englishFirst: true // Show English first, then Spanish
-    }
-  };
+  // Only use playerRun sprite for the player
+  assets.player.src = 'sprites/player_run.png';
+  assets.playerRun.src = 'sprites/player_run.png';
 
   // --- GAME STATE ---
   let player = {
@@ -82,9 +64,9 @@ document.addEventListener('DOMContentLoaded', function() {
     moving: false,
     direction: 1, // 1 for right, -1 for left
     runSpeed: 0,
-    maxRunSpeed: 8,
-    acceleration: 0.5,
-    deceleration: 0.3,
+    maxRunSpeed: 12,
+    acceleration: 1.0,
+    deceleration: 0.5,
     // Temple Run style abilities
     sliding: false,
     slideTimer: 0,
@@ -128,21 +110,31 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentMission = null;
   let missionProgress = 0;
   
-  // Dora-style character enhancements
-  let characterPersonality = CHARACTER_PERSONALITY;
-  let voiceLineQueue = [];
-  let lastVoiceTime = 0;
-  let characterMood = 'happy'; // happy, excited, worried, proud
-  let educationalCounters = {
-    coinsCollected: 0,
-    obstaclesAvoided: 0,
-    combos: 0,
-    distance: 0
-  };
-  let characterInteractions = {
-    lastInteraction: 0,
-    interactionCooldown: 300, // 5 seconds
-    encouragementFrequency: 600 // 10 seconds
+  // Ensure player movement and animation speeds are normal
+  player = {
+    x: LANES[1] - PLAYER_WIDTH/2,
+    y: GROUND_Y - PLAYER_HEIGHT,
+    vy: 0,
+    lane: 1,
+    jumping: false,
+    frame: 0,
+    frameTick: 0,
+    invincible: false,
+    invincibleTimer: 0,
+    targetX: LANES[1] - PLAYER_WIDTH/2,
+    moving: false,
+    direction: 1,
+    runSpeed: 0,
+    maxRunSpeed: 12,
+    acceleration: 1.0,
+    deceleration: 0.5,
+    sliding: false,
+    slideTimer: 0,
+    wallRunning: false,
+    wallRunTimer: 0,
+    wallRunSide: 0,
+    canSlide: true,
+    canWallRun: true,
   };
 
   // Game state
@@ -197,334 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
       color: '#8B4513'
     };
     dustParticles.push(dust);
-  }
-
-  // Dora-style character interaction functions
-  function addVoiceLine(type) {
-    const lines = characterPersonality.voiceLines[type];
-    if (lines && lines.length > 0) {
-      const randomLine = lines[Math.floor(Math.random() * lines.length)];
-      voiceLineQueue.push({
-        text: randomLine,
-        type: type,
-        time: Date.now()
-      });
-    }
-  }
-
-  function showCharacterSpeech(text, type = 'normal') {
-    // Create speech bubble
-    const speechBubble = document.createElement('div');
-    speechBubble.className = 'speech-bubble';
-    speechBubble.textContent = text;
-    speechBubble.style.cssText = `
-      position: absolute;
-      top: ${player.y - 60}px;
-      left: ${player.x + PLAYER_WIDTH/2}px;
-      background: white;
-      border: 2px solid #333;
-      border-radius: 15px;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #333;
-      z-index: 1000;
-      transform: translateX(-50%);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      animation: speechFade 2s ease-in-out;
-    `;
-    
-    document.body.appendChild(speechBubble);
-    
-    // Remove after animation
-    setTimeout(() => {
-      if (speechBubble.parentNode) {
-        speechBubble.parentNode.removeChild(speechBubble);
-      }
-    }, 2000);
-  }
-
-  function updateCharacterMood() {
-    const currentTime = Date.now();
-    
-    // Update mood based on game state
-    if (combo > 5) {
-      characterMood = 'excited';
-    } else if (player.invincible) {
-      characterMood = 'worried';
-    } else if (score > highScore) {
-      characterMood = 'proud';
-    } else {
-      characterMood = 'happy';
-    }
-    
-    // Periodic encouragement (mostly English, occasional Spanish)
-    if (currentTime - characterInteractions.lastInteraction > characterInteractions.encouragementFrequency) {
-      // 80% English, 20% Spanish for gentle exposure
-      if (Math.random() < 0.2) {
-        addVoiceLine('spanish');
-      } else {
-        addVoiceLine('encouragement');
-      }
-      characterInteractions.lastInteraction = currentTime;
-    }
-  }
-
-  function processVoiceLineQueue() {
-    const currentTime = Date.now();
-    
-    // Process voice lines with cooldown
-    if (voiceLineQueue.length > 0 && currentTime - lastVoiceTime > 1000) {
-      const voiceLine = voiceLineQueue.shift();
-      showCharacterSpeech(voiceLine.text, voiceLine.type);
-      lastVoiceTime = currentTime;
-    }
-  }
-
-  function addEducationalElement(type, value) {
-    if (characterPersonality.educationalElements.counting) {
-      // Count in English first, then Spanish
-      const englishNumbers = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
-      const spanishNumbers = ['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
-      
-      if (value <= 10) {
-        const englishText = englishNumbers[value-1];
-        const spanishText = spanishNumbers[value-1];
-        showCharacterSpeech(`${englishText} (${spanishText})`, 'educational');
-      }
-    }
-  }
-
-  const pauseBtn = document.getElementById('pauseBtn');
-  const soundBtn = document.getElementById('soundBtn');
-  pauseBtn.onclick = () => {
-    if (!gameStarted || gameOver) return;
-    gamePaused = !gamePaused;
-    pauseBtn.textContent = gamePaused ? '▶️' : '⏸️';
-    if (!gamePaused) loop();
-  };
-  soundBtn.onclick = () => {
-    soundOn = !soundOn;
-    soundBtn.textContent = soundOn ? '🔊' : '🔇';
-    [assets.coinSound, assets.jumpSound].forEach(a => a.muted = !soundOn);
-  };
-
-  const helpBtn = document.getElementById('helpBtn');
-  const instructionsModal = document.getElementById('instructionsModal');
-  const closeInstructions = document.getElementById('closeInstructions');
-  helpBtn.onclick = () => {
-    instructionsModal.style.display = 'block';
-  };
-  closeInstructions.onclick = () => {
-    instructionsModal.style.display = 'none';
-  };
-  window.onclick = function(event) {
-    if (event.target === instructionsModal) {
-      instructionsModal.style.display = 'none';
-    }
-  };
-
-  // --- UI NAVIGATION ---
-  function showLandingPage() {
-    document.getElementById('landingPage').style.display = 'flex';
-    document.getElementById('gameMenu').style.display = 'none';
-    document.getElementById('startBtn').style.display = 'none';
-  }
-
-  function showGameMenu() {
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('gameMenu').style.display = 'flex';
-    document.getElementById('startBtn').style.display = 'none';
-  }
-
-  function showGame() {
-    console.log('Starting game...');
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('gameMenu').style.display = 'none';
-    document.getElementById('startBtn').style.display = 'none';
-    resetGame();
-    gameOver = false; // Explicitly ensure gameOver is false
-    gameStarted = true;
-    gameStartTime = Date.now(); // Start the timer
-    console.log('Game state after reset:', { gameOver, gameStarted, gamePaused });
-    console.log('Initial player position:', { x: player.x, y: player.y, lane: player.lane });
-    console.log('Initial distance:', distance);
-    console.log('Game mode:', gameMode, 'Time remaining:', timeRemaining);
-    loop();
-  }
-
-  // --- BUTTON EVENT HANDLERS ---
-  document.getElementById('playBtn').onclick = showGameMenu;
-  document.getElementById('menuStartBtn').onclick = showGame;
-  document.getElementById('menuHowToBtn').onclick = () => {
-    instructionsModal.style.display = 'block';
-  };
-  document.getElementById('menuBackBtn').onclick = showLandingPage;
-  document.getElementById('startBtn').onclick = () => {
-    if (gameOver) {
-      resetGame();
-      gameStarted = true;
-      loop();
-    } else {
-      gameStarted = true;
-      hideStartButton();
-      loop();
-    }
-  };
-
-  function showStartButton() {
-    document.getElementById('startBtn').style.display = 'block';
-  }
-
-  function hideStartButton() {
-    document.getElementById('startBtn').style.display = 'none';
-  }
-
-  // --- GAME SCREENS ---
-  function showStartScreen() {
-    ctx.fillStyle = '#2e7d32';
-    ctx.fillRect(0, 0, W, H);
-    
-    // Draw background
-    ctx.drawImage(assets.bg, 0, bgY, W, H);
-    ctx.drawImage(assets.bg, 0, bgY - H, W, H);
-    
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, W, H);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '48px Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("Adelynn's Jungle Dash", W/2, H/2 - 50);
-    
-    ctx.font = '24px Arial, sans-serif';
-    ctx.fillText('Click Start to Play!', W/2, H/2 + 20);
-    
-    ctx.font = '18px Arial, sans-serif';
-    ctx.fillText(`High Score: ${highScore}`, W/2, H/2 + 60);
-    
-    showStartButton();
-  }
-
-  function showGameOverScreen() {
-    // Hide all other screens
-    document.getElementById('landingPage').style.display = 'none';
-    document.getElementById('gameMenu').style.display = 'none';
-    
-    // Create game over overlay
-    let gameOverOverlay = document.getElementById('gameOverOverlay');
-    if (!gameOverOverlay) {
-      gameOverOverlay = document.createElement('div');
-      gameOverOverlay.id = 'gameOverOverlay';
-      gameOverOverlay.className = 'overlay flex-center game-over-fade';
-      document.body.appendChild(gameOverOverlay);
-    }
-    gameOverOverlay.innerHTML = `
-      <div class="gameover-card">
-        <div class="gameover-header">
-          <h2 class="game-title">Game Over</h2>
-        </div>
-        <div class="gameover-stats">
-          <div class="stat-item"><span class="stat-icon">🏆</span> <span class="stat-label">Score:</span> <span class="stat-value">${score}</span></div>
-          <div class="stat-item"><span class="stat-icon">🪙</span> <span class="stat-label">Coins:</span> <span class="stat-value">${coinsCollected}</span></div>
-          <div class="stat-item"><span class="stat-icon">📏</span> <span class="stat-label">Distance:</span> <span class="stat-value">${Math.floor(distance)}m</span></div>
-          <div class="stat-item"><span class="stat-icon">💥</span> <span class="stat-label">Max Combo:</span> <span class="stat-value">${maxCombo}</span></div>
-          <div class="stat-item"><span class="stat-icon">❤️</span> <span class="stat-label">Lives Left:</span> <span class="stat-value">${lives}</span></div>
-          ${gameMode === 'timed' ? `<div class="stat-item"><span class="stat-icon">⏰</span> <span class="stat-label">Time Used:</span> <span class="stat-value">${Math.floor((gameTime - timeRemaining) * 10) / 10}s</span></div>` : ''}
-        </div>
-        <div class="gameover-buttons">
-          <button id="playAgainBtn" class="main-btn play-btn"><span class="btn-text">🔄 Play Again</span></button>
-          <button id="backToMenuBtn" class="main-btn back-btn"><span class="btn-text">⬅️ Back to Menu</span></button>
-        </div>
-        <div class="character-preview-bottom">
-          <canvas id="characterPreviewCanvas" width="100" height="100"></canvas>
-        </div>
-      </div>
-    `;
-    gameOverOverlay.style.display = 'flex';
-    // Animate fade-in
-    setTimeout(() => { gameOverOverlay.classList.add('visible'); }, 10);
-    // Draw character preview at the bottom
-    const previewCanvas = document.getElementById('characterPreviewCanvas');
-    if (previewCanvas) {
-      const pctx = previewCanvas.getContext('2d');
-      pctx.clearRect(0, 0, 100, 100);
-      // Draw current player frame (side view)
-      pctx.drawImage(assets.playerRun, player.frame * PLAYER_WIDTH, 0, PLAYER_WIDTH, PLAYER_HEIGHT, 0, 0, 100, 100);
-    }
-    // Add event listeners
-    document.getElementById('playAgainBtn').onclick = () => {
-      gameOverOverlay.style.display = 'none';
-      showGame();
-    };
-    document.getElementById('backToMenuBtn').onclick = () => {
-      gameOverOverlay.style.display = 'none';
-      showLandingPage();
-    };
-  }
-
-  // --- PLAYER CONTROLS ---
-  function moveLeft() {
-    if (player.lane > 0) {
-      player.lane--;
-      player.targetX = LANES[player.lane] - PLAYER_WIDTH/2;
-      player.moving = true;
-      player.direction = -1;
-    }
-  }
-
-  function moveRight() {
-    if (player.lane < LANES.length - 1) {
-      player.lane++;
-      player.targetX = LANES[player.lane] - PLAYER_WIDTH/2;
-      player.moving = true;
-      player.direction = 1;
-    }
-  }
-
-  function jump() {
-    if (!player.jumping && !player.sliding) {
-      player.vy = JUMP_VEL;
-      player.jumping = true;
-      if (soundOn) assets.jumpSound.play();
-      createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT, 'jump');
-      addVoiceLine('jump');
-    }
-  }
-
-  // Temple Run style abilities
-  function slide() {
-    if (!player.sliding && !player.jumping && player.canSlide) {
-      player.sliding = true;
-      player.slideTimer = SLIDE_DURATION;
-      player.canSlide = false;
-      createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT, 'slide');
-      addVoiceLine('slide');
-    }
-  }
-
-  function wallRun(side) {
-    if (!player.wallRunning && !player.jumping && player.canWallRun) {
-      player.wallRunning = true;
-      player.wallRunTimer = WALL_RUN_DURATION;
-      player.wallRunSide = side;
-      player.canWallRun = false;
-      player.x += side * 20; // Move slightly to the wall
-      createParticle(player.x + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT, 'wallrun');
-    }
-  }
-
-  function endSlide() {
-    player.sliding = false;
-    player.slideTimer = 0;
-    setTimeout(() => { player.canSlide = true; }, 500);
-  }
-
-  function endWallRun() {
-    player.wallRunning = false;
-    player.wallRunTimer = 0;
-    player.wallRunSide = 0;
-    setTimeout(() => { player.canWallRun = true; }, 800);
   }
 
   // --- INPUT HANDLING ---
@@ -623,9 +287,9 @@ document.addEventListener('DOMContentLoaded', function() {
       moving: false,
       direction: 1, // 1 for right, -1 for left
       runSpeed: 0,
-      maxRunSpeed: 8,
-      acceleration: 0.5,
-      deceleration: 0.3,
+      maxRunSpeed: 12,
+      acceleration: 1.0,
+      deceleration: 0.5,
       // Temple Run style abilities
       sliding: false,
       slideTimer: 0,
@@ -667,22 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
     gestureStartY = 0;
     lastGestureTime = 0;
     initParallaxLayers();
-    
-    // Reset Dora-style character features
-    voiceLineQueue = [];
-    lastVoiceTime = 0;
-    characterMood = 'happy';
-    educationalCounters = {
-      coinsCollected: 0,
-      obstaclesAvoided: 0,
-      combos: 0,
-      distance: 0
-    };
-    characterInteractions = {
-      lastInteraction: 0,
-      interactionCooldown: 300,
-      encouragementFrequency: 600
-    };
   }
 
   function spawnCoin() {
@@ -894,15 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (layer.y > H) layer.y = 0;
     });
     
-    // Update Dora-style character features
-    updateCharacterMood();
-    processVoiceLineQueue();
-    
-    // Create dust particles
-    if (Math.random() > 0.7 && player.moving && player.runSpeed > 3 && !player.jumping) {
-      createDustParticle();
-    }
-    
     // Update dust particles
     dustParticles.forEach((dust, index) => {
       dust.x += dust.vx;
@@ -973,9 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spawnParticles(coin.x + COIN_SIZE/2, coin.y + COIN_SIZE/2, '#FFD700');
         coins.splice(index, 1);
         
-        // Dora-style coin collection
-        addVoiceLine('coin');
-        addEducationalElement('counting', coinsCollected);
+        // Remove Dora-style coin collection
       }
       
       // Remove off-screen coins
@@ -1058,8 +695,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         powerups.splice(index, 1);
         
-        // Dora-style powerup collection
-        addVoiceLine('powerup');
+        // Remove Dora-style powerup collection
       }
       
       // Remove off-screen powerups
@@ -1203,8 +839,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- LOAD PLAYER SPRITE ---
-  const playerSprite = new Image();
-  playerSprite.src = 'sprites/player_run.png';
+  // const playerSprite = new Image(); // This line is no longer needed
+  // playerSprite.src = 'sprites/player_run.png'; // This line is no longer needed
 
   // --- UPDATE PLAYER ANIMATION ---
   function updatePlayerAnimation() {
@@ -1224,7 +860,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.drawImage(
-      playerSprite,
+      assets.playerRun,
       player.frame * PLAYER_WIDTH, 0, // Source x, y
       PLAYER_WIDTH, PLAYER_HEIGHT,    // Source w, h
       0, 0,                          // Dest x, y

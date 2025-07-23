@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelynn's Jungle Dash - Main Menu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+            background: linear-gradient(135deg, #87ceeb 0%, #98fb98 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .menu-container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 3px solid #FFD700;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .game-title {
+            color: #FFD700;
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8); }
+            to { text-shadow: 3px 3px 20px #FFD700, 3px 3px 6px rgba(0, 0, 0, 0.8); }
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, #FF5252, #26A69A);
+        }
+
+        .start-button:active {
+            transform: translateY(-1px);
+        }
+
+        .instructions {
+            color: white;
+            font-size: 1.2em;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .control-item {
+            color: #FFD700;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        .character-preview {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #FFD700;
+        }
+
+        .character-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2.5em;
+            }
+            
+            .menu-container {
+                padding: 30px 20px;
+            }
+            
+            .start-button {
+                padding: 15px 30px;
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <img src="sprites/jungle_menu_bg.jpg" alt="Jungle Background" class="background-image">
+    <div class="overlay"></div>
+    
+    <div class="menu-container">
+        <h1 class="game-title">Adelynn's Jungle Dash</h1>
+        
+        <div class="character-preview">
+            <img src="sprites/girl_run.png" alt="Character" style="width: 60px; height: 60px;">
+        </div>
+        
+        <div class="instructions">
+            <p>🏃‍♀️ Run, jump, and collect coins in this exciting jungle adventure!</p>
+            <p>🎮 Defeat enemies by jumping on them!</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-item">🕹️ Controls:</div>
+            <div>Arrow Keys or WASD to move</div>
+            <div>Space or Up Arrow to jump</div>
+            <div>Touch: Swipe to move, swipe up to jump</div>
+        </div>
+        
+        <button class="start-button" onclick="startGame()">🚀 Start Adventure!</button>
+        <button class="start-button" onclick="viewInstructions()">📖 How to Play</button>
+    </div>
+
+    <script>
+        function startGame() {
+            // Redirect to the main game
+            window.location.href = 'game.html';
+        }
+        
+        function viewInstructions() {
+            alert(`How to Play Adelynn's Jungle Dash:
+
+🎮 CONTROLS:
+• Arrow Keys or WASD to move left/right
+• Up Arrow or W to jump
+• Touch: Swipe left/right to move, swipe up to jump
+
+🎯 OBJECTIVES:
+• Collect coins for points
+• Jump on enemies to defeat them
+• Navigate platforms and obstacles
+• Explore the jungle world
+
+🏆 SCORING:
+• Coins: 1 point each
+• Defeating enemies: 5 points each
+
+Have fun exploring the jungle! 🌿`);
+        }
+        
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.start-button');
+            
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px) scale(1.05)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

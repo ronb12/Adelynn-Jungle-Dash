@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelynn's Jungle Dash - Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <div id="scoreboard"><span class="coin-emoji">🪙</span> <span id="score-value">0</span></div>
+        <button id="startBtn">Start Game</button>
+        <div class="game-frame">
+            <canvas id="gameCanvas" width="400" height="600"></canvas>
+        </div>
+        <button id="backToMenu" onclick="backToMenu()" style="margin-top: 10px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">← Back to Menu</button>
+    </div>
+    <script src="game.js"></script>
+    <script>
+        function backToMenu() {
+            window.location.href = 'mainmenu.html';
+        }
+    </script>
+</body>
+</html> 

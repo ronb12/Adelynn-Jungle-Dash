@@ -93,36 +93,19 @@ function drawBackground() {
 }
 
 function drawInitialScreen() {
-    // Draw jungle background for menu
-    if (jungleMenuBg.complete && jungleMenuBg.naturalWidth > 0) {
-        ctx.drawImage(jungleMenuBg, 0, 0, canvas.width, canvas.height);
-    } else {
-        drawBackground();
-    }
-    
-    // Add a semi-transparent overlay for better text readability
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+    drawBackground();
     drawPlayer();
     
-    // Game title
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 3em Comic Sans MS, Comic Sans, cursive';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#222';
-    ctx.shadowBlur = 10;
-    ctx.fillText('Adelynn\'s Jungle Dash', canvas.width / 2, canvas.height / 2 - 80);
-    ctx.shadowBlur = 0;
+    // Simple start screen
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Instructions
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 1.5em Comic Sans MS, Comic Sans, cursive';
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 2em Comic Sans MS, Comic Sans, cursive';
     ctx.textAlign = 'center';
     ctx.shadowColor = '#222';
     ctx.shadowBlur = 8;
-    ctx.fillText('Use arrow keys or WASD to move!', canvas.width / 2, canvas.height / 2);
-    ctx.fillText('Jump on enemies to defeat them!', canvas.width / 2, canvas.height / 2 + 30);
+    ctx.fillText('Press Start to Play!', canvas.width / 2, canvas.height / 2);
     ctx.shadowBlur = 0;
 }
 
@@ -390,11 +373,13 @@ function updateGame() {
     drawPlayer();
     drawCoins();
     
-    // Spawn objects occasionally
-    if (Math.random() < 0.01) spawnCoin();
-    if (Math.random() < 0.005) spawnPlatform();
-    if (Math.random() < 0.003) spawnObstacle();
-    if (Math.random() < 0.002) spawnEnemy();
+    // Spawn objects occasionally (only after game has been running for a bit)
+    if (gameRunning && worldOffset > 100) {
+        if (Math.random() < 0.01) spawnCoin();
+        if (Math.random() < 0.005) spawnPlatform();
+        if (Math.random() < 0.003) spawnObstacle();
+        if (Math.random() < 0.002) spawnEnemy();
+    }
 }
 
 function checkCoinCollision() {
@@ -422,14 +407,17 @@ function checkEnemyCollision() {
             playerY < enemy.y + enemy.height) {
             
             // Check if player is jumping on enemy (from above)
-            if (playerVelocityY > 0 && playerY < enemy.y) {
+            if (playerVelocityY > 0 && playerY < enemy.y - 10) {
                 // Defeat enemy
                 enemies = enemies.filter(e => e !== enemy);
                 score += 5;
                 scoreboard.textContent = 'Score: ' + score;
                 playerVelocityY = -10; // Bounce
+            } else if (playerVelocityY < 0) {
+                // Player is moving upward, don't trigger game over
+                return;
             } else {
-                // Player gets hit
+                // Player gets hit from the side
                 endGame();
             }
         }

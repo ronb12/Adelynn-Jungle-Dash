@@ -293,9 +293,10 @@ function updatePlayer() {
         }
     } else {
         // Player is in the center area, move camera to follow
-        const targetCameraX = playerX - canvas.width / 2 + playerWidth / 2;
-        worldOffset += targetCameraX - (playerX - worldOffset);
-        playerX = canvas.width / 2 - playerWidth / 2; // Center player
+        const centerX = canvas.width / 2 - playerWidth / 2;
+        const cameraMove = playerX - centerX;
+        worldOffset += cameraMove;
+        playerX = centerX; // Center player
     }
     
     // Handle jumping

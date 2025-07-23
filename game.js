@@ -27,8 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const landingPage = document.getElementById('landingPage');
     const gameMenu = document.getElementById('gameMenu');
     if (landingPage) landingPage.remove();
+    // Failsafe: remove preview-character image if it exists
+    const previewImg = document.querySelector('.preview-character');
+    if (previewImg) previewImg.remove();
     if (gameMenu) gameMenu.style.display = 'none';
-    // Optionally hide any other overlays that could block the canvas
     resetGame();
     gameOver = false;
     gameStarted = true;

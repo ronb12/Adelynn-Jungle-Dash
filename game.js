@@ -24,6 +24,7 @@ const imgLog = new Image(); imgLog.src = 'sprites/obstacle_log.png';
 const imgPlatformLog = new Image(); imgPlatformLog.src = 'sprites/platform_log.png';
 const imgPlatformLeaf = new Image(); imgPlatformLeaf.src = 'sprites/platform_leaf.png';
 const imgBananaCoin = new Image(); imgBananaCoin.src = 'sprites/banana_coin.png';
+const imgFrog = new Image(); imgFrog.src = 'sprites/frog_obstacle.png';
 
 // --- Game state ---
 let player = {
@@ -66,9 +67,10 @@ function spawnPlatform(y) {
   if (Math.random() < 0.5) {
     coins.push({ x: x + PLATFORM_WIDTH/2, y: y - 30, radius: 18, collected: false });
   }
-  // 30% chance to spawn an obstacle
+  // 30% chance to spawn an obstacle (frog or log)
   if (Math.random() < 0.3) {
-    obstacles.push({ x: x + Math.random() * (PLATFORM_WIDTH-48), y: y - 32, width: 48, height: 32 });
+    const frog = Math.random() < 0.5;
+    obstacles.push({ x: x + Math.random() * (PLATFORM_WIDTH-48), y: y - 32, width: 48, height: 32, frog });
   }
 }
 
@@ -211,11 +213,12 @@ function draw() {
     }
     ctx.restore();
   });
-  // Obstacles (logs)
+  // Obstacles (frogs or logs)
   obstacles.forEach(o => {
-    if (imgLog.complete) ctx.drawImage(imgLog, o.x, o.y - cameraY, o.width, o.height);
+    if (o.frog && imgFrog.complete) ctx.drawImage(imgFrog, o.x, o.y - cameraY, o.width, o.height);
+    else if (imgLog.complete) ctx.drawImage(imgLog, o.x, o.y - cameraY, o.width, o.height);
     else {
-      ctx.fillStyle = '#8d5524';
+      ctx.fillStyle = o.frog ? 'green' : '#8d5524';
       ctx.fillRect(o.x, o.y - cameraY, o.width, o.height);
     }
   });

@@ -119,6 +119,11 @@ function drawPlayer() {
     ctx.fill();
     ctx.restore();
     
+    // Debug: Draw collision box
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(playerX, playerY, playerWidth, playerHeight);
+    
     // Animate running
     if (gameRunning && Math.abs(playerVelocityX) > 0 && !isJumping) {
         runFrameTick++;
@@ -133,7 +138,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY + playerVelocityY,
+        playerY, // Remove playerVelocityY to prevent floating
         playerWidth, playerHeight
     );
 }
@@ -309,9 +314,9 @@ function updatePlayer() {
         if (playerX + playerWidth > platformScreenX && 
             playerX < platformScreenX + platform.width &&
             playerY + playerHeight >= platform.y &&
-            playerY + playerHeight <= platform.y + 15 && // Increased collision area
+            playerY + playerHeight <= platform.y + 5 && // Tighter collision area
             playerVelocityY >= 0) { // Only when falling
-            playerY = platform.y - playerHeight;
+            playerY = platform.y - playerHeight; // Exact positioning
             playerVelocityY = 0;
             isJumping = false;
             onPlatform = true;
@@ -320,7 +325,7 @@ function updatePlayer() {
     
     // Ground collision (only if not on platform)
     if (!onPlatform && playerY >= groundY - playerHeight) {
-        playerY = groundY - playerHeight;
+        playerY = groundY - playerHeight; // Exact positioning
         playerVelocityY = 0;
         isJumping = false;
     }

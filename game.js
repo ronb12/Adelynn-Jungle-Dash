@@ -9,7 +9,7 @@ const playerWidth = 60;
 const playerHeight = 100;
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
-let playerY = groundY - playerHeight; // Character's feet should touch ground
+let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
 let worldOffset = 0; // How much the world has moved
 let coins = [];
 let platforms = [];
@@ -113,15 +113,6 @@ function drawInitialScreen() {
 }
 
 function drawPlayer() {
-    // Draw shadow
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.beginPath();
-    ctx.ellipse(playerX + playerWidth / 2, groundY - 5, playerWidth / 2.5, 10, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#222';
-    ctx.fill();
-    ctx.restore();
-    
     // Debug: Draw collision box and ground line
     if (showDebug) {
         // Character collision box
@@ -341,13 +332,18 @@ function updatePlayer() {
         }
     });
     
-    // Ground collision (only if not on platform) - More aggressive
+    // Ground collision (only if not on platform) - EXTREMELY aggressive
     if (!onPlatform) {
-        if (playerY + playerHeight > groundY) {
-            playerY = groundY - playerHeight; // Force character to ground
+        if (playerY + playerHeight >= groundY) {
+            playerY = groundY - playerHeight; // Force character to ground EXACTLY
             playerVelocityY = 0;
             isJumping = false;
         }
+    }
+    
+    // CONSTANT GROUND CHECK - Force character to ground if not jumping
+    if (!isJumping && playerVelocityY === 0) {
+        playerY = groundY - playerHeight; // Always force to ground
     }
     
     // Check obstacle collisions

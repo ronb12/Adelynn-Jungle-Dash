@@ -171,7 +171,7 @@ function drawPlayer() {
     const sx = (frame % 4) * runFrameWidth;
     const sy = Math.floor(frame / 4) * runFrameHeight;
     ctx.drawImage(
-        girlRunSprite,
+        runSprite,
         sx, sy, runFrameWidth, runFrameHeight,
         playerX,
         playerY,

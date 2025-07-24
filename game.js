@@ -9,7 +9,7 @@ const playerWidth = 60;
 const playerHeight = 100;
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
-let playerY = groundY - playerHeight;
+let playerY = groundY - playerHeight; // Character's feet should touch ground
 let worldOffset = 0; // How much the world has moved
 let coins = [];
 let platforms = [];
@@ -118,11 +118,6 @@ function drawPlayer() {
     ctx.fillStyle = '#222';
     ctx.fill();
     ctx.restore();
-    
-    // Debug: Draw collision box
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(playerX, playerY, playerWidth, playerHeight);
     
     // Animate running
     if (gameRunning && Math.abs(playerVelocityX) > 0 && !isJumping) {
@@ -324,8 +319,8 @@ function updatePlayer() {
     });
     
     // Ground collision (only if not on platform)
-    if (!onPlatform && playerY >= groundY - playerHeight) {
-        playerY = groundY - playerHeight; // Exact positioning
+    if (!onPlatform && playerY + playerHeight >= groundY) {
+        playerY = groundY - playerHeight; // Exact positioning - feet touch ground
         playerVelocityY = 0;
         isJumping = false;
     }

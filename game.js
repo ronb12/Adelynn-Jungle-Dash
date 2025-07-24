@@ -133,6 +133,9 @@ function setAnimation(state) {
     else if (state === 'jump') currentAnim = JUMP_FRAMES;
 }
 
+const DRAW_WIDTH = runFrameWidth * 2;
+const DRAW_HEIGHT = runFrameHeight * 2;
+
 function drawPlayer() {
     // Debug: Draw collision box and ground line
     if (showDebug) {
@@ -150,7 +153,18 @@ function drawPlayer() {
     }
     // Animation logic
     if (!isJumping && Math.abs(playerVelocityX) >= 0.1) {
-        drawRunPlayer();
+        // Draw run animation at double size
+        runFrameTick++;
+        if (gameRunning && runFrameTick % 8 === 0) {
+            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
+        }
+        ctx.drawImage(
+            runSprite,
+            runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
+            playerX - (DRAW_WIDTH - playerWidth) / 2,
+            playerY - (DRAW_HEIGHT - playerHeight),
+            DRAW_WIDTH, DRAW_HEIGHT
+        );
         return;
     }
     if (!isJumping && Math.abs(playerVelocityX) < 0.1) {
@@ -173,9 +187,9 @@ function drawPlayer() {
     ctx.drawImage(
         runSprite,
         sx, sy, runFrameWidth, runFrameHeight,
-        playerX,
-        playerY,
-        playerWidth, playerHeight
+        playerX - (DRAW_WIDTH - playerWidth) / 2,
+        playerY - (DRAW_HEIGHT - playerHeight),
+        DRAW_WIDTH, DRAW_HEIGHT
     );
 }
 

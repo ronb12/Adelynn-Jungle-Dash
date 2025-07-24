@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adelynn's Jungle Dash</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <script>
-        // Redirect to main menu
-        window.location.href = 'mainmenu.html';
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Jungle Dash for Kids</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#388e3c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jungle Dash">
+  <link rel="apple-touch-icon" href="sprites/jungle_girl.png">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
-<body>
-    <div class="container">
-        <h1>Adelynn's Jungle Dash</h1>
-        <p>Redirecting to main menu...</p>
-        <a href="mainmenu.html">Click here if not redirected automatically</a>
-    </div>
+<body class="jungle-bg">
+  <div class="jungle-landing">
+    <div class="jungle-logo">Jungle Dash!</div>
+    <button class="start-btn" onclick="window.location.href='mainmenu.html'">Start Adventure!</button>
+  </div>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(function(reg) {
+    console.log('Service worker registered!', reg);
+  }).catch(function(err) {
+    console.log('Service worker registration failed:', err);
+  });
+}
+</script>
 </body>
 </html> 

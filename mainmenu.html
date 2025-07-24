@@ -1,354 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adelynn's Jungle Dash - Main Menu</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
-            background: linear-gradient(135deg, #87ceeb 0%, #98fb98 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .scroll-container {
-            min-height: 200vh; /* Make it scrollable */
-            position: relative;
-        }
-
-        .menu-container {
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            border: 3px solid #FFD700;
-            max-width: 600px;
-            width: 90%;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
-
-        .game-title {
-            color: #FFD700;
-            font-size: 3.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8); }
-            to { text-shadow: 3px 3px 20px #FFD700, 3px 3px 6px rgba(0, 0, 0, 0.8); }
-        }
-
-        .start-button {
-            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-            color: white;
-            border: none;
-            padding: 20px 40px;
-            font-size: 1.5em;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 20px 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
-        }
-
-        .start-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, #FF5252, #26A69A);
-        }
-
-        .start-button:active {
-            transform: translateY(-1px);
-        }
-
-        .instructions {
-            color: white;
-            font-size: 1.2em;
-            margin: 20px 0;
-            line-height: 1.6;
-        }
-
-        .controls {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .control-item {
-            color: #FFD700;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .background-image {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -2;
-            opacity: 0.8;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            z-index: -1;
-        }
-
-        .character-preview {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #FFD700;
-        }
-
-        .character-preview img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-        }
-
-        /* Scroll-triggered elements */
-        .scroll-element {
-            position: absolute;
-            opacity: 0;
-            transform: translateY(50px);
-            transition: all 0.8s ease;
-        }
-
-        .scroll-element.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .floating-coin {
-            position: absolute;
-            font-size: 2em;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .floating-coin:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
-        .floating-coin:nth-child(2) { top: 40%; right: 15%; animation-delay: 1s; }
-        .floating-coin:nth-child(3) { top: 60%; left: 20%; animation-delay: 2s; }
-        .floating-coin:nth-child(4) { top: 80%; right: 10%; animation-delay: 0.5s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-        }
-
-        .scroll-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 1.1em;
-            text-align: center;
-            z-index: 5;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
-            40% { transform: translateX(-50%) translateY(-10px); }
-            60% { transform: translateX(-50%) translateY(-5px); }
-        }
-
-        .parallax-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -3;
-        }
-
-        .cloud {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50px;
-            opacity: 0.7;
-        }
-
-        .cloud1 { width: 100px; height: 40px; top: 10%; left: 10%; animation: drift 20s linear infinite; }
-        .cloud2 { width: 80px; height: 30px; top: 30%; right: 20%; animation: drift 15s linear infinite reverse; }
-        .cloud3 { width: 120px; height: 50px; top: 60%; left: 30%; animation: drift 25s linear infinite; }
-
-        @keyframes drift {
-            from { transform: translateX(-100px); }
-            to { transform: translateX(calc(100vw + 100px)); }
-        }
-
-        @media (max-width: 768px) {
-            .game-title {
-                font-size: 2.5em;
-            }
-            
-            .menu-container {
-                padding: 30px 20px;
-            }
-            
-            .start-button {
-                padding: 15px 30px;
-                font-size: 1.3em;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Jungle Dash - Main Menu</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#388e3c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jungle Dash">
+  <link rel="apple-touch-icon" href="sprites/jungle_girl.png">
+  <link rel="icon" type="image/png" href="favicon.png">
 </head>
-<body>
-    <div class="scroll-container">
-        <!-- Parallax background elements -->
-        <div class="parallax-bg">
-            <div class="cloud cloud1"></div>
-            <div class="cloud cloud2"></div>
-            <div class="cloud cloud3"></div>
-        </div>
-
-        <!-- Floating coins that appear on scroll -->
-        <div class="scroll-element floating-coin" style="top: 25%; left: 5%;">🪙</div>
-        <div class="scroll-element floating-coin" style="top: 45%; right: 8%;">🪙</div>
-        <div class="scroll-element floating-coin" style="top: 65%; left: 15%;">🪙</div>
-        <div class="scroll-element floating-coin" style="top: 85%; right: 5%;">🪙</div>
-
-        <!-- Additional scroll elements -->
-        <div class="scroll-element" style="top: 120%; left: 10%; font-size: 2em; color: #FFD700;">🌟</div>
-        <div class="scroll-element" style="top: 140%; right: 15%; font-size: 2em; color: #FFD700;">🎮</div>
-        <div class="scroll-element" style="top: 160%; left: 20%; font-size: 2em; color: #FFD700;">🏆</div>
+<body class="jungle-bg">
+  <div class="menu-container">
+    <div class="jungle-logo">Jungle Dash!</div>
+    <button class="menu-btn" onclick="window.location.href='index.html'">Start Game</button>
+    <button class="menu-btn" onclick="document.getElementById('howToPlayModal').style.display='block'">How to Play</button>
+  </div>
+  <div id="howToPlayModal" class="modal" tabindex="-1" aria-modal="true" role="dialog" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('howToPlayModal').style.display='none'" tabindex="0" role="button" aria-label="Close">&times;</span>
+      <h2>How to Play</h2>
+      <ul style="text-align:left; font-size:1.1em;">
+        <li>Tap <b>Start Game</b> to begin your adventure!</li>
+        <li><b>Move</b> left/right with arrow keys or on-screen buttons.</li>
+        <li><b>Jump</b> with the up arrow, spacebar, or jump button.</li>
+        <li><b>Collect coins</b> for points and try to beat your high score!</li>
+        <li><b>Avoid logs</b> and obstacles. If you hit one, the game ends.</li>
+        <li>Play again and have fun!</li>
+      </ul>
     </div>
-
-    <img src="sprites/jungle_menu_bg.jpg" alt="Jungle Background" class="background-image">
-    <div class="overlay"></div>
-    
-    <div class="menu-container">
-        <h1 class="game-title">Adelynn's Jungle Dash</h1>
-        
-        <div class="character-preview">
-            <img src="sprites/girl_run.png" alt="Character" style="width: 60px; height: 60px;">
-        </div>
-        
-        <div class="instructions">
-            <p>🏃‍♀️ Run, jump, and collect coins in this exciting jungle adventure!</p>
-            <p>🎮 Defeat enemies by jumping on them!</p>
-        </div>
-        
-        <div class="controls">
-            <div class="control-item">🕹️ Controls:</div>
-            <div>Arrow Keys or WASD to move</div>
-            <div>Space or Up Arrow to jump</div>
-            <div>Touch: Swipe to move, swipe up to jump</div>
-        </div>
-        
-        <button class="start-button" onclick="startGame()">🚀 Start Adventure!</button>
-        <button class="start-button" onclick="viewInstructions()">📖 How to Play</button>
-    </div>
-
-    <div class="scroll-hint">
-        <div>📜 Scroll to explore more!</div>
-        <div style="font-size: 0.8em; margin-top: 5px;">↓</div>
-    </div>
-
-    <script>
-        function startGame() {
-            // Redirect to the main game
-            window.location.href = 'game.html';
-        }
-        
-        function viewInstructions() {
-            alert(`How to Play Adelynn's Jungle Dash:
-
-🎮 CONTROLS:
-• Arrow Keys or WASD to move left/right
-• Up Arrow or W to jump
-• Touch: Swipe left/right to move, swipe up to jump
-
-🎯 OBJECTIVES:
-• Collect coins for points
-• Jump on enemies to defeat them
-• Navigate platforms and obstacles
-• Explore the jungle world
-
-🏆 SCORING:
-• Coins: 1 point each
-• Defeating enemies: 5 points each
-
-Have fun exploring the jungle! 🌿`);
-        }
-        
-        // Scroll-triggered animations
-        function handleScroll() {
-            const scrollElements = document.querySelectorAll('.scroll-element');
-            const scrollPosition = window.scrollY;
-            
-            scrollElements.forEach(element => {
-                const elementTop = element.offsetTop;
-                const elementVisible = 150;
-                
-                if (scrollPosition > elementTop - elementVisible) {
-                    element.classList.add('visible');
-                }
-            });
-        }
-        
-        // Parallax effect for background
-        function handleParallax() {
-            const scrolled = window.pageYOffset;
-            const parallax = document.querySelector('.parallax-bg');
-            const speed = scrolled * 0.5;
-            
-            parallax.style.transform = `translateY(${speed}px)`;
-        }
-        
-        // Add event listeners
-        window.addEventListener('scroll', () => {
-            handleScroll();
-            handleParallax();
-        });
-        
-        // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.start-button');
-            
-            buttons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px) scale(1.05)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
-            
-            // Trigger initial scroll check
-            handleScroll();
-        });
-    </script>
+  </div>
+  <script>
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') document.getElementById('howToPlayModal').style.display = 'none';
+    });
+  </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.log('Service worker registered!', reg);
+    }).catch(function(err) {
+      console.log('Service worker registration failed:', err);
+    });
+  }
+  </script>
 </body>
 </html> 

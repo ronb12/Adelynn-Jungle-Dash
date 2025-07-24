@@ -1,107 +1,135 @@
-body {
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(to bottom, #b3e5fc 0%, #e0f7fa 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Comic Sans MS', Comic Sans, cursive;
+body.jungle-bg {
+  background: linear-gradient(to bottom, #a8e063 0%, #56ab2f 100%);
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Comic Sans MS', Comic Sans, cursive;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+.jungle-landing, .menu-container {
+  background: rgba(255,255,255,0.85);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 400px;
+  margin: 40px auto;
 }
-
-h1 {
-    margin-top: 30px;
-    font-size: 2.5em;
-    color: #222;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 8px #fffde4;
+.jungle-logo {
+  font-size: 2.5em;
+  color: #388e3c;
+  font-weight: bold;
+  margin-bottom: 24px;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 8px #fffde4;
 }
-
-#scoreboard {
-    font-size: 2em;
-    font-family: 'Comic Sans MS', Comic Sans, cursive;
-    color: #fff;
-    background: linear-gradient(90deg, #ffd700 0%, #ffec80 100%);
-    border-radius: 30px;
-    padding: 12px 40px;
-    margin: 20px 0 20px 0;
-    text-align: center;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-    letter-spacing: 2px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.character-preview {
+  margin: 24px auto 32px auto;
+  width: 120px;
+  height: 120px;
+  background: #fffbe7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #FFD700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-
-.coin-emoji {
-    font-size: 1.2em;
-    margin-right: 8px;
+.preview-character {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
 }
-
-#startBtn {
-    margin-bottom: 18px;
-    padding: 14px 36px;
-    font-size: 1.2em;
-    font-family: inherit;
-    border: none;
-    border-radius: 18px;
-    background: linear-gradient(90deg, #4caf50 0%, #81c784 100%);
-    color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    transition: background 0.2s, transform 0.2s;
+.start-btn, .menu-btn {
+  background: linear-gradient(90deg, #ffd700 0%, #ffec80 100%);
+  color: #388e3c;
+  font-size: 1.4em;
+  font-family: inherit;
+  border: none;
+  border-radius: 18px;
+  padding: 18px 48px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  margin: 18px 0;
+  transition: background 0.2s, transform 0.2s;
 }
-#startBtn:hover {
-    background: linear-gradient(90deg, #388e3c 0%, #66bb6a 100%);
-    transform: scale(1.05);
+.start-btn:hover, .menu-btn:hover {
+  background: linear-gradient(90deg, #fff176 0%, #ffd54f 100%);
+  transform: scale(1.05);
 }
-
+#touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  pointer-events: none;
+}
+.touch-btn {
+  pointer-events: auto;
+  width: 72px;
+  height: 72px;
+  font-size: 2.5em;
+  background: rgba(255,255,255,0.7);
+  border: 3px solid #388e3c;
+  border-radius: 50%;
+  color: #388e3c;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  margin: 0 8px;
+  outline: none;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 20;
+}
+.touch-btn:active {
+  background: #ffd700;
+  transform: scale(1.1);
+}
+@media (min-width: 900px) {
+  #touch-controls { display: none; }
+}
 .game-frame {
-    background: #222;
-    border: 8px solid #333;
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 30px;
-    position: relative;
-    overflow: hidden;
+  position: relative;
 }
-
-#gameCanvas {
-    background: transparent;
-    display: block;
-    border-radius: 4px;
-    image-rendering: pixelated;
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
-/* HUD bar */
-.hud-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 36px;
-    background: linear-gradient(90deg, #222 0%, #444 100%);
-    color: #fff;
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    padding-left: 16px;
-    font-family: 'Comic Sans MS', Comic Sans, cursive;
-    z-index: 2;
-    border-bottom: 2px solid #ffd700;
+.modal-content {
+  background: #fffbe7;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 32px 24px 24px 24px;
+  max-width: 350px;
+  width: 90vw;
+  text-align: center;
+  position: relative;
 }
-
-/* Add more clouds and bushes/trees using pseudo-elements or draw in canvas for more control */ 
+.close {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 2em;
+  color: #388e3c;
+  cursor: pointer;
+  font-weight: bold;
+  background: none;
+  border: none;
+  outline: none;
+}
+.close:focus {
+  outline: 2px solid #388e3c;
+}
+@media (max-width: 500px) {
+  .modal-content { padding: 18px 6vw 18px 6vw; }
+  .close { top: 6px; right: 10px; font-size: 1.5em; }
+} 

@@ -1,689 +1,258 @@
+// Jungle Dash - New Game Foundation with Cartoon Assets
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const scoreDisplay = document.getElementById('score');
-const startBtn = document.getElementById('startBtn');
-const scoreboard = document.getElementById('scoreboard');
 
-// Super Mario-style control: player moves freely, world follows
-const playerWidth = 60;
-const playerHeight = 100; // Original character height
-const groundY = canvas.height - 20; // Mario-style ground (thinner)
-let playerX = 100; // Start player at fixed position, not centered
-let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
-let worldOffset = 0; // How much the world has moved
+// Load images
+const imgBg = new Image(); imgBg.src = 'sprites/jungle_bg.png';
+const imgGirl = new Image(); imgGirl.src = 'sprites/jungle_girl.png';
+const imgMonkey = new Image(); imgMonkey.src = 'sprites/monkey_sidekick.png';
+const imgCoin = new Image(); imgCoin.src = 'sprites/coin.png';
+const imgLog = new Image(); imgLog.src = 'sprites/obstacle_log.png';
+
+// Game state
+let player = {
+  x: 100,
+  y: 300,
+  width: 48,
+  height: 64,
+  vy: 0,
+  onGround: false,
+};
+let sidekick = {
+  x: 60,
+  y: 340,
+  width: 36,
+  height: 36,
+};
 let coins = [];
-let platforms = [];
 let obstacles = [];
-let enemies = [];
 let score = 0;
-let gameRunning = false;
-let gameInterval;
-let gameStarted = false;
+let gameOver = false;
 
-// Player movement variables
-let playerVelocityX = 0;
-let playerVelocityY = 0;
-const playerSpeed = 5;
-const gravity = 0.6; // Reduced gravity for better control
-const jumpPower = -20; // Increased jump power for higher jumps
+// --- Animation state ---
+let animTick = 0;
 
-// Debug flag to show collision boxes
-let showDebug = true;
+// --- High score ---
+let highScore = Number(localStorage.getItem('jungleDashHighScore') || 0);
+let showHighScoreMsg = false;
+let highScoreMsgTimer = 0;
+let feedbackMsg = '';
+let feedbackTimer = 0;
 
-// Sprite sheet for Princess Yasuko (Super Miyamoto Land)
-const girlRunSprite = new Image();
-girlRunSprite.src = 'sprites/princess_yasuko.png'; // Use Princess Yasuko sprite for testing
-const yasukoFrameWidth = 24; // Frame width from the sprite sheet
-const yasukoFrameHeight = 32; // Frame height from the sprite sheet
-const yasukoFrameCount = 8;
-let yasukoFrameIndex = 0;
-let yasukoFrameTick = 0;
+// Controls
+let keys = {};
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup', e => keys[e.code] = false);
 
-// Sprite sheet for Run animation (rendered from Blender)
-const runSprite = new Image();
-runSprite.src = 'renders/RunForward/run_horizontal_strip.png';
-const runFrameWidth = 512;
-const runFrameHeight = 512;
-const runFrameCount = 60;
-let runFrameIndex = 0;
-let runFrameTick = 0;
+// --- Audio setup ---
+const sndJump = new Audio('audio/jump.wav');
+const sndCoin = new Audio('audio/coin.wav');
+const sndGameOver = new Audio('audio/gameover.wav');
+const music = new Audio('audio/bg_music.mp3');
+music.loop = true;
 
-// Jungle menu background
-const jungleMenuBg = new Image();
-jungleMenuBg.src = 'sprites/jungle_menu_bg.jpg';
-
-// Add jump and dash logic
-let isJumping = false;
-let jumpY = 0;
-let jumpTick = 0;
-let isDashing = false;
-let dashTick = 0;
-
-// Touch/swipe variables
-let touchStartX = null;
-let touchStartY = null;
-
-// Input state
-let keys = {
-    left: false,
-    right: false,
-    up: false,
-    down: false
-};
-
-// Object types
-const OBJECT_TYPES = {
-    PLATFORM: 'platform',
-    PIPE: 'pipe',
-    BLOCK: 'block',
-    ENEMY: 'enemy',
-    COIN: 'coin'
-};
-
-canvas.addEventListener('touchstart', function(e) {
-    if (e.touches.length === 1) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    }
-});
-
-// Jungle background gradient
-function drawBackground() {
-    // Blue sky
-    ctx.fillStyle = '#87ceeb';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Green ground (Mario-style thin ground)
-    ctx.fillStyle = '#4caf50';
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-    // Optional: clouds
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(80, 80, 30, Math.PI * 2, false);
-    ctx.arc(110, 80, 40, Math.PI * 2, false);
-    ctx.arc(150, 80, 30, Math.PI * 2, false);
-    ctx.fill();
+// Start music on first user interaction
+let musicStarted = false;
+function startMusic() {
+  if (!musicStarted) { music.play(); musicStarted = true; }
 }
-
-function drawInitialScreen() {
-    drawBackground();
-    drawPlayer();
-    
-    // Simple start screen
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 2em Comic Sans MS, Comic Sans, cursive';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#222';
-    ctx.shadowBlur = 8;
-    ctx.fillText('Press Start to Play!', canvas.width / 2, canvas.height / 2);
-    ctx.shadowBlur = 0;
-}
-
-// Animation frame ranges for Princess Yasuko
-const IDLE_FRAMES = [0, 1, 2, 3];
-const RUN_FRAMES = [4, 5, 6, 7];
-const JUMP_FRAMES = [8, 9, 10, 11];
-let currentAnim = IDLE_FRAMES;
-
-function setAnimation(state) {
-    if (state === 'idle') currentAnim = IDLE_FRAMES;
-    else if (state === 'run') currentAnim = RUN_FRAMES;
-    else if (state === 'jump') currentAnim = JUMP_FRAMES;
-}
-
-const DRAW_WIDTH = runFrameWidth * 2;
-const DRAW_HEIGHT = runFrameHeight * 2;
-
-function drawPlayer() {
-    // Debug: Draw collision box and ground line
-    if (showDebug) {
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(playerX, playerY, playerWidth, playerHeight);
-        ctx.strokeStyle = 'blue';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(0, groundY);
-        ctx.lineTo(canvas.width, groundY);
-        ctx.stroke();
-        ctx.fillStyle = 'yellow';
-        ctx.fillRect(playerX + playerWidth/2 - 2, playerY + playerHeight - 4, 4, 4);
-    }
-    // Animation logic
-    if (!isJumping && Math.abs(playerVelocityX) >= 0.1) {
-        // Draw run animation at double size
-        runFrameTick++;
-        if (gameRunning && runFrameTick % 8 === 0) {
-            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
-        }
-        ctx.drawImage(
-            runSprite,
-            runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
-            playerX - (DRAW_WIDTH - playerWidth) / 2,
-            playerY - (DRAW_HEIGHT - playerHeight),
-            DRAW_WIDTH, DRAW_HEIGHT
-        );
-        return;
-    }
-    if (!isJumping && Math.abs(playerVelocityX) < 0.1) {
-        setAnimation('idle');
-    } else if (isJumping) {
-        setAnimation('jump');
-    }
-    // Animate
-    runFrameTick++;
-    if (gameRunning) {
-        if (runFrameTick % 8 === 0) {
-            runFrameIndex = (runFrameIndex + 1) % currentAnim.length;
-        }
-    } else {
-        runFrameIndex = 0;
-    }
-    const frame = currentAnim[runFrameIndex % currentAnim.length];
-    const sx = (frame % 4) * runFrameWidth;
-    const sy = Math.floor(frame / 4) * runFrameHeight;
-    ctx.drawImage(
-        runSprite,
-        sx, sy, runFrameWidth, runFrameHeight,
-        playerX - (DRAW_WIDTH - playerWidth) / 2,
-        playerY - (DRAW_HEIGHT - playerHeight),
-        DRAW_WIDTH, DRAW_HEIGHT
-    );
-}
-
-const marioCoin = new Image();
-marioCoin.src = 'sprites/mario_coin.gif';
-
-function drawCoins() {
-    coins.forEach(coin => {
-        if (marioCoin.complete && marioCoin.naturalWidth > 0) {
-            ctx.drawImage(marioCoin, coin.x - worldOffset - 8, coin.y - 7, 16, 14);
-        }
-    });
-}
-
-function drawPlatforms() {
-    platforms.forEach(platform => {
-        const screenX = platform.x - worldOffset;
-        if (screenX > -100 && screenX < canvas.width + 100) {
-            // Draw platform with Mario-style design
-            ctx.fillStyle = '#8B4513'; // Brown
-            ctx.fillRect(screenX, platform.y, platform.width, platform.height);
-            
-            // Add some texture
-            ctx.fillStyle = '#654321';
-            ctx.fillRect(screenX, platform.y, platform.width, 5);
-            ctx.fillRect(screenX, platform.y + platform.height - 5, platform.width, 5);
-        }
-    });
-}
-
-function drawObstacles() {
-    obstacles.forEach(obstacle => {
-        const screenX = obstacle.x - worldOffset;
-        if (screenX > -100 && screenX < canvas.width + 100) {
-            if (obstacle.type === OBJECT_TYPES.PIPE) {
-                // Draw Mario-style pipe
-                ctx.fillStyle = '#228B22'; // Green
-                ctx.fillRect(screenX, obstacle.y, obstacle.width, obstacle.height);
-                ctx.fillStyle = '#006400';
-                ctx.fillRect(screenX, obstacle.y, obstacle.width, 10);
-                ctx.fillRect(screenX, obstacle.y + obstacle.height - 10, obstacle.width, 10);
-            } else if (obstacle.type === OBJECT_TYPES.BLOCK) {
-                // Draw Mario-style block
-                ctx.fillStyle = '#FFD700'; // Gold
-                ctx.fillRect(screenX, obstacle.y, obstacle.width, obstacle.height);
-                ctx.fillStyle = '#FFA500';
-                ctx.fillRect(screenX, obstacle.y, obstacle.width, 5);
-                ctx.fillRect(screenX, obstacle.y + obstacle.height - 5, obstacle.width, 5);
-            }
-        }
-    });
-}
-
-function drawEnemies() {
-    enemies.forEach(enemy => {
-        const screenX = enemy.x - worldOffset;
-        if (screenX > -50 && screenX < canvas.width + 50) {
-            // Draw simple enemy (red circle)
-            ctx.fillStyle = '#FF0000';
-            ctx.beginPath();
-            ctx.arc(screenX + enemy.width/2, enemy.y + enemy.height/2, enemy.width/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Add eyes
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(screenX + enemy.width/2 - 5, enemy.y + enemy.height/2 - 5, 2, 0, Math.PI * 2);
-            ctx.arc(screenX + enemy.width/2 + 5, enemy.y + enemy.height/2 - 5, 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    });
-}
+document.addEventListener('keydown', startMusic, { once: true });
+document.addEventListener('touchstart', startMusic, { once: true });
 
 function spawnCoin() {
-    const coinX = Math.random() * 2000 + worldOffset + canvas.width;
-    coins.push({
-        x: coinX,
-        y: canvas.height - 50 // Higher up so coins are visible
-    });
+  coins.push({
+    x: 800 + Math.random() * 200,
+    y: 250 + Math.random() * 120,
+    radius: 18,
+    collected: false,
+  });
 }
-
-function spawnPlatform() {
-    const platformX = Math.random() * 2000 + worldOffset + canvas.width;
-    const platformY = canvas.height - 120 - Math.random() * 150; // More varied heights
-    const platformWidth = 80 + Math.random() * 120;
-    
-    platforms.push({
-        x: platformX,
-        y: platformY,
-        width: platformWidth,
-        height: 20,
-        type: OBJECT_TYPES.PLATFORM
-    });
-}
-
 function spawnObstacle() {
-    const obstacleX = Math.random() * 2000 + worldOffset + canvas.width;
-    const obstacleType = Math.random() > 0.5 ? OBJECT_TYPES.PIPE : OBJECT_TYPES.BLOCK;
-    
-    if (obstacleType === OBJECT_TYPES.PIPE) {
-        obstacles.push({
-            x: obstacleX,
-            y: canvas.height - 100, // Higher up for better jumping
-            width: 40,
-            height: 100,
-            type: obstacleType
-        });
-    } else {
-        obstacles.push({
-            x: obstacleX,
-            y: canvas.height - 60, // Higher up for better jumping
-            width: 40,
-            height: 60,
-            type: obstacleType
-        });
-    }
+  obstacles.push({
+    x: 800 + Math.random() * 200,
+    y: 370,
+    width: 48,
+    height: 32,
+  });
 }
 
-function spawnEnemy() {
-    const enemyX = Math.random() * 2000 + worldOffset + canvas.width;
-    enemies.push({
-        x: enemyX,
-        y: canvas.height - 40, // Higher up for better visibility
-        width: 30,
-        height: 30,
-        velocityX: -1,
-        type: OBJECT_TYPES.ENEMY
-    });
+function resetGame() {
+  player.x = 100;
+  player.y = 300;
+  player.vy = 0;
+  score = 0;
+  coins = [];
+  obstacles = [];
+  gameOver = false;
+  feedbackMsg = '';
+  feedbackTimer = 0;
+  showHighScoreMsg = false;
+  highScoreMsgTimer = 0;
+  for (let i = 0; i < 5; i++) spawnCoin();
+  for (let i = 0; i < 3; i++) spawnObstacle();
+  document.getElementById('restartBtn').style.display = 'none';
 }
 
-function updatePlayer() {
-    // Handle horizontal movement
-    if (keys.left) {
-        playerVelocityX = -playerSpeed;
-    } else if (keys.right) {
-        playerVelocityX = playerSpeed;
-    } else {
-        playerVelocityX *= 0.8; // Friction
+function update() {
+  if (gameOver) return;
+  animTick++;
+  // Gravity
+  player.vy += 0.7;
+  player.y += player.vy;
+  // Ground collision
+  if (player.y + player.height > 400) {
+    player.y = 400 - player.height;
+    player.vy = 0;
+    player.onGround = true;
+  } else {
+    player.onGround = false;
+  }
+  // Controls
+  if ((keys['Space'] || keys['ArrowUp']) && player.onGround) {
+    player.vy = -13;
+    sndJump.currentTime = 0; sndJump.play();
+  }
+  if (keys['ArrowLeft']) player.x -= 5;
+  if (keys['ArrowRight']) player.x += 5;
+  // Sidekick follows
+  sidekick.x += (player.x - 40 - sidekick.x) * 0.2;
+  sidekick.y += (player.y + player.height - 10 - sidekick.y) * 0.2;
+  // Move coins/obstacles
+  coins.forEach(c => c.x -= 5);
+  obstacles.forEach(o => o.x -= 5);
+  // Coin collection
+  coins.forEach(c => {
+    if (!c.collected && Math.hypot(player.x + player.width/2 - c.x, player.y + player.height/2 - c.y) < c.radius + player.width/2) {
+      c.collected = true;
+      score++;
+      sndCoin.currentTime = 0; sndCoin.play();
+      feedbackMsg = ['Great!', 'Nice!', 'Awesome!', 'Yay!'][Math.floor(Math.random()*4)];
+      feedbackTimer = 30;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('jungleDashHighScore', highScore);
+        showHighScoreMsg = true;
+        highScoreMsgTimer = 60;
+      }
     }
-    
-    // Apply velocity to player position
-    playerX += playerVelocityX;
-    
-    // Simple Mario-style camera: move world when player reaches edges
-    const edgeThreshold = 150; // Distance from edge before camera moves
-    
-    if (playerX < edgeThreshold) {
-        // Player near left edge, don't move camera
-        if (playerX < 50) {
-            playerX = 50; // Keep player on screen
-        }
-    } else if (playerX > canvas.width - edgeThreshold) {
-        // Player near right edge, move camera to follow
-        worldOffset += playerVelocityX;
-        playerX = canvas.width - edgeThreshold; // Keep player at edge
+  });
+  // Remove collected/offscreen coins
+  coins = coins.filter(c => !c.collected && c.x > -20);
+  if (coins.length < 5) spawnCoin();
+  // Obstacle collision
+  obstacles.forEach(o => {
+    if (player.x + player.width > o.x && player.x < o.x + o.width && player.y + player.height > o.y && player.y < o.y + o.height) {
+      gameOver = true;
+      document.getElementById('restartBtn').style.display = 'block';
+      sndGameOver.currentTime = 0; sndGameOver.play();
+      music.pause();
     }
-    
-    // Handle jumping
-    if (keys.up && !isJumping && playerVelocityY >= 0) {
-        playerVelocityY = jumpPower;
-        isJumping = true;
-    }
-    
-    // Apply gravity
-    playerVelocityY += gravity;
-    let prevPlayerY = playerY;
-    playerY += playerVelocityY;
-    
-    // Super Mario-style platform collision: detect crossing from above
-    let onPlatform = false;
-    platforms.forEach(platform => {
-        const platformScreenX = platform.x - worldOffset;
-        // Check horizontal overlap
-        if (playerX + playerWidth > platformScreenX && playerX < platformScreenX + platform.width) {
-            let prevFeet = prevPlayerY + playerHeight;
-            let currFeet = playerY + playerHeight;
-            // If player crossed the platform from above and is falling
-            if (prevFeet <= platform.y && currFeet >= platform.y && playerVelocityY >= 0) {
-                playerY = platform.y - playerHeight;
-                playerVelocityY = 0;
-                isJumping = false;
-                onPlatform = true;
-            }
-        }
-    });
-    // Check obstacle top collisions (allow standing on obstacles, same logic)
-    let onObstacle = false;
-    obstacles.forEach(obstacle => {
-        const obstacleScreenX = obstacle.x - worldOffset;
-        if (playerX + playerWidth > obstacleScreenX && playerX < obstacleScreenX + obstacle.width) {
-            let prevFeet = prevPlayerY + playerHeight;
-            let currFeet = playerY + playerHeight;
-            if (prevFeet <= obstacle.y && currFeet >= obstacle.y && playerVelocityY >= 0) {
-                playerY = obstacle.y - playerHeight;
-                playerVelocityY = 0;
-                isJumping = false;
-                onObstacle = true;
-            }
-        }
-    });
-    // Ground collision (only if not on platform or obstacle) - Precise feet detection
-    if (!onPlatform && !onObstacle) {
-        const feetY = playerY + playerHeight;
-        if (feetY >= groundY) {
-            playerY = groundY - playerHeight;
-            playerVelocityY = 0;
-            isJumping = false;
-        }
-    }
-    // CONSTANT GROUND CHECK - Force character to ground if not jumping
-    if (!isJumping && playerVelocityY === 0) {
-        const feetY = playerY + playerHeight;
-        if (feetY > groundY) {
-            playerY = groundY - playerHeight;
-        }
-    }
-    // Check obstacle collisions (side collisions)
-    obstacles.forEach(obstacle => {
-        const obstacleScreenX = obstacle.x - worldOffset;
-        if (playerX + playerWidth > obstacleScreenX && 
-            playerX < obstacleScreenX + obstacle.width &&
-            playerY + playerHeight > obstacle.y &&
-            playerY < obstacle.y + obstacle.height) {
-            // Check if player is jumping over the obstacle
-            if (playerVelocityY < 0 && playerY > obstacle.y + obstacle.height - 20) {
-                // Player is jumping upward and above the obstacle, allow passing
-                return;
-            }
-            // If already standing on top, don't push back
-            if (
-                playerY + playerHeight <= obstacle.y + 5 &&
-                playerVelocityY === 0
-            ) {
-                return;
-            }
-            // Collision detected - push player back
-            if (playerVelocityX > 0) {
-                playerX = obstacleScreenX - playerWidth;
-            } else if (playerVelocityX < 0) {
-                playerX = obstacleScreenX + obstacle.width;
-            }
-            playerVelocityX = 0;
-        }
-    });
+  });
+  // Remove offscreen obstacles
+  obstacles = obstacles.filter(o => o.x > -50);
+  if (obstacles.length < 3) spawnObstacle();
+  // Keep player in bounds
+  player.x = Math.max(0, Math.min(player.x, 800 - player.width));
+  // Feedback timers
+  if (feedbackTimer > 0) feedbackTimer--;
+  if (highScoreMsgTimer > 0) highScoreMsgTimer--;
 }
 
-function updateEnemies() {
-    enemies.forEach(enemy => {
-        enemy.x += enemy.velocityX;
-        
-        // Simple AI: turn around at edges
-        const enemyScreenX = enemy.x - worldOffset;
-        if (enemyScreenX < 0 || enemyScreenX > canvas.width) {
-            enemy.velocityX *= -1;
-        }
-    });
-}
-
-function updateGame() {
-    drawBackground();
-    if (!gameStarted) {
-        drawInitialScreen();
-        return;
+function draw() {
+  // Background
+  if (imgBg.complete) ctx.drawImage(imgBg, 0, 0, canvas.width, canvas.height);
+  else {
+    ctx.fillStyle = '#a8e063';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  // Ground
+  ctx.fillStyle = '#388e3c';
+  ctx.fillRect(0, 400, canvas.width, 50);
+  // Player (jungle girl) idle bounce
+  let girlY = player.y + Math.sin(animTick/10)*4;
+  if (imgGirl.complete) ctx.drawImage(imgGirl, player.x, girlY, player.width, player.height);
+  else {
+    ctx.fillStyle = '#ffb347';
+    ctx.fillRect(player.x, girlY, player.width, player.height);
+  }
+  // Sidekick (monkey) idle bounce
+  let monkeyY = sidekick.y + Math.sin(animTick/10 + 1)*3;
+  if (imgMonkey.complete) ctx.drawImage(imgMonkey, sidekick.x, monkeyY, sidekick.width, sidekick.height);
+  else {
+    ctx.fillStyle = '#a0522d';
+    ctx.beginPath();
+    ctx.arc(sidekick.x + sidekick.width/2, monkeyY + sidekick.height/2, sidekick.width/2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Coins spin
+  coins.forEach(c => {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.rotate((animTick/15) % (2*Math.PI));
+    if (imgCoin.complete) ctx.drawImage(imgCoin, -c.radius, -c.radius, c.radius*2, c.radius*2);
+    else {
+      ctx.beginPath();
+      ctx.arc(0, 0, c.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffd700';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
     }
-    
-    updatePlayer();
-    updateEnemies();
-    
-    // Check for coin collisions
-    checkCoinCollision();
-    
-    // Check for enemy collisions
-    checkEnemyCollision();
-    
-    // Draw everything
-    drawPlatforms();
-    drawObstacles();
-    drawEnemies();
-    drawPlayer();
-    drawCoins();
-    
-    // Spawn objects occasionally (start spawning immediately)
-    if (gameRunning) {
-        if (Math.random() < 0.01) spawnCoin();
-        if (Math.random() < 0.005) spawnPlatform();
-        if (Math.random() < 0.003) spawnObstacle();
-        if (Math.random() < 0.002) spawnEnemy();
+    ctx.restore();
+  });
+  // Obstacles (logs)
+  obstacles.forEach(o => {
+    if (imgLog.complete) ctx.drawImage(imgLog, o.x, o.y, o.width, o.height);
+    else {
+      ctx.fillStyle = '#8d5524';
+      ctx.fillRect(o.x, o.y, o.width, o.height);
     }
-}
-
-function checkCoinCollision() {
-    coins = coins.filter(coin => {
-        const coinScreenX = coin.x - worldOffset;
-        const playerCenterX = playerX + playerWidth / 2;
-        const playerCenterY = playerY + playerHeight / 2; // Remove velocity offset
-        const distX = Math.abs(coinScreenX - playerCenterX);
-        const distY = Math.abs(coin.y - playerCenterY);
-        if (distX < playerWidth / 2 && distY < playerHeight / 2) {
-            score++;
-            scoreboard.textContent = 'Score: ' + score + ' ♾️'; // Infinite lives indicator
-            return false;
-        }
-        return true;
-    });
-}
-
-function checkEnemyCollision() {
-    enemies.forEach(enemy => {
-        const enemyScreenX = enemy.x - worldOffset;
-        if (playerX + playerWidth > enemyScreenX && 
-            playerX < enemyScreenX + enemy.width &&
-            playerY + playerHeight > enemy.y &&
-            playerY < enemy.y + enemy.height) {
-            
-            // Check if player is jumping on enemy (from above)
-            if (playerVelocityY > 0 && playerY < enemy.y - 10) {
-                // Defeat enemy
-                enemies = enemies.filter(e => e !== enemy);
-                score += 5;
-                scoreboard.textContent = 'Score: ' + score + ' ♾️'; // Infinite lives indicator
-                playerVelocityY = -10; // Bounce
-            } else if (playerVelocityY < 0) {
-                // Player is moving upward, don't trigger game over
-                return;
-            } else {
-                // Player gets hit from the side - INFINITE LIVES MODE
-                // Bounce the player back by moving the world
-                if (playerVelocityX > 0) {
-                    worldOffset += 10; // Move world back
-                } else {
-                    worldOffset -= 10; // Move world forward
-                }
-                playerVelocityX = 0;
-                // Add a small bounce effect
-                playerVelocityY = -5;
-            }
-        }
-    });
-}
-
-function endGame() {
-    gameRunning = false;
-    clearInterval(gameInterval);
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  });
+  // Score
+  document.getElementById('score').textContent = score;
+  // High score
+  let sb = document.getElementById('scoreboard');
+  if (sb) sb.innerHTML = `Score: <span id="score">${score}</span> &nbsp; | &nbsp; High Score: <span id="highscore">${highScore}</span>`;
+  // Feedback message
+  if (feedbackTimer > 0) {
+    ctx.save();
+    ctx.font = 'bold 1.5em Comic Sans MS, Comic Sans, cursive';
+    ctx.fillStyle = '#fffde4';
+    ctx.strokeStyle = '#388e3c';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'center';
+    ctx.strokeText(feedbackMsg, player.x + player.width/2, player.y - 10);
+    ctx.fillText(feedbackMsg, player.x + player.width/2, player.y - 10);
+    ctx.restore();
+  }
+  // High score message
+  if (showHighScoreMsg && highScoreMsgTimer > 0) {
+    ctx.save();
+    ctx.font = 'bold 2em Comic Sans MS, Comic Sans, cursive';
+    ctx.fillStyle = '#ffd700';
+    ctx.textAlign = 'center';
+    ctx.fillText('New High Score!', canvas.width/2, 80);
+    ctx.restore();
+  }
+  // Game over
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#fff';
-    ctx.font = '2em Arial';
+    ctx.font = '2em Comic Sans MS, Comic Sans, cursive';
     ctx.textAlign = 'center';
-    ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
-    ctx.font = '1.5em Arial';
-    ctx.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 20);
-    startBtn.disabled = false;
+    ctx.fillText('Game Over!', canvas.width/2, canvas.height/2 - 20);
+    ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2 + 30);
+    ctx.fillText('High Score: ' + highScore, canvas.width/2, canvas.height/2 + 70);
+  }
 }
 
 function gameLoop() {
-    if (gameRunning) {
-        updateGame();
-    }
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
-function startGameLoop() {
-    if (gameInterval) clearInterval(gameInterval);
-    gameInterval = setInterval(gameLoop, 1000 / 60);
-    console.log('Game loop started');
-}
-
-startBtn.addEventListener('click', () => {
-    console.log('Start button clicked');
-    resetGame();
-    gameStarted = true;
-    gameRunning = true;
-    startGameLoop();
-});
-
-canvas.addEventListener('touchend', function(e) {
-    if (touchStartX === null || touchStartY === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dy = e.changedTouches[0].clientY - touchStartY;
-    
-    if (!gameStarted && dy < -30) {
-        console.log('Game started by swipe up');
-        gameStarted = true;
-        gameRunning = true;
-        startGameLoop();
-        return;
-    }
-    
-    if (!gameRunning) return;
-    
-    if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal swipe
-        if (dx > 30) keys.right = true;
-        else if (dx < -30) keys.left = true;
-    } else {
-        // Vertical swipe
-        if (dy < -30) keys.up = true;
-        else if (dy > 30) keys.down = true;
-    }
-    
-    touchStartX = null;
-    touchStartY = null;
-});
-
-document.addEventListener('keydown', (e) => {
-    if (!gameStarted && (e.key === 'ArrowUp' || e.key === 'w')) {
-        console.log('Game started by key up');
-        gameStarted = true;
-        gameRunning = true;
-        startGameLoop();
-        return;
-    }
-    
-    if (!gameRunning) return;
-    
-    switch(e.key) {
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-            keys.left = true;
-            break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-            keys.right = true;
-            break;
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-            keys.up = true;
-            break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-            keys.down = true;
-            break;
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    switch(e.key) {
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-            keys.left = false;
-            break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-            keys.right = false;
-            break;
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-            keys.up = false;
-            break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-            keys.down = false;
-            break;
-    }
-});
-
-function resetGame() {
-    playerX = 100; // Mario-style starting position, not centered
-    playerY = groundY - playerHeight;
-    worldOffset = 0;
-    playerVelocityX = 0;
-    playerVelocityY = 0;
-    coins = [];
-    platforms = [];
-    obstacles = [];
-    enemies = [];
-    score = 0;
-    gameRunning = false;
-    gameStarted = false;
-    scoreboard.textContent = 'Score: 0 ♾️'; // Infinite lives indicator
-    startBtn.textContent = 'Restart Game';
-    startBtn.disabled = true;
-    runFrameIndex = 0;
-    runFrameTick = 0;
-    isJumping = false;
-    jumpY = 0;
-    jumpTick = 0;
-    isDashing = false;
-    dashTick = 0;
-    keys = { left: false, right: false, up: false, down: false };
-    if (gameInterval) clearInterval(gameInterval);
-    drawInitialScreen();
-}
-
-// Initial draw
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-ctx.fillStyle = '#fff';
-ctx.font = '1.2em Arial';
-ctx.textAlign = 'center';
-ctx.fillText('Press Start to Play!', canvas.width / 2, canvas.height / 2); 
+document.getElementById('restartBtn').onclick = resetGame;
+resetGame();
+gameLoop(); 

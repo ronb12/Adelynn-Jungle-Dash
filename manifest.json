@@ -1,0 +1,20 @@
+{
+  "name": "Jungle Dash",
+  "short_name": "JungleDash",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#a8e063",
+  "theme_color": "#388e3c",
+  "icons": [
+    {
+      "src": "sprites/jungle_girl.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "sprites/jungle_girl.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+} 

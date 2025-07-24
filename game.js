@@ -54,6 +54,7 @@ let highScoreMsgTimer = 0;
 let feedbackMsg = '';
 let feedbackTimer = 0;
 let musicStarted = false;
+let parrot = { x: CANVAS_WIDTH/2 + 80, y: CANVAS_HEIGHT - GROUND_HEIGHT - PLAYER_HEIGHT - 40, width: 48, height: 32 };
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -97,6 +98,8 @@ function resetGame() {
   feedbackTimer = 0;
   showHighScoreMsg = false;
   highScoreMsgTimer = 0;
+  parrot.x = player.x + 80;
+  parrot.y = player.y - 40;
   // Initial platforms
   for (let i = 0; i < 10; i++) {
     spawnPlatform(CANVAS_HEIGHT - GROUND_HEIGHT - i*120);

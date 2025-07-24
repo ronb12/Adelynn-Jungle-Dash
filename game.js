@@ -6,7 +6,7 @@ const scoreboard = document.getElementById('scoreboard');
 
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
-const playerHeight = 20; // Match ground thickness exactly
+const playerHeight = 100; // Restore normal height for better visual appearance
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
 let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
@@ -147,7 +147,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY, // Draw sprite exactly at player position - no offset
+        playerY - 10, // Draw sprite 10px lower to eliminate visual gap
         playerWidth, playerHeight
     );
 }
@@ -332,9 +332,11 @@ function updatePlayer() {
         }
     });
     
-    // Ground collision (only if not on platform) - Match ground exactly
+    // Ground collision (only if not on platform) - Precise feet detection
     if (!onPlatform) {
-        if (playerY + playerHeight >= groundY) {
+        // Check if character's feet are touching or below ground
+        const feetY = playerY + playerHeight;
+        if (feetY >= groundY) {
             playerY = groundY - playerHeight; // Force character to ground EXACTLY
             playerVelocityY = 0;
             isJumping = false;
@@ -343,7 +345,10 @@ function updatePlayer() {
     
     // CONSTANT GROUND CHECK - Force character to ground if not jumping
     if (!isJumping && playerVelocityY === 0) {
-        playerY = groundY - playerHeight; // Always force to ground
+        const feetY = playerY + playerHeight;
+        if (feetY > groundY) {
+            playerY = groundY - playerHeight; // Always force to ground
+        }
     }
     
     // Check obstacle collisions

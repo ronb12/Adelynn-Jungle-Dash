@@ -346,11 +346,6 @@ function updatePlayer() {
         playerY = groundY - playerHeight; // Always force to ground
     }
     
-    // VISUAL GROUND ADJUSTMENT - Ensure character appears on ground
-    if (playerY + playerHeight > groundY - 15) {
-        playerY = groundY - playerHeight - 15; // Adjust for visual sprite
-    }
-    
     // Check obstacle collisions
     obstacles.forEach(obstacle => {
         const obstacleScreenX = obstacle.x - worldOffset;

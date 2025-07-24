@@ -6,7 +6,7 @@ const scoreboard = document.getElementById('scoreboard');
 
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
-const playerHeight = 100;
+const playerHeight = 80; // Reduced height to match visual sprite better
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
 let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
@@ -147,7 +147,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY,
+        playerY - 15, // Draw sprite 15px lower to eliminate visual gap
         playerWidth, playerHeight
     );
 }
@@ -344,6 +344,11 @@ function updatePlayer() {
     // CONSTANT GROUND CHECK - Force character to ground if not jumping
     if (!isJumping && playerVelocityY === 0) {
         playerY = groundY - playerHeight; // Always force to ground
+    }
+    
+    // VISUAL GROUND ADJUSTMENT - Ensure character appears on ground
+    if (playerY + playerHeight > groundY - 15) {
+        playerY = groundY - playerHeight - 15; // Adjust for visual sprite
     }
     
     // Check obstacle collisions

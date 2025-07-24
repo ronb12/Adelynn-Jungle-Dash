@@ -39,6 +39,15 @@ const runFrameCount = 8;
 let runFrameIndex = 0;
 let runFrameTick = 0;
 
+// Sprite sheet for Run animation (rendered from Blender)
+const runSprite = new Image();
+runSprite.src = 'renders/RunForward/run_horizontal_strip.png';
+const runFrameWidth = 512;
+const runFrameHeight = 512;
+const runFrameCount = 60;
+let runFrameIndex = 0;
+let runFrameTick = 0;
+
 // Jungle menu background
 const jungleMenuBg = new Image();
 jungleMenuBg.src = 'sprites/jungle_menu_bg.jpg';
@@ -112,42 +121,60 @@ function drawInitialScreen() {
     ctx.shadowBlur = 0;
 }
 
+// Animation frame ranges for Princess Yasuko
+const IDLE_FRAMES = [0, 1, 2, 3];
+const RUN_FRAMES = [4, 5, 6, 7];
+const JUMP_FRAMES = [8, 9, 10, 11];
+let currentAnim = IDLE_FRAMES;
+
+function setAnimation(state) {
+    if (state === 'idle') currentAnim = IDLE_FRAMES;
+    else if (state === 'run') currentAnim = RUN_FRAMES;
+    else if (state === 'jump') currentAnim = JUMP_FRAMES;
+}
+
 function drawPlayer() {
     // Debug: Draw collision box and ground line
     if (showDebug) {
-        // Character collision box
         ctx.strokeStyle = 'red';
         ctx.lineWidth = 2;
         ctx.strokeRect(playerX, playerY, playerWidth, playerHeight);
-        
-        // Ground line
         ctx.strokeStyle = 'blue';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(0, groundY);
         ctx.lineTo(canvas.width, groundY);
         ctx.stroke();
-        
-        // Character feet position indicator
         ctx.fillStyle = 'yellow';
         ctx.fillRect(playerX + playerWidth/2 - 2, playerY + playerHeight - 4, 4, 4);
     }
-    
-    // Animate running
-    if (gameRunning && Math.abs(playerVelocityX) > 0 && !isJumping) {
-        runFrameTick++;
-        if (runFrameTick % 6 === 0) {
-            runFrameIndex = (runFrameIndex + 1) % runFrameCount;
+    // Animation logic
+    if (!isJumping && Math.abs(playerVelocityX) >= 0.1) {
+        drawRunPlayer();
+        return;
+    }
+    if (!isJumping && Math.abs(playerVelocityX) < 0.1) {
+        setAnimation('idle');
+    } else if (isJumping) {
+        setAnimation('jump');
+    }
+    // Animate
+    runFrameTick++;
+    if (gameRunning) {
+        if (runFrameTick % 8 === 0) {
+            runFrameIndex = (runFrameIndex + 1) % currentAnim.length;
         }
-    } else if (!gameRunning) {
+    } else {
         runFrameIndex = 0;
     }
-    
+    const frame = currentAnim[runFrameIndex % currentAnim.length];
+    const sx = (frame % 4) * runFrameWidth;
+    const sy = Math.floor(frame / 4) * runFrameHeight;
     ctx.drawImage(
         girlRunSprite,
-        runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
+        sx, sy, runFrameWidth, runFrameHeight,
         playerX,
-        playerY, // Original drawing position - no offset
+        playerY,
         playerWidth, playerHeight
     );
 }

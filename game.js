@@ -30,11 +30,11 @@ const jumpPower = -20; // Increased jump power for higher jumps
 // Debug flag to show collision boxes
 let showDebug = true;
 
-// Sprite sheet for princess character (running)
+// Sprite sheet for Princess Yasuko (Super Miyamoto Land)
 const girlRunSprite = new Image();
-girlRunSprite.src = 'sprites/princess_run.png'; // Use Mario-style princess sprite for testing
-const runFrameWidth = 180;
-const runFrameHeight = 480;
+girlRunSprite.src = 'sprites/princess_yasuko.png'; // Use Princess Yasuko sprite for testing
+const runFrameWidth = 24; // Frame width from the sprite sheet
+const runFrameHeight = 32; // Frame height from the sprite sheet
 const runFrameCount = 8;
 let runFrameIndex = 0;
 let runFrameTick = 0;

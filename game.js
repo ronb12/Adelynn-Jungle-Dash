@@ -6,7 +6,7 @@ const scoreboard = document.getElementById('scoreboard');
 
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
-const playerHeight = 100; // Restore normal height for better visual appearance
+const playerHeight = 100; // Original character height
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
 let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
@@ -147,7 +147,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY - 10, // Draw sprite 10px lower to eliminate visual gap
+        playerY, // Original drawing position - no offset
         playerWidth, playerHeight
     );
 }

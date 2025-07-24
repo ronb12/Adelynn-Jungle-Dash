@@ -58,4 +58,39 @@ shield = Image.new("RGBA", (48, 48), (0,0,0,0))
 d = ImageDraw.Draw(shield)
 d.ellipse([4, 4, 44, 44], fill="#b3e5fc", outline="#0288d1", width=4)
 d.ellipse([16, 16, 32, 32], fill="#0288d1")
-save_img(shield, "shield") 
+save_img(shield, "shield")
+
+# Princess run sprite sheet (8 frames, Mario-style, feet at bottom)
+princess_run_width = 180
+princess_run_height = 480
+princess_run = Image.new("RGBA", (princess_run_width*8, princess_run_height), (0,0,0,0))
+for i in range(8):
+    frame = Image.new("RGBA", (princess_run_width, princess_run_height), (255, 224, 244, 0))
+    d = ImageDraw.Draw(frame)
+    # Dress (pink)
+    d.polygon([
+        (princess_run_width//2-60, princess_run_height-40),
+        (princess_run_width//2+60, princess_run_height-40),
+        (princess_run_width//2+40, 180),
+        (princess_run_width//2-40, 180)
+    ], fill="#ff69b4")
+    # Torso (lighter pink)
+    d.rectangle([princess_run_width//2-25, 120, princess_run_width//2+25, 180], fill="#ffb6c1")
+    # Head (peach)
+    d.ellipse([princess_run_width//2-40, 40, princess_run_width//2+40, 120], fill="#ffe0bd")
+    # Crown (yellow)
+    d.polygon([
+        (princess_run_width//2-20, 40),
+        (princess_run_width//2, 10),
+        (princess_run_width//2+20, 40)
+    ], fill="#ffd700")
+    # Eyes (blue)
+    d.ellipse([princess_run_width//2-15, 70, princess_run_width//2-5, 90], fill="#3399ff")
+    d.ellipse([princess_run_width//2+5, 70, princess_run_width//2+15, 90], fill="#3399ff")
+    # Smile (red)
+    d.arc([princess_run_width//2-15, 90, princess_run_width//2+15, 110], 200, 340, fill="#d72660", width=3)
+    # Feet (brown, at bottom)
+    d.rectangle([princess_run_width//2-30, princess_run_height-40, princess_run_width//2-5, princess_run_height-10], fill="#795548")
+    d.rectangle([princess_run_width//2+5, princess_run_height-40, princess_run_width//2+30, princess_run_height-10], fill="#795548")
+    princess_run.paste(frame, (i*princess_run_width, 0))
+save_img(princess_run, "princess_run") 

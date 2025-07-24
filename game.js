@@ -30,9 +30,9 @@ const jumpPower = -20; // Increased jump power for higher jumps
 // Debug flag to show collision boxes
 let showDebug = true;
 
-// Sprite sheet for girl character (running)
+// Sprite sheet for princess character (running)
 const girlRunSprite = new Image();
-girlRunSprite.src = 'sprites/player_run.png'; // Use test sprite for alignment
+girlRunSprite.src = 'sprites/princess_run.png'; // Use Mario-style princess sprite for testing
 const runFrameWidth = 180;
 const runFrameHeight = 480;
 const runFrameCount = 8;

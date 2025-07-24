@@ -6,7 +6,7 @@ const scoreboard = document.getElementById('scoreboard');
 
 // Super Mario-style control: player moves freely, world follows
 const playerWidth = 60;
-const playerHeight = 80; // Reduced height to match visual sprite better
+const playerHeight = 20; // Match ground thickness exactly
 const groundY = canvas.height - 20; // Mario-style ground (thinner)
 let playerX = 100; // Start player at fixed position, not centered
 let playerY = groundY - playerHeight; // Character's feet should touch ground EXACTLY
@@ -147,7 +147,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY - 15, // Draw sprite 15px lower to eliminate visual gap
+        playerY, // Draw sprite exactly at player position - no offset
         playerWidth, playerHeight
     );
 }
@@ -332,7 +332,7 @@ function updatePlayer() {
         }
     });
     
-    // Ground collision (only if not on platform) - EXTREMELY aggressive
+    // Ground collision (only if not on platform) - Match ground exactly
     if (!onPlatform) {
         if (playerY + playerHeight >= groundY) {
             playerY = groundY - playerHeight; // Force character to ground EXACTLY
@@ -419,7 +419,7 @@ function checkCoinCollision() {
     coins = coins.filter(coin => {
         const coinScreenX = coin.x - worldOffset;
         const playerCenterX = playerX + playerWidth / 2;
-        const playerCenterY = playerY + playerHeight / 2 + playerVelocityY;
+        const playerCenterY = playerY + playerHeight / 2; // Remove velocity offset
         const distX = Math.abs(coinScreenX - playerCenterX);
         const distY = Math.abs(coin.y - playerCenterY);
         if (distX < playerWidth / 2 && distY < playerHeight / 2) {

@@ -24,8 +24,8 @@ let gameStarted = false;
 let playerVelocityX = 0;
 let playerVelocityY = 0;
 const playerSpeed = 5;
-const gravity = 0.8;
-const jumpPower = -15;
+const gravity = 0.6; // Reduced gravity for better control
+const jumpPower = -20; // Increased jump power for higher jumps
 
 // Sprite sheet for girl character (running)
 const girlRunSprite = new Image();
@@ -293,7 +293,7 @@ function updatePlayer() {
     }
     
     // Handle jumping
-    if (keys.up && !isJumping && playerVelocityY === 0) {
+    if (keys.up && !isJumping && playerVelocityY >= 0) {
         playerVelocityY = jumpPower;
         isJumping = true;
     }
@@ -309,7 +309,8 @@ function updatePlayer() {
         if (playerX + playerWidth > platformScreenX && 
             playerX < platformScreenX + platform.width &&
             playerY + playerHeight >= platform.y &&
-            playerY + playerHeight <= platform.y + 10) {
+            playerY + playerHeight <= platform.y + 15 && // Increased collision area
+            playerVelocityY >= 0) { // Only when falling
             playerY = platform.y - playerHeight;
             playerVelocityY = 0;
             isJumping = false;
@@ -331,6 +332,13 @@ function updatePlayer() {
             playerX < obstacleScreenX + obstacle.width &&
             playerY + playerHeight > obstacle.y &&
             playerY < obstacle.y + obstacle.height) {
+            
+            // Check if player is jumping over the obstacle
+            if (playerVelocityY < 0 && playerY > obstacle.y + obstacle.height - 20) {
+                // Player is jumping upward and above the obstacle, allow passing
+                return;
+            }
+            
             // Collision detected - push player back
             if (playerVelocityX > 0) {
                 playerX = obstacleScreenX - playerWidth;

@@ -25,6 +25,7 @@ const imgPlatformLog = new Image(); imgPlatformLog.src = 'sprites/platform_log.p
 const imgPlatformLeaf = new Image(); imgPlatformLeaf.src = 'sprites/platform_leaf.png';
 const imgBananaCoin = new Image(); imgBananaCoin.src = 'sprites/banana_coin.png';
 const imgFrog = new Image(); imgFrog.src = 'sprites/frog_obstacle.png';
+const imgParrot = new Image(); imgParrot.src = 'sprites/parrot_sidekick.png';
 
 // --- Game state ---
 let player = {
@@ -52,10 +53,18 @@ let showHighScoreMsg = false;
 let highScoreMsgTimer = 0;
 let feedbackMsg = '';
 let feedbackTimer = 0;
+let musicStarted = false;
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
 document.addEventListener('keyup', e => keys[e.code] = false);
+
+function startMusic() {
+  if (!musicStarted) { music.play(); musicStarted = true; }
+  sndJungle.play();
+}
+document.addEventListener('keydown', startMusic, { once: true });
+document.addEventListener('touchstart', startMusic, { once: true });
 
 // --- Platform/coin/obstacle generation ---
 function spawnPlatform(y) {
@@ -166,6 +175,9 @@ function update() {
   // Sidekick follows
   sidekick.x += (player.x - 40 - sidekick.x) * 0.2;
   sidekick.y += (player.y + PLAYER_HEIGHT - 10 - sidekick.y) * 0.2;
+  // Parrot follows player, flaps up and down
+  parrot.x += (player.x + 80 - parrot.x) * 0.1;
+  parrot.y += (player.y - 40 + Math.sin(animTick/10)*12 - parrot.y) * 0.1;
   // Game over if player falls below screen
   if (player.y > cameraY + CANVAS_HEIGHT) {
     gameOver = true;
@@ -237,6 +249,12 @@ function draw() {
     ctx.beginPath();
     ctx.arc(sidekick.x + sidekick.width/2, monkeyY + sidekick.height/2, sidekick.width/2, 0, Math.PI * 2);
     ctx.fill();
+  }
+  // Parrot sidekick
+  if (imgParrot.complete) ctx.drawImage(imgParrot, parrot.x, parrot.y - cameraY, parrot.width, parrot.height);
+  else {
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(parrot.x, parrot.y - cameraY, parrot.width, parrot.height);
   }
   // Score
   let sb = document.getElementById('scoreboard');

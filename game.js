@@ -331,9 +331,26 @@ function updatePlayer() {
             onPlatform = true;
         }
     });
-    
-    // Ground collision (only if not on platform) - Precise feet detection
-    if (!onPlatform) {
+    // Check obstacle top collisions (allow standing on obstacles)
+    let onObstacle = false;
+    obstacles.forEach(obstacle => {
+        const obstacleScreenX = obstacle.x - worldOffset;
+        // Check if player is landing on top of the obstacle
+        if (
+            playerX + playerWidth > obstacleScreenX &&
+            playerX < obstacleScreenX + obstacle.width &&
+            playerY + playerHeight >= obstacle.y &&
+            playerY + playerHeight <= obstacle.y + 5 && // Tighter collision area for top
+            playerVelocityY >= 0 // Only when falling
+        ) {
+            playerY = obstacle.y - playerHeight; // Stand on top
+            playerVelocityY = 0;
+            isJumping = false;
+            onObstacle = true;
+        }
+    });
+    // Ground collision (only if not on platform or obstacle) - Precise feet detection
+    if (!onPlatform && !onObstacle) {
         // Check if character's feet are touching or below ground
         const feetY = playerY + playerHeight;
         if (feetY >= groundY) {
@@ -342,7 +359,6 @@ function updatePlayer() {
             isJumping = false;
         }
     }
-    
     // CONSTANT GROUND CHECK - Force character to ground if not jumping
     if (!isJumping && playerVelocityY === 0) {
         const feetY = playerY + playerHeight;
@@ -350,21 +366,25 @@ function updatePlayer() {
             playerY = groundY - playerHeight; // Always force to ground
         }
     }
-    
-    // Check obstacle collisions
+    // Check obstacle collisions (side collisions)
     obstacles.forEach(obstacle => {
         const obstacleScreenX = obstacle.x - worldOffset;
         if (playerX + playerWidth > obstacleScreenX && 
             playerX < obstacleScreenX + obstacle.width &&
             playerY + playerHeight > obstacle.y &&
             playerY < obstacle.y + obstacle.height) {
-            
             // Check if player is jumping over the obstacle
             if (playerVelocityY < 0 && playerY > obstacle.y + obstacle.height - 20) {
                 // Player is jumping upward and above the obstacle, allow passing
                 return;
             }
-            
+            // If already standing on top, don't push back
+            if (
+                playerY + playerHeight <= obstacle.y + 5 &&
+                playerVelocityY === 0
+            ) {
+                return;
+            }
             // Collision detected - push player back
             if (playerVelocityX > 0) {
                 playerX = obstacleScreenX - playerWidth;

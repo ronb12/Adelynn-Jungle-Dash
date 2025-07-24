@@ -27,6 +27,9 @@ const playerSpeed = 5;
 const gravity = 0.6; // Reduced gravity for better control
 const jumpPower = -20; // Increased jump power for higher jumps
 
+// Debug flag to show collision boxes
+let showDebug = true;
+
 // Sprite sheet for girl character (running)
 const girlRunSprite = new Image();
 girlRunSprite.src = 'sprites/girl_run.png';
@@ -119,6 +122,26 @@ function drawPlayer() {
     ctx.fill();
     ctx.restore();
     
+    // Debug: Draw collision box and ground line
+    if (showDebug) {
+        // Character collision box
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(playerX, playerY, playerWidth, playerHeight);
+        
+        // Ground line
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, groundY);
+        ctx.lineTo(canvas.width, groundY);
+        ctx.stroke();
+        
+        // Character feet position indicator
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(playerX + playerWidth/2 - 2, playerY + playerHeight - 4, 4, 4);
+    }
+    
     // Animate running
     if (gameRunning && Math.abs(playerVelocityX) > 0 && !isJumping) {
         runFrameTick++;
@@ -133,7 +156,7 @@ function drawPlayer() {
         girlRunSprite,
         runFrameIndex * runFrameWidth, 0, runFrameWidth, runFrameHeight,
         playerX,
-        playerY, // Remove playerVelocityY to prevent floating
+        playerY,
         playerWidth, playerHeight
     );
 }
@@ -318,11 +341,13 @@ function updatePlayer() {
         }
     });
     
-    // Ground collision (only if not on platform)
-    if (!onPlatform && playerY + playerHeight >= groundY) {
-        playerY = groundY - playerHeight; // Exact positioning - feet touch ground
-        playerVelocityY = 0;
-        isJumping = false;
+    // Ground collision (only if not on platform) - More aggressive
+    if (!onPlatform) {
+        if (playerY + playerHeight > groundY) {
+            playerY = groundY - playerHeight; // Force character to ground
+            playerVelocityY = 0;
+            isJumping = false;
+        }
     }
     
     // Check obstacle collisions

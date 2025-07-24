@@ -314,47 +314,46 @@ function updatePlayer() {
     
     // Apply gravity
     playerVelocityY += gravity;
+    let prevPlayerY = playerY;
     playerY += playerVelocityY;
     
-    // Check platform collisions
+    // Super Mario-style platform collision: detect crossing from above
     let onPlatform = false;
     platforms.forEach(platform => {
         const platformScreenX = platform.x - worldOffset;
-        if (playerX + playerWidth > platformScreenX && 
-            playerX < platformScreenX + platform.width &&
-            playerY + playerHeight >= platform.y &&
-            playerY + playerHeight <= platform.y + 5 && // Tighter collision area
-            playerVelocityY >= 0) { // Only when falling
-            playerY = platform.y - playerHeight; // Exact positioning
-            playerVelocityY = 0;
-            isJumping = false;
-            onPlatform = true;
+        // Check horizontal overlap
+        if (playerX + playerWidth > platformScreenX && playerX < platformScreenX + platform.width) {
+            let prevFeet = prevPlayerY + playerHeight;
+            let currFeet = playerY + playerHeight;
+            // If player crossed the platform from above and is falling
+            if (prevFeet <= platform.y && currFeet >= platform.y && playerVelocityY >= 0) {
+                playerY = platform.y - playerHeight;
+                playerVelocityY = 0;
+                isJumping = false;
+                onPlatform = true;
+            }
         }
     });
-    // Check obstacle top collisions (allow standing on obstacles)
+    // Check obstacle top collisions (allow standing on obstacles, same logic)
     let onObstacle = false;
     obstacles.forEach(obstacle => {
         const obstacleScreenX = obstacle.x - worldOffset;
-        // Check if player is landing on top of the obstacle
-        if (
-            playerX + playerWidth > obstacleScreenX &&
-            playerX < obstacleScreenX + obstacle.width &&
-            playerY + playerHeight >= obstacle.y &&
-            playerY + playerHeight <= obstacle.y + 5 && // Tighter collision area for top
-            playerVelocityY >= 0 // Only when falling
-        ) {
-            playerY = obstacle.y - playerHeight; // Stand on top
-            playerVelocityY = 0;
-            isJumping = false;
-            onObstacle = true;
+        if (playerX + playerWidth > obstacleScreenX && playerX < obstacleScreenX + obstacle.width) {
+            let prevFeet = prevPlayerY + playerHeight;
+            let currFeet = playerY + playerHeight;
+            if (prevFeet <= obstacle.y && currFeet >= obstacle.y && playerVelocityY >= 0) {
+                playerY = obstacle.y - playerHeight;
+                playerVelocityY = 0;
+                isJumping = false;
+                onObstacle = true;
+            }
         }
     });
     // Ground collision (only if not on platform or obstacle) - Precise feet detection
     if (!onPlatform && !onObstacle) {
-        // Check if character's feet are touching or below ground
         const feetY = playerY + playerHeight;
         if (feetY >= groundY) {
-            playerY = groundY - playerHeight; // Force character to ground EXACTLY
+            playerY = groundY - playerHeight;
             playerVelocityY = 0;
             isJumping = false;
         }
@@ -363,7 +362,7 @@ function updatePlayer() {
     if (!isJumping && playerVelocityY === 0) {
         const feetY = playerY + playerHeight;
         if (feetY > groundY) {
-            playerY = groundY - playerHeight; // Always force to ground
+            playerY = groundY - playerHeight;
         }
     }
     // Check obstacle collisions (side collisions)

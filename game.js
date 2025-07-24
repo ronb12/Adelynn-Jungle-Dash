@@ -21,6 +21,9 @@ const imgGirl = new Image(); imgGirl.src = 'sprites/jungle_girl.png';
 const imgMonkey = new Image(); imgMonkey.src = 'sprites/monkey_sidekick.png';
 const imgCoin = new Image(); imgCoin.src = 'sprites/coin.png';
 const imgLog = new Image(); imgLog.src = 'sprites/obstacle_log.png';
+const imgPlatformLog = new Image(); imgPlatformLog.src = 'sprites/platform_log.png';
+const imgPlatformLeaf = new Image(); imgPlatformLeaf.src = 'sprites/platform_leaf.png';
+const imgBananaCoin = new Image(); imgBananaCoin.src = 'sprites/banana_coin.png';
 
 // --- Game state ---
 let player = {
@@ -56,7 +59,9 @@ document.addEventListener('keyup', e => keys[e.code] = false);
 // --- Platform/coin/obstacle generation ---
 function spawnPlatform(y) {
   const x = Math.random() * (CANVAS_WIDTH - PLATFORM_WIDTH);
-  platforms.push({ x, y, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT });
+  // Randomly choose log or leaf
+  const type = Math.random() < 0.5 ? 'log' : 'leaf';
+  platforms.push({ x, y, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT, type });
   // 50% chance to spawn a coin on the platform
   if (Math.random() < 0.5) {
     coins.push({ x: x + PLATFORM_WIDTH/2, y: y - 30, radius: 18, collected: false });
@@ -173,26 +178,32 @@ function update() {
 
 function draw() {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  // Background
-  if (imgBg.complete) ctx.drawImage(imgBg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  else {
+  // Parallax background (simple: two layers)
+  if (imgBg.complete) {
+    ctx.drawImage(imgBg, 0, -cameraY*0.5 % CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.drawImage(imgBg, 0, (-cameraY*0.5 % CANVAS_HEIGHT) + CANVAS_HEIGHT, CANVAS_WIDTH, CANVAS_HEIGHT);
+  } else {
     ctx.fillStyle = '#a8e063';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   }
   // Platforms
-  ctx.fillStyle = '#fffbe7';
   platforms.forEach(p => {
-    ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+    let img = p.type === 'log' ? imgPlatformLog : imgPlatformLeaf;
+    if (img.complete) ctx.drawImage(img, p.x, p.y - cameraY, p.width, p.height);
+    else {
+      ctx.fillStyle = p.type === 'log' ? '#8d5524' : '#228B22';
+      ctx.fillRect(p.x, p.y - cameraY, p.width, p.height);
+    }
   });
-  // Coins
+  // Coins (bananas)
   coins.forEach(c => {
     ctx.save();
     ctx.translate(c.x, c.y - cameraY);
     ctx.rotate((animTick/15) % (2*Math.PI));
-    if (imgCoin.complete) ctx.drawImage(imgCoin, -c.radius, -c.radius, c.radius*2, c.radius*2);
+    if (imgBananaCoin.complete) ctx.drawImage(imgBananaCoin, -c.radius, -c.radius, c.radius*2, c.radius*2);
     else {
       ctx.beginPath();
-      ctx.arc(0, 0, c.radius, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, c.radius, c.radius*0.6, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#ffd700';
       ctx.fill();
       ctx.strokeStyle = '#fff';

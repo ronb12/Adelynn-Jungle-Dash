@@ -32,7 +32,7 @@ let showDebug = true;
 
 // Sprite sheet for girl character (running)
 const girlRunSprite = new Image();
-girlRunSprite.src = 'sprites/girl_run.png';
+girlRunSprite.src = 'sprites/player_run.png'; // Use test sprite for alignment
 const runFrameWidth = 180;
 const runFrameHeight = 480;
 const runFrameCount = 8;

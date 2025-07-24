@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jungle-dash-v1';
+const CACHE_NAME = 'jungle-dash-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -8,6 +8,8 @@ const ASSETS = [
   '/game.js',
   '/manifest.json',
   '/sprites/jungle_girl.png',
+  '/sprites/jungle_girl_192.png',
+  '/sprites/jungle_girl_512.png',
   '/sprites/monkey_sidekick.png',
   '/sprites/coin.png',
   '/sprites/obstacle_log.png',

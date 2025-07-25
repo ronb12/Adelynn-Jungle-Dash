@@ -61,16 +61,13 @@ function initGame() {
 
 // Load game assets
 function loadAssets() {
-    // Load sprites - using available sprites
+    // Load sprites - only include files that actually exist
     const spriteFiles = [
         'jungle_girl.png', // Use the available character sprite
         'banana_coin.png', // Use banana coin instead of regular coin
         'frog_obstacle.png', // Use frog obstacle
         'crab_enemy.png', // Use crab enemy
-        'coconut_enemy.png', // Use coconut enemy
-        'jungle_bg.png',
-        'magnet.png',
-        'shield.png'
+        'coconut_enemy.png' // Use coconut enemy
     ];
     
     let loadedSprites = 0;
@@ -83,7 +80,7 @@ function loadAssets() {
             }
         };
         img.onerror = () => {
-            console.log(`Failed to load sprite: ${filename}`);
+            console.log(`Failed to load sprite: ${filename} - will use fallback`);
             loadedSprites++;
         };
         img.src = `sprites/${filename}`;
@@ -116,7 +113,7 @@ function loadAssets() {
                 
                 sound.addEventListener('error', () => {
                     if (index === audioFile.files.length - 1 && !audioLoaded) {
-                        console.log(`Failed to load audio: ${audioFile.name}`);
+                        console.log(`Failed to load audio: ${audioFile.name} - will play silently`);
                         // Create a silent audio as fallback
                         audio[audioFile.name] = null;
                     }

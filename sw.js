@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jungle-dash-v1';
+const CACHE_NAME = 'jungle-dash-v2';
 const urlsToCache = [
   '/',
   '/mainmenu.html',
@@ -6,19 +6,7 @@ const urlsToCache = [
   '/style.css',
   '/game.js',
   '/manifest.json',
-  '/sprites/coin.png',
-  '/sprites/player_run.png',
-  '/sprites/obstacle.png',
-  '/sprites/obstacle2.png',
-  '/sprites/obstacle3.png',
-  '/sprites/jungle_bg.png',
-  '/sprites/magnet.png',
-  '/sprites/shield.png',
-  '/favicon.png',
-  '/audio/coin.ogg',
-  '/audio/coin.wav',
-  '/audio/jump.ogg',
-  '/audio/jump.wav'
+  '/favicon.png'
 ];
 
 // Install event
@@ -27,7 +15,15 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Add files one by one with error handling
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.log(`Failed to cache ${url}:`, err);
+              return null;
+            })
+          )
+        );
       })
   );
 });
@@ -38,7 +34,14 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => {
         // Return cached version or fetch from network
-        return response || fetch(event.request);
+        return response || fetch(event.request).catch(err => {
+          console.log('Fetch failed for:', event.request.url, err);
+          // Return a fallback response for failed requests
+          if (event.request.destination === 'image') {
+            return new Response('', { status: 404 });
+          }
+          return new Response('', { status: 404 });
+        });
       }
     )
   );

@@ -3,44 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Jungle Dash - Game</title>
+  <title>Simple Coin Collector</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#388e3c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Jungle Dash">
-  <link rel="apple-touch-icon" href="sprites/jungle_girl_192.png">
-  <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body class="jungle-bg">
   <div class="game-frame">
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
     <div id="scoreboard">Score: <span id="score">0</span></div>
     <button id="restartBtn" class="menu-btn" style="display:none;">Restart</button>
   </div>
-  <div id="touch-controls">
-    <button class="touch-btn" id="btn-left" ontouchstart="touchKey('ArrowLeft',true)" ontouchend="touchKey('ArrowLeft',false)">&#8592;</button>
-    <button class="touch-btn" id="btn-jump" ontouchstart="touchKey('Space',true)" ontouchend="touchKey('Space',false)">&#8593;</button>
-    <button class="touch-btn" id="btn-right" ontouchstart="touchKey('ArrowRight',true)" ontouchend="touchKey('ArrowRight',false)">&#8594;</button>
-  </div>
   <script src="game.js"></script>
-  <script>
-    function touchKey(key, down) {
-      window.keys = window.keys || {};
-      window.keys[key] = down;
-      if (typeof keys !== 'undefined') keys[key] = down;
-    }
-  </script>
-  <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
-      console.log('Service worker registered!', reg);
-    }).catch(function(err) {
-      console.log('Service worker registration failed:', err);
-    });
-  }
-  </script>
 </body>
 </html> 

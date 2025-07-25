@@ -29,6 +29,7 @@ const imgParrot = new Image(); imgParrot.src = 'sprites/parrot_sidekick.png';
 const imgFlag = new Image(); imgFlag.src = 'sprites/goal_flag.png';
 const imgPowerup = new Image(); imgPowerup.src = 'sprites/powerup_fruit.png';
 const imgCrab = new Image(); imgCrab.src = 'sprites/crab_enemy.png';
+const imgCoconut = new Image(); imgCoconut.src = 'sprites/coconut_enemy.png';
 const sndEnemy = new Audio('audio/gameover.wav'); // Use gameover sound for now
 
 // --- Game state ---
@@ -67,6 +68,7 @@ let powerups = [];
 let shielded = false;
 let shieldTimer = 0;
 let crabs = [];
+let coconuts = [];
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -110,6 +112,17 @@ function spawnPlatform(x) {
     const frog = Math.random() < 0.5;
     obstacles.push({ x: x + Math.random() * (PLATFORM_WIDTH-48), y: y - 32, width: 48, height: 32, frog });
   }
+  // 10% chance to spawn a rolling coconut on the ground
+  if (Math.random() < 0.1 && x > 300) {
+    coconuts.push({
+      x: x,
+      y: CANVAS_HEIGHT - GROUND_HEIGHT - 32,
+      width: 32,
+      height: 32,
+      vx: Math.random() < 0.5 ? 3 : -3,
+      defeated: false
+    });
+  }
 }
 
 function resetGame() {
@@ -139,6 +152,7 @@ function resetGame() {
   shielded = false;
   shieldTimer = 0;
   crabs = [];
+  coconuts = [];
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -280,6 +294,37 @@ function update() {
       music.pause();
     }
   });
+  // Coconut movement
+  coconuts.forEach(c => {
+    if (c.defeated) return;
+    c.x += c.vx;
+    if (c.x < cameraX - 100 || c.x > cameraX + CANVAS_WIDTH + 100) c.defeated = true;
+  });
+  // Coconut collision
+  coconuts.forEach(c => {
+    if (c.defeated) return;
+    // Player jumps on coconut
+    if (
+      player.x + PLAYER_WIDTH > c.x &&
+      player.x < c.x + c.width &&
+      player.y + PLAYER_HEIGHT > c.y &&
+      player.y + PLAYER_HEIGHT - player.vy <= c.y &&
+      player.vy > 0
+    ) {
+      c.defeated = true;
+      player.vy = JUMP_POWER/2;
+      sndEnemy.currentTime = 0; sndEnemy.play();
+      feedbackMsg = 'Coconut cracked!';
+      feedbackTimer = 30;
+    }
+    // Player touches coconut from side
+    else if (!shielded && player.x + PLAYER_WIDTH > c.x && player.x < c.x + c.width && player.y + PLAYER_HEIGHT > c.y && player.y < c.y + c.height) {
+      gameOver = true;
+      document.getElementById('restartBtn').style.display = 'block';
+      sndGameOver.currentTime = 0; sndGameOver.play();
+      music.pause();
+    }
+  });
   // Sidekick follows
   sidekick.x += (player.x - 40 - sidekick.x) * 0.2;
   sidekick.y += (player.y + PLAYER_HEIGHT - 10 - sidekick.y) * 0.2;
@@ -380,6 +425,17 @@ function draw() {
     else {
       ctx.fillStyle = 'red';
       ctx.fillRect(c.x - cameraX, c.y, c.width, c.height);
+    }
+  });
+  // Coconuts
+  coconuts.forEach(c => {
+    if (c.defeated) return;
+    if (imgCoconut.complete) ctx.drawImage(imgCoconut, c.x - cameraX, c.y, c.width, c.height);
+    else {
+      ctx.fillStyle = '#8b5c2a';
+      ctx.beginPath();
+      ctx.arc(c.x - cameraX + c.width/2, c.y + c.height/2, c.width/2, 0, Math.PI*2);
+      ctx.fill();
     }
   });
   // Player (jungle girl) idle bounce

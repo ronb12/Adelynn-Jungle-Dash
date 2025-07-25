@@ -1,0 +1,68 @@
+audio/coin.ogg
+audio/coin.wav
+audio/jump.ogg
+audio/jump.wav
+automated_play.py
+check_errors.py
+cleanup_disk.sh
+cloud_backup.sh
+create_audio_files.py
+create_favicon.py
+create_player_sprite.py
+create_pwa_icons.py
+extract_player_run.py
+favicon.ico
+favicon.png
+game.js
+generate_sprites.py
+index.html
+manifest.json
+sprites/coin.png
+sprites/jungle_bg.png
+sprites/magnet.png
+sprites/obstacle.png
+sprites/obstacle2.png
+sprites/obstacle3.png
+sprites/player_run.gif
+sprites/player_run.png
+sprites/pwa_coin_192.png
+sprites/pwa_coin_512.png
+sprites/shield.png
+sprites/tmp/frame_00.png
+sprites/tmp/frame_01.png
+sprites/tmp/frame_02.png
+sprites/tmp/frame_03.png
+sprites/tmp/frame_04.png
+sprites/tmp/frame_05.png
+sprites/tmp/frame_06.png
+sprites/tmp/frame_07.png
+sprites/tmp/frame_08.png
+sprites/tmp/frame_09.png
+sprites/tmp/frame_10.png
+sprites/tmp/frame_11.png
+sprites/tmp/frame_12.png
+sprites/tmp/frame_13.png
+sprites/tmp/frame_14.png
+sprites/tmp/frame_15.png
+style.css
+sw.js
+test_enhanced_game.py
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/audio/coin.ogg"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/audio/coin.wav"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/audio/jump.ogg"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/audio/jump.wav"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/game.js"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/index.html"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/coin.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/jungle_bg.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/magnet.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/obstacle.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/obstacle2.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/obstacle3.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/player_run.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/player_run_old.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/player_run_small.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/pwa_coin_192.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/pwa_coin_512.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/sprites/shield.png"
+"~/Library/Mobile\\ Documents/com~apple~CloudDocs/AdelynnGame/style.css"

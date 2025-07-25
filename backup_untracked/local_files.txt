@@ -1,0 +1,110 @@
+total 240
+drwxr-xr-x@  6 ronellbradley  staff    192 Jul 23 13:59 audio
+-rw-r--r--@  1 ronellbradley  staff   1496 Jul 23 13:59 automated_play.py
+-rw-r--r--@  1 ronellbradley  staff   2502 Jul 23 13:59 check_errors.py
+-rwxr-xr-x@  1 ronellbradley  staff   1991 Jul 23 13:59 cleanup_disk.sh
+-rwxr-xr-x@  1 ronellbradley  staff   2262 Jul 23 13:59 cloud_backup.sh
+-rw-r--r--@  1 ronellbradley  staff   1361 Jul 23 13:59 create_audio_files.py
+-rw-r--r--@  1 ronellbradley  staff    726 Jul 23 13:59 create_favicon.py
+-rw-r--r--@  1 ronellbradley  staff   3113 Jul 23 13:59 create_player_sprite.py
+-rw-r--r--@  1 ronellbradley  staff   1233 Jul 23 13:59 create_pwa_icons.py
+-rw-r--r--@  1 ronellbradley  staff    685 Jul 23 13:59 extract_player_run.py
+-rw-r--r--@  1 ronellbradley  staff   1770 Jul 23 13:59 favicon.ico
+-rw-r--r--@  1 ronellbradley  staff    322 Jul 23 13:59 favicon.png
+-rw-r--r--@  1 ronellbradley  staff  36702 Jul 23 13:57 game.js
+-rw-r--r--@  1 ronellbradley  staff   1798 Jul 23 13:59 generate_sprites.py
+-rw-r--r--@  1 ronellbradley  staff   6889 Jul 23 13:57 index.html
+-rw-r--r--@  1 ronellbradley  staff      0 Jul 23 14:13 local_files.txt
+-rw-r--r--@  1 ronellbradley  staff    468 Jul 23 13:59 manifest.json
+drwxr-xr-x@ 14 ronellbradley  staff    448 Jul 23 13:59 sprites
+-rw-r--r--@  1 ronellbradley  staff  13343 Jul 23 13:57 style.css
+-rw-r--r--@  1 ronellbradley  staff   2594 Jul 23 13:59 sw.js
+-rw-r--r--@  1 ronellbradley  staff   3039 Jul 23 13:59 test_enhanced_game.py
+drwxr-xr-x@  3 ronellbradley  staff     96 Jul 23 13:57 ~
+
+./audio:
+total 200
+-rw-r--r--@ 1 ronellbradley  staff  14221 Jul 23 13:59 coin.ogg
+-rw-r--r--@ 1 ronellbradley  staff  17684 Jul 23 13:59 coin.wav
+-rw-r--r--@ 1 ronellbradley  staff  36036 Jul 23 13:59 jump.ogg
+-rw-r--r--@ 1 ronellbradley  staff  26504 Jul 23 13:59 jump.wav
+
+./sprites:
+total 128
+-rw-r--r--@  1 ronellbradley  staff    303 Jul 23 13:59 coin.png
+-rw-r--r--@  1 ronellbradley  staff   2900 Jul 23 13:59 jungle_bg.png
+-rw-r--r--@  1 ronellbradley  staff    344 Jul 23 13:59 magnet.png
+-rw-r--r--@  1 ronellbradley  staff    250 Jul 23 13:59 obstacle.png
+-rw-r--r--@  1 ronellbradley  staff    251 Jul 23 13:59 obstacle2.png
+-rw-r--r--@  1 ronellbradley  staff    251 Jul 23 13:59 obstacle3.png
+-rw-r--r--@  1 ronellbradley  staff  14287 Jul 23 13:59 player_run.gif
+-rw-r--r--@  1 ronellbradley  staff   7532 Jul 23 13:59 player_run.png
+-rw-r--r--@  1 ronellbradley  staff   1506 Jul 23 13:59 pwa_coin_192.png
+-rw-r--r--@  1 ronellbradley  staff   4115 Jul 23 13:59 pwa_coin_512.png
+-rw-r--r--@  1 ronellbradley  staff    430 Jul 23 13:59 shield.png
+drwxr-xr-x@ 18 ronellbradley  staff    576 Jul 23 13:59 tmp
+
+./sprites/tmp:
+total 128
+-rw-r--r--@ 1 ronellbradley  staff  1060 Jul 23 13:59 frame_00.png
+-rw-r--r--@ 1 ronellbradley  staff   979 Jul 23 13:59 frame_01.png
+-rw-r--r--@ 1 ronellbradley  staff   991 Jul 23 13:59 frame_02.png
+-rw-r--r--@ 1 ronellbradley  staff  1014 Jul 23 13:59 frame_03.png
+-rw-r--r--@ 1 ronellbradley  staff  1023 Jul 23 13:59 frame_04.png
+-rw-r--r--@ 1 ronellbradley  staff  1054 Jul 23 13:59 frame_05.png
+-rw-r--r--@ 1 ronellbradley  staff  1043 Jul 23 13:59 frame_06.png
+-rw-r--r--@ 1 ronellbradley  staff  1020 Jul 23 13:59 frame_07.png
+-rw-r--r--@ 1 ronellbradley  staff  1005 Jul 23 13:59 frame_08.png
+-rw-r--r--@ 1 ronellbradley  staff   960 Jul 23 13:59 frame_09.png
+-rw-r--r--@ 1 ronellbradley  staff   967 Jul 23 13:59 frame_10.png
+-rw-r--r--@ 1 ronellbradley  staff   984 Jul 23 13:59 frame_11.png
+-rw-r--r--@ 1 ronellbradley  staff  1013 Jul 23 13:59 frame_12.png
+-rw-r--r--@ 1 ronellbradley  staff  1017 Jul 23 13:59 frame_13.png
+-rw-r--r--@ 1 ronellbradley  staff  1003 Jul 23 13:59 frame_14.png
+-rw-r--r--@ 1 ronellbradley  staff  1009 Jul 23 13:59 frame_15.png
+
+./~:
+total 0
+drwxr-xr-x@ 3 ronellbradley  staff  96 Jul 23 13:57 Library
+
+./~/Library:
+total 0
+drwxr-xr-x@ 3 ronellbradley  staff  96 Jul 23 13:57 Mobile\ Documents
+
+./~/Library/Mobile\ Documents:
+total 0
+drwxr-xr-x@ 3 ronellbradley  staff  96 Jul 23 13:57 com~apple~CloudDocs
+
+./~/Library/Mobile\ Documents/com~apple~CloudDocs:
+total 0
+drwxr-xr-x@ 7 ronellbradley  staff  224 Jul 23 13:59 AdelynnGame
+
+./~/Library/Mobile\ Documents/com~apple~CloudDocs/AdelynnGame:
+total 120
+drwxr-xr-x@  6 ronellbradley  staff    192 Jul 23 13:59 audio
+-rw-r--r--@  1 ronellbradley  staff  39970 Jul 23 13:59 game.js
+-rw-r--r--@  1 ronellbradley  staff   6597 Jul 23 13:59 index.html
+drwxr-xr-x@ 14 ronellbradley  staff    448 Jul 23 13:59 sprites
+-rw-r--r--@  1 ronellbradley  staff  12273 Jul 23 13:59 style.css
+
+./~/Library/Mobile\ Documents/com~apple~CloudDocs/AdelynnGame/audio:
+total 0
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 coin.ogg
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 coin.wav
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 jump.ogg
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 jump.wav
+
+./~/Library/Mobile\ Documents/com~apple~CloudDocs/AdelynnGame/sprites:
+total 0
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 coin.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 jungle_bg.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 magnet.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 obstacle.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 obstacle2.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 obstacle3.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 player_run.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 player_run_old.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 player_run_small.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 pwa_coin_192.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 pwa_coin_512.png
+-rw-r--r--@ 1 ronellbradley  staff  0 Jul 23 13:59 shield.png

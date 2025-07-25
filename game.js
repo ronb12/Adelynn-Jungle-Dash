@@ -11,6 +11,7 @@ let coins = [];
 let score = 0;
 let gameOver = false;
 let keys = {};
+let lives = 25;
 
 function spawnCoin() {
   coins.push({ x: Math.random() * (WIDTH-20), y: -20, radius: 12, speed: 4 + Math.random()*2 });
@@ -20,6 +21,7 @@ function resetGame() {
   player.x = WIDTH/2 - 30;
   score = 0;
   coins = [];
+  lives = 25;
   gameOver = false;
   for (let i = 0; i < 5; i++) spawnCoin();
   document.getElementById('restartBtn').style.display = 'none';
@@ -44,11 +46,13 @@ function update() {
     }
   });
   // Remove collected/offscreen coins
+  let missed = coins.filter(c => !c.collected && c.y > HEIGHT - 10).length;
+  lives -= missed;
   coins = coins.filter(c => !c.collected && c.y < HEIGHT + 20);
   // Spawn new coins
   if (coins.length < 5) spawnCoin();
-  // Game over if a coin reaches the bottom
-  if (coins.some(c => c.y > HEIGHT - 10)) {
+  // Game over if lives reach 0
+  if (lives <= 0) {
     gameOver = true;
     document.getElementById('restartBtn').style.display = 'block';
   }
@@ -71,11 +75,12 @@ function draw() {
     ctx.strokeStyle = '#fff';
     ctx.stroke();
   });
-  // Score
+  // Score and lives
   ctx.fillStyle = '#fff';
   ctx.font = '1.5em Comic Sans MS, Comic Sans, cursive';
   ctx.textAlign = 'left';
   ctx.fillText('Score: ' + score, 16, 36);
+  ctx.fillText('Lives: ' + lives, 16, 66);
   // Game over
   if (gameOver) {
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -85,6 +90,7 @@ function draw() {
     ctx.textAlign = 'center';
     ctx.fillText('Game Over!', WIDTH/2, HEIGHT/2 - 20);
     ctx.fillText('Score: ' + score, WIDTH/2, HEIGHT/2 + 30);
+    ctx.fillText('Lives: 0', WIDTH/2, HEIGHT/2 + 70);
   }
 }
 

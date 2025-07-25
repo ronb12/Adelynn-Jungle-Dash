@@ -78,19 +78,47 @@ function loadAssets() {
                 console.log('All sprites loaded!');
             }
         };
+        img.onerror = () => {
+            console.log(`Failed to load sprite: ${filename}`);
+            loadedSprites++;
+        };
         img.src = `sprites/${filename}`;
         sprites[filename.replace('.png', '')] = img;
     });
     
-    // Load audio
+    // Load audio with fallback support
     const audioFiles = [
-        { name: 'coin', file: 'coin.ogg' },
-        { name: 'jump', file: 'jump.ogg' }
+        { name: 'coin', files: ['coin.ogg', 'coin.wav'] },
+        { name: 'jump', files: ['jump.ogg', 'jump.wav'] }
     ];
     
     audioFiles.forEach(audioFile => {
-        const sound = new Audio(`audio/${audioFile.file}`);
-        audio[audioFile.name] = sound;
+        // Try to load audio with fallback
+        const sound = new Audio();
+        let audioLoaded = false;
+        
+        audioFile.files.forEach((file, index) => {
+            if (!audioLoaded) {
+                sound.src = `audio/${file}`;
+                sound.load();
+                
+                sound.addEventListener('canplaythrough', () => {
+                    if (!audioLoaded) {
+                        audioLoaded = true;
+                        audio[audioFile.name] = sound;
+                        console.log(`Audio loaded: ${audioFile.name}`);
+                    }
+                }, { once: true });
+                
+                sound.addEventListener('error', () => {
+                    if (index === audioFile.files.length - 1 && !audioLoaded) {
+                        console.log(`Failed to load audio: ${audioFile.name}`);
+                        // Create a silent audio as fallback
+                        audio[audioFile.name] = null;
+                    }
+                });
+            }
+        });
     });
 }
 
@@ -264,8 +292,12 @@ function jump() {
         
         // Play jump sound
         if (audio.jump) {
-            audio.jump.currentTime = 0;
-            audio.jump.play().catch(e => console.log('Audio play failed:', e));
+            try {
+                audio.jump.currentTime = 0;
+                audio.jump.play().catch(e => console.log('Audio play failed:', e));
+            } catch (e) {
+                console.log('Audio play failed:', e);
+            }
         }
     }
 }
@@ -333,8 +365,12 @@ function checkCollisions() {
             
             // Play coin sound
             if (audio.coin) {
-                audio.coin.currentTime = 0;
-                audio.coin.play().catch(e => console.log('Audio play failed:', e));
+                try {
+                    audio.coin.currentTime = 0;
+                    audio.coin.play().catch(e => console.log('Audio play failed:', e));
+                } catch (e) {
+                    console.log('Audio play failed:', e);
+                }
             }
         }
     });

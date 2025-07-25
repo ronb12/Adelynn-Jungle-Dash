@@ -30,6 +30,7 @@ const imgFlag = new Image(); imgFlag.src = 'sprites/goal_flag.png';
 const imgPowerup = new Image(); imgPowerup.src = 'sprites/powerup_fruit.png';
 const imgCrab = new Image(); imgCrab.src = 'sprites/crab_enemy.png';
 const imgCoconut = new Image(); imgCoconut.src = 'sprites/coconut_enemy.png';
+const imgTrunk = new Image(); imgTrunk.src = 'sprites/tree_trunk.png';
 const sndEnemy = new Audio('audio/gameover.wav'); // Use gameover sound for now
 
 // --- Game state ---
@@ -69,6 +70,7 @@ let shielded = false;
 let shieldTimer = 0;
 let crabs = [];
 let coconuts = [];
+let trunks = [];
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -123,6 +125,15 @@ function spawnPlatform(x) {
       defeated: false
     });
   }
+  // 10% chance to spawn a tree trunk on the ground
+  if (Math.random() < 0.1 && x > 300) {
+    trunks.push({
+      x: x + Math.random() * 100,
+      y: CANVAS_HEIGHT - GROUND_HEIGHT - 64,
+      width: 48,
+      height: 64
+    });
+  }
 }
 
 function resetGame() {
@@ -153,6 +164,7 @@ function resetGame() {
   shieldTimer = 0;
   crabs = [];
   coconuts = [];
+  trunks = [];
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -325,6 +337,15 @@ function update() {
       music.pause();
     }
   });
+  // Tree trunk collision
+  trunks.forEach(t => {
+    if (!shielded && player.x + PLAYER_WIDTH > t.x && player.x < t.x + t.width && player.y + PLAYER_HEIGHT > t.y && player.y < t.y + t.height) {
+      gameOver = true;
+      document.getElementById('restartBtn').style.display = 'block';
+      sndGameOver.currentTime = 0; sndGameOver.play();
+      music.pause();
+    }
+  });
   // Sidekick follows
   sidekick.x += (player.x - 40 - sidekick.x) * 0.2;
   sidekick.y += (player.y + PLAYER_HEIGHT - 10 - sidekick.y) * 0.2;
@@ -435,6 +456,18 @@ function draw() {
       ctx.fillStyle = '#8b5c2a';
       ctx.beginPath();
       ctx.arc(c.x - cameraX + c.width/2, c.y + c.height/2, c.width/2, 0, Math.PI*2);
+      ctx.fill();
+    }
+  });
+  // Tree trunks
+  trunks.forEach(t => {
+    if (imgTrunk.complete) ctx.drawImage(imgTrunk, t.x - cameraX, t.y, t.width, t.height);
+    else {
+      ctx.fillStyle = '#8d5524';
+      ctx.fillRect(t.x - cameraX, t.y, t.width, t.height);
+      ctx.fillStyle = '#deb887';
+      ctx.beginPath();
+      ctx.ellipse(t.x - cameraX + t.width/2, t.y + 8, 20, 8, 0, 0, Math.PI*2);
       ctx.fill();
     }
   });

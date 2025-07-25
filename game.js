@@ -17,7 +17,11 @@ let player = {
     height: 50,
     velocityY: 0,
     isJumping: false,
-    onGround: true
+    onGround: true,
+    // Movement variables
+    isMoving: false,
+    direction: 1, // 1 for right, -1 for left
+    animationSpeed: 6 // kept for potential future use
 };
 
 // Game objects arrays
@@ -57,13 +61,13 @@ function initGame() {
 
 // Load game assets
 function loadAssets() {
-    // Load sprites
+    // Load sprites - using available sprites
     const spriteFiles = [
-        'player_run.png',
-        'coin.png',
-        'obstacle.png',
-        'obstacle2.png',
-        'obstacle3.png',
+        'jungle_girl.png', // Use the available character sprite
+        'banana_coin.png', // Use banana coin instead of regular coin
+        'frog_obstacle.png', // Use frog obstacle
+        'crab_enemy.png', // Use crab enemy
+        'coconut_enemy.png', // Use coconut enemy
         'jungle_bg.png',
         'magnet.png',
         'shield.png'
@@ -208,6 +212,9 @@ function startGame() {
     player.velocityY = 0;
     player.isJumping = false;
     player.onGround = true;
+    // Reset movement variables
+    player.isMoving = false;
+    player.direction = 1;
     
     // Clear arrays
     obstacles = [];
@@ -255,14 +262,51 @@ function update() {
 
 // Handle player movement
 function handlePlayerMovement() {
-    const moveSpeed = 5;
+    const baseMoveSpeed = 5;
+    const sprintMultiplier = 1.5; // Sprint speed multiplier
+    let moveSpeed = baseMoveSpeed;
+    let wasMoving = player.isMoving;
+    player.isMoving = false;
+    
+    // Check for sprint (Shift key or double tap)
+    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+    if (isSprinting && player.onGround) {
+        moveSpeed *= sprintMultiplier;
+        player.animationSpeed = 4; // Faster animation when sprinting
+    } else {
+        player.animationSpeed = 6; // Normal animation speed
+    }
     
     if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 0) {
         player.x -= moveSpeed;
+        player.isMoving = true;
+        player.direction = -1; // Moving left
     }
     
     if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < canvas.width - player.width) {
         player.x += moveSpeed;
+        player.isMoving = true;
+        player.direction = 1; // Moving right
+    }
+    
+    // Update animation
+    updatePlayerAnimation();
+}
+
+// Update player animation
+function updatePlayerAnimation() {
+    // Since we're using a single-frame character sprite, 
+    // we don't need frame-based animation, but we can still
+    // track movement state for visual effects
+    if (player.isMoving && player.onGround) {
+        // Character is running - visual effects handled in drawPlayer
+        player.isMoving = true;
+    } else if (player.isJumping) {
+        // Character is jumping - visual effects handled in drawPlayer
+        player.isJumping = true;
+    } else {
+        // Character is idle
+        player.isMoving = false;
     }
 }
 
@@ -317,7 +361,7 @@ function spawnObjects() {
     
     // Spawn obstacles
     if (Math.random() < 0.01) {
-        const obstacleTypes = ['obstacle', 'obstacle2', 'obstacle3'];
+        const obstacleTypes = ['frog_obstacle', 'crab_enemy', 'coconut_enemy'];
         const randomType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
         
         obstacles.push({
@@ -451,37 +495,80 @@ function drawCloud(x, y) {
 
 // Draw player
 function drawPlayer() {
-    ctx.fillStyle = '#FF6B6B';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    
-    // Draw player details
-    ctx.fillStyle = '#333';
-    ctx.fillRect(player.x + 10, player.y + 10, 8, 8); // Eye
-    ctx.fillRect(player.x + 32, player.y + 10, 8, 8); // Eye
-    ctx.fillStyle = '#FFB6C1';
-    ctx.fillRect(player.x + 15, player.y + 25, 20, 10); // Mouth
+    const sprite = sprites.jungle_girl;
+    if (sprite && sprite.complete) {
+        // Save context for flipping
+        ctx.save();
+        
+        // Flip horizontally if moving left
+        if (player.direction === -1) {
+            ctx.scale(-1, 1);
+            ctx.translate(-player.x - player.width, 0);
+        }
+        
+        // Add sprint effect (slight glow when sprinting)
+        const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+        if (isSprinting && player.isMoving && player.onGround) {
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 10;
+        }
+        
+        // Draw the character sprite (single frame)
+        ctx.drawImage(
+            sprite,
+            0, 0, // Source x, y
+            sprite.width, sprite.height, // Source width, height
+            player.x, player.y, // Destination x, y
+            player.width, player.height // Destination width, height
+        );
+        
+        ctx.restore();
+    } else {
+        // Fallback to rectangle if sprite not loaded
+        const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+        if (isSprinting && player.isMoving && player.onGround) {
+            ctx.fillStyle = '#FF4500'; // Orange-red when sprinting
+        } else {
+            ctx.fillStyle = '#FF6B6B';
+        }
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Draw player details
+        ctx.fillStyle = '#333';
+        ctx.fillRect(player.x + 10, player.y + 10, 8, 8); // Eye
+        ctx.fillRect(player.x + 32, player.y + 10, 8, 8); // Eye
+        ctx.fillStyle = '#FFB6C1';
+        ctx.fillRect(player.x + 15, player.y + 25, 20, 10); // Mouth
+    }
 }
 
 // Draw coins
 function drawCoins() {
+    const coinSprite = sprites.banana_coin;
     coinObjects.forEach(coin => {
         if (!coin.collected) {
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Coin shine
-            ctx.fillStyle = '#FFF';
-            ctx.beginPath();
-            ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Dollar sign
-            ctx.fillStyle = '#333';
-            ctx.font = '12px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('$', coin.x + coin.width/2, coin.y + coin.height/2 + 4);
+            if (coinSprite && coinSprite.complete) {
+                // Draw coin sprite
+                ctx.drawImage(coinSprite, coin.x, coin.y, coin.width, coin.height);
+            } else {
+                // Fallback to circle if sprite not loaded
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Coin shine
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Dollar sign
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('$', coin.x + coin.width/2, coin.y + coin.height/2 + 4);
+            }
         }
     });
 }
@@ -489,13 +576,20 @@ function drawCoins() {
 // Draw obstacles
 function drawObstacles() {
     obstacles.forEach(obstacle => {
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-        
-        // Draw log details
-        ctx.fillStyle = '#654321';
-        ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
-        ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+        const obstacleSprite = sprites[obstacle.type];
+        if (obstacleSprite && obstacleSprite.complete) {
+            // Draw obstacle sprite
+            ctx.drawImage(obstacleSprite, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        } else {
+            // Fallback to rectangle if sprite not loaded
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            
+            // Draw log details
+            ctx.fillStyle = '#654321';
+            ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
+            ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+        }
     });
 }
 

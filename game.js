@@ -31,7 +31,13 @@ const imgPowerup = new Image(); imgPowerup.src = 'sprites/powerup_fruit.png';
 const imgCrab = new Image(); imgCrab.src = 'sprites/crab_enemy.png';
 const imgCoconut = new Image(); imgCoconut.src = 'sprites/coconut_enemy.png';
 const imgTrunk = new Image(); imgTrunk.src = 'sprites/tree_trunk.png';
+const imgStar = new Image(); imgStar.src = 'sprites/star_powerup.png';
 const sndEnemy = new Audio('audio/gameover.wav'); // Use gameover sound for now
+const sndJump = new Audio('audio/jump.wav');
+const sndCoin = new Audio('audio/coin.wav');
+const sndPowerup = new Audio('audio/powerup.wav');
+const sndGameOver = new Audio('audio/gameover.wav');
+const sndStar = new Audio('audio/coin.wav'); // Use coin sound for now
 
 // --- Game state ---
 let player = {
@@ -71,6 +77,9 @@ let shieldTimer = 0;
 let crabs = [];
 let coconuts = [];
 let trunks = [];
+let stars = [];
+let starActive = false;
+let starTimer = 0;
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -134,6 +143,10 @@ function spawnPlatform(x) {
       height: 64
     });
   }
+  // 10% chance to spawn a star power-up
+  if (Math.random() < 0.1) {
+    stars.push({ x: x + PLATFORM_WIDTH/2, y: y - 80, radius: 16, collected: false });
+  }
 }
 
 function resetGame() {
@@ -165,6 +178,9 @@ function resetGame() {
   crabs = [];
   coconuts = [];
   trunks = [];
+  stars = [];
+  starActive = false;
+  starTimer = 0;
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -261,10 +277,29 @@ function update() {
       feedbackTimer = 30;
     }
   });
-  // Shield timer
-  if (shielded) {
-    shieldTimer--;
-    if (shieldTimer <= 0) shielded = false;
+  // Star power-up collection
+  stars.forEach(s => {
+    if (!s.collected && Math.hypot(player.x + PLAYER_WIDTH/2 - s.x, player.y + PLAYER_HEIGHT/2 - s.y) < s.radius + PLAYER_WIDTH/2) {
+      s.collected = true;
+      starActive = true;
+      starTimer = 360; // 6 seconds at 60fps
+      sndStar.currentTime = 0; sndStar.play();
+      feedbackMsg = 'Super Star!';
+      feedbackTimer = 30;
+    }
+  });
+  // Star timer
+  if (starActive) {
+    starTimer--;
+    if (starTimer <= 0) starActive = false;
+  }
+  // If starActive, player is shielded and has super speed
+  if (starActive) {
+    shielded = true;
+    PLAYER_SPEED = 10;
+  } else {
+    shielded = false;
+    PLAYER_SPEED = 5;
   }
   // Obstacle collision (ignore if shielded)
   obstacles.forEach(o => {
@@ -471,6 +506,43 @@ function draw() {
       ctx.fill();
     }
   });
+  // Stars
+  stars.forEach(s => {
+    if (s.collected) return;
+    ctx.save();
+    ctx.translate(s.x - cameraX, s.y);
+    ctx.rotate((animTick/10) % (2*Math.PI));
+    if (imgStar.complete) ctx.drawImage(imgStar, -s.radius, -s.radius, s.radius*2, s.radius*2);
+    else {
+      ctx.beginPath();
+      ctx.moveTo(0, -s.radius);
+      for (let i = 1; i < 10; i++) {
+        let angle = i * Math.PI / 5;
+        let r = i % 2 === 0 ? s.radius : s.radius/2;
+        ctx.lineTo(r * Math.sin(angle), -r * Math.cos(angle));
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'yellow';
+      ctx.fill();
+      ctx.strokeStyle = 'gold';
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+  // Star sparkling effect
+  if (starActive) {
+    for (let i = 0; i < 8; i++) {
+      let angle = (animTick/8) + i * Math.PI/4;
+      let r = PLAYER_WIDTH + 10 + 8*Math.sin(animTick/8 + i);
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.arc(player.x - cameraX + PLAYER_WIDTH/2 + r*Math.cos(angle), player.y + PLAYER_HEIGHT/2 + r*Math.sin(angle), 6, 0, Math.PI*2);
+      ctx.fillStyle = 'yellow';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
   // Player (jungle girl) idle bounce
   let girlY = player.y + Math.sin(animTick/10)*4;
   if (imgGirl.complete) ctx.drawImage(imgGirl, player.x - cameraX, girlY, PLAYER_WIDTH, PLAYER_HEIGHT);

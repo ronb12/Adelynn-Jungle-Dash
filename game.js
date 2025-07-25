@@ -89,8 +89,8 @@ function loadAssets() {
     
     // Load audio with fallback support
     const audioFiles = [
-        { name: 'coin', files: ['coin.ogg', 'coin.wav'] },
-        { name: 'jump', files: ['jump.ogg', 'jump.wav'] }
+        { name: 'coin', files: ['coin.wav'] }, // Use available .wav file
+        { name: 'jump', files: ['jump.wav'] }  // Use available .wav file
     ];
     
     audioFiles.forEach(audioFile => {

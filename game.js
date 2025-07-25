@@ -39,6 +39,11 @@ const sndCoin = new Audio('audio/coin.wav');
 const sndPowerup = new Audio('audio/powerup.wav');
 const sndGameOver = new Audio('audio/gameover.wav');
 const sndStar = new Audio('audio/coin.wav'); // Use coin sound for now
+const music = new Audio('audio/bg_music.mp3');
+music.loop = true;
+const sndJungle = new Audio('audio/jungle_ambience.mp3');
+sndJungle.loop = true;
+sndJungle.volume = 0.2;
 
 // --- Game state ---
 let player = {
@@ -88,10 +93,16 @@ document.addEventListener('keyup', e => keys[e.code] = false);
 
 function startMusic() {
   if (!musicStarted) { music.play(); musicStarted = true; }
-  sndJungle.play();
+  safePlay(sndJungle);
 }
 document.addEventListener('keydown', startMusic, { once: true });
 document.addEventListener('touchstart', startMusic, { once: true });
+
+function safePlay(audio) {
+  if (audio && audio.src && audio.src !== window.location.href) {
+    try { audio.currentTime = 0; audio.play(); } catch (e) {}
+  }
+}
 
 // --- Platform/coin/obstacle generation ---
 function spawnPlatform(x) {
@@ -221,7 +232,7 @@ function update() {
   // Controls
   if ((keys['Space'] || keys['ArrowUp']) && player.onGround) {
     player.vy = JUMP_POWER;
-    sndJump.currentTime = 0; sndJump.play();
+    safePlay(sndJump);
   }
   if (keys['ArrowLeft']) player.x -= currentSpeed;
   if (keys['ArrowRight']) player.x += currentSpeed;
@@ -269,7 +280,7 @@ function update() {
     if (!c.collected && Math.hypot(player.x + PLAYER_WIDTH/2 - c.x, player.y + PLAYER_HEIGHT/2 - c.y) < c.radius + PLAYER_WIDTH/2) {
       c.collected = true;
       score++;
-      sndCoin.currentTime = 0; sndCoin.play();
+      safePlay(sndCoin);
       feedbackMsg = ['Great!', 'Nice!', 'Awesome!', 'Yay!'][Math.floor(Math.random()*4)];
       feedbackTimer = 30;
       if (score > highScore) {
@@ -286,7 +297,7 @@ function update() {
       p.collected = true;
       shielded = true;
       shieldTimer = 360; // 6 seconds at 60fps
-      sndPowerup.currentTime = 0; sndPowerup.play();
+      safePlay(sndPowerup);
       feedbackMsg = 'Shielded!';
       feedbackTimer = 30;
     }
@@ -297,7 +308,7 @@ function update() {
       s.collected = true;
       starActive = true;
       starTimer = 360; // 6 seconds at 60fps
-      sndStar.currentTime = 0; sndStar.play();
+      safePlay(sndStar);
       feedbackMsg = 'Super Star!';
       feedbackTimer = 30;
     }
@@ -307,7 +318,7 @@ function update() {
     if (!shielded && player.x + PLAYER_WIDTH > o.x && player.x < o.x + o.width && player.y + PLAYER_HEIGHT > o.y && player.y < o.y + o.height) {
       gameOver = true;
       document.getElementById('restartBtn').style.display = 'block';
-      sndGameOver.currentTime = 0; sndGameOver.play();
+      safePlay(sndGameOver);
       music.pause();
     }
   });
@@ -330,7 +341,7 @@ function update() {
     ) {
       c.defeated = true;
       player.vy = JUMP_POWER/2;
-      sndEnemy.currentTime = 0; sndEnemy.play();
+      safePlay(sndEnemy);
       feedbackMsg = 'Crab defeated!';
       feedbackTimer = 30;
     }
@@ -338,7 +349,7 @@ function update() {
     else if (!shielded && player.x + PLAYER_WIDTH > c.x && player.x < c.x + c.width && player.y + PLAYER_HEIGHT > c.y && player.y < c.y + c.height) {
       gameOver = true;
       document.getElementById('restartBtn').style.display = 'block';
-      sndGameOver.currentTime = 0; sndGameOver.play();
+      safePlay(sndGameOver);
       music.pause();
     }
   });
@@ -361,7 +372,7 @@ function update() {
     ) {
       c.defeated = true;
       player.vy = JUMP_POWER/2;
-      sndEnemy.currentTime = 0; sndEnemy.play();
+      safePlay(sndEnemy);
       feedbackMsg = 'Coconut cracked!';
       feedbackTimer = 30;
     }
@@ -369,7 +380,7 @@ function update() {
     else if (!shielded && player.x + PLAYER_WIDTH > c.x && player.x < c.x + c.width && player.y + PLAYER_HEIGHT > c.y && player.y < c.y + c.height) {
       gameOver = true;
       document.getElementById('restartBtn').style.display = 'block';
-      sndGameOver.currentTime = 0; sndGameOver.play();
+      safePlay(sndGameOver);
       music.pause();
     }
   });
@@ -378,7 +389,7 @@ function update() {
     if (!shielded && player.x + PLAYER_WIDTH > t.x && player.x < t.x + t.width && player.y + PLAYER_HEIGHT > t.y && player.y < t.y + t.height) {
       gameOver = true;
       document.getElementById('restartBtn').style.display = 'block';
-      sndGameOver.currentTime = 0; sndGameOver.play();
+      safePlay(sndGameOver);
       music.pause();
     }
   });
@@ -392,7 +403,7 @@ function update() {
   if (player.y > CANVAS_HEIGHT) {
     gameOver = true;
     document.getElementById('restartBtn').style.display = 'block';
-    sndGameOver.currentTime = 0; sndGameOver.play();
+    safePlay(sndGameOver);
     music.pause();
   }
   // Check for flag collision

@@ -26,6 +26,7 @@ const imgPlatformLeaf = new Image(); imgPlatformLeaf.src = 'sprites/platform_lea
 const imgLog = new Image(); imgLog.src = 'sprites/obstacle_log.png';
 const imgFrog = new Image(); imgFrog.src = 'sprites/frog_obstacle.png';
 const imgParrot = new Image(); imgParrot.src = 'sprites/parrot_sidekick.png';
+const imgFlag = new Image(); imgFlag.src = 'sprites/goal_flag.png';
 
 // --- Game state ---
 let player = {
@@ -55,6 +56,8 @@ let highScoreMsgTimer = 0;
 let feedbackMsg = '';
 let feedbackTimer = 0;
 let musicStarted = false;
+let flag = { x: 4000, y: CANVAS_HEIGHT - GROUND_HEIGHT - 96, width: 32, height: 96 };
+let levelComplete = false;
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -99,6 +102,9 @@ function resetGame() {
   highScoreMsgTimer = 0;
   parrot.x = player.x + 80;
   parrot.y = player.y - 40;
+  flag.x = 4000;
+  flag.y = CANVAS_HEIGHT - GROUND_HEIGHT - 96;
+  levelComplete = false;
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -107,7 +113,7 @@ function resetGame() {
 }
 
 function update() {
-  if (gameOver) return;
+  if (gameOver || levelComplete) return;
   animTick++;
   // Controls
   if ((keys['Space'] || keys['ArrowUp']) && player.onGround) {
@@ -193,6 +199,17 @@ function update() {
     sndGameOver.currentTime = 0; sndGameOver.play();
     music.pause();
   }
+  // Check for flag collision
+  if (
+    player.x + PLAYER_WIDTH > flag.x &&
+    player.x < flag.x + flag.width &&
+    player.y + PLAYER_HEIGHT > flag.y &&
+    player.y < flag.y + flag.height
+  ) {
+    levelComplete = true;
+    document.getElementById('restartBtn').style.display = 'block';
+    music.pause();
+  }
   // Feedback timers
   if (feedbackTimer > 0) feedbackTimer--;
   if (highScoreMsgTimer > 0) highScoreMsgTimer--;
@@ -267,6 +284,19 @@ function draw() {
     ctx.fillStyle = 'yellow';
     ctx.fillRect(parrot.x - cameraX, parrot.y, parrot.width, parrot.height);
   }
+  // Draw flag
+  if (imgFlag.complete) ctx.drawImage(imgFlag, flag.x - cameraX, flag.y, flag.width, flag.height);
+  else {
+    ctx.fillStyle = '#388e3c';
+    ctx.fillRect(flag.x - cameraX + 14, flag.y + 10, 4, 80);
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.moveTo(flag.x - cameraX + 18, flag.y + 10);
+    ctx.lineTo(flag.x - cameraX + 32, flag.y + 18);
+    ctx.lineTo(flag.x - cameraX + 18, flag.y + 26);
+    ctx.closePath();
+    ctx.fill();
+  }
   // Score
   let sb = document.getElementById('scoreboard');
   if (sb) sb.innerHTML = `Score: <span id="score">${score}</span> &nbsp; | &nbsp; High Score: <span id="highscore">${highScore}</span>`;
@@ -302,6 +332,17 @@ function draw() {
     ctx.fillText('Score: ' + score, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 30);
     ctx.fillText('High Score: ' + highScore, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 70);
   }
+  // Level complete message
+  if (levelComplete) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.fillStyle = '#fff';
+    ctx.font = '2em Comic Sans MS, Comic Sans, cursive';
+    ctx.textAlign = 'center';
+    ctx.fillText('Level Complete!', CANVAS_WIDTH/2, CANVAS_HEIGHT/2 - 20);
+    ctx.fillText('Score: ' + score, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 30);
+    ctx.fillText('High Score: ' + highScore, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 70);
+  }
 }
 
 function gameLoop() {
@@ -310,6 +351,9 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-document.getElementById('restartBtn').onclick = resetGame;
+document.getElementById('restartBtn').onclick = function() {
+  resetGame();
+  this.style.display = 'none';
+};
 resetGame();
 gameLoop(); 

@@ -27,6 +27,7 @@ const imgLog = new Image(); imgLog.src = 'sprites/obstacle_log.png';
 const imgFrog = new Image(); imgFrog.src = 'sprites/frog_obstacle.png';
 const imgParrot = new Image(); imgParrot.src = 'sprites/parrot_sidekick.png';
 const imgFlag = new Image(); imgFlag.src = 'sprites/goal_flag.png';
+const imgPowerup = new Image(); imgPowerup.src = 'sprites/powerup_fruit.png';
 
 // --- Game state ---
 let player = {
@@ -60,6 +61,9 @@ let flag = { x: 4000, y: CANVAS_HEIGHT - GROUND_HEIGHT - 96, width: 32, height: 
 let levelComplete = false;
 let flagAnimTick = 0;
 let playerCelebrateTick = 0;
+let powerups = [];
+let shielded = false;
+let shieldTimer = 0;
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -80,6 +84,10 @@ function spawnPlatform(x) {
   // 50% chance to spawn a coin on the platform
   if (Math.random() < 0.5) {
     coins.push({ x: x + PLATFORM_WIDTH/2, y: y - 30, radius: 18, collected: false });
+  }
+  // 20% chance to spawn a power-up
+  if (Math.random() < 0.2) {
+    powerups.push({ x: x + PLATFORM_WIDTH/2, y: y - 60, radius: 16, collected: false });
   }
   // 30% chance to spawn an obstacle (frog or log)
   if (Math.random() < 0.3) {
@@ -111,6 +119,9 @@ function resetGame() {
   levelComplete = false;
   flagAnimTick = 0;
   playerCelebrateTick = 0;
+  powerups = [];
+  shielded = false;
+  shieldTimer = 0;
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -196,9 +207,25 @@ function update() {
       }
     }
   });
-  // Obstacle collision
+  // Power-up collection
+  powerups.forEach(p => {
+    if (!p.collected && Math.hypot(player.x + PLAYER_WIDTH/2 - p.x, player.y + PLAYER_HEIGHT/2 - p.y) < p.radius + PLAYER_WIDTH/2) {
+      p.collected = true;
+      shielded = true;
+      shieldTimer = 360; // 6 seconds at 60fps
+      sndPowerup.currentTime = 0; sndPowerup.play();
+      feedbackMsg = 'Shielded!';
+      feedbackTimer = 30;
+    }
+  });
+  // Shield timer
+  if (shielded) {
+    shieldTimer--;
+    if (shieldTimer <= 0) shielded = false;
+  }
+  // Obstacle collision (ignore if shielded)
   obstacles.forEach(o => {
-    if (player.x + PLAYER_WIDTH > o.x && player.x < o.x + o.width && player.y + PLAYER_HEIGHT > o.y && player.y < o.y + o.height) {
+    if (!shielded && player.x + PLAYER_WIDTH > o.x && player.x < o.x + o.width && player.y + PLAYER_HEIGHT > o.y && player.y < o.y + o.height) {
       gameOver = true;
       document.getElementById('restartBtn').style.display = 'block';
       sndGameOver.currentTime = 0; sndGameOver.play();
@@ -281,6 +308,23 @@ function draw() {
       ctx.fillRect(o.x - cameraX, o.y, o.width, o.height);
     }
   });
+  // Power-ups
+  powerups.forEach(p => {
+    if (p.collected) return;
+    ctx.save();
+    ctx.translate(p.x - cameraX, p.y);
+    ctx.rotate((animTick/20) % (2*Math.PI));
+    if (imgPowerup.complete) ctx.drawImage(imgPowerup, -p.radius, -p.radius, p.radius*2, p.radius*2);
+    else {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+      ctx.strokeStyle = 'yellow';
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
   // Player (jungle girl) idle bounce
   let girlY = player.y + Math.sin(animTick/10)*4;
   if (imgGirl.complete) ctx.drawImage(imgGirl, player.x - cameraX, girlY, PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -361,6 +405,16 @@ function draw() {
     ctx.fillText('Level Complete!', CANVAS_WIDTH/2, CANVAS_HEIGHT/2 - 20);
     ctx.fillText('Score: ' + score, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 30);
     ctx.fillText('High Score: ' + highScore, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 70);
+  }
+  // Player shield glow
+  if (shielded) {
+    ctx.save();
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.arc(player.x - cameraX + PLAYER_WIDTH/2, player.y + PLAYER_HEIGHT/2, PLAYER_WIDTH, 0, Math.PI*2);
+    ctx.fillStyle = '#00e6e6';
+    ctx.fill();
+    ctx.restore();
   }
 }
 

@@ -13,6 +13,7 @@ const PLAYER_HEIGHT = 64;
 const GRAVITY = 0.7;
 const JUMP_POWER = -16;
 const PLAYER_SPEED = 5;
+let currentSpeed = PLAYER_SPEED;
 const CAMERA_OFFSET = 300; // How far from left before camera follows
 
 // --- Images ---
@@ -204,13 +205,26 @@ function update() {
     return;
   }
   animTick++;
+  // Star timer
+  if (starActive) {
+    starTimer--;
+    if (starTimer <= 0) starActive = false;
+  }
+  // If starActive, player is shielded and has super speed
+  if (starActive) {
+    shielded = true;
+    currentSpeed = 10;
+  } else {
+    shielded = false;
+    currentSpeed = PLAYER_SPEED;
+  }
   // Controls
   if ((keys['Space'] || keys['ArrowUp']) && player.onGround) {
     player.vy = JUMP_POWER;
     sndJump.currentTime = 0; sndJump.play();
   }
-  if (keys['ArrowLeft']) player.x -= PLAYER_SPEED;
-  if (keys['ArrowRight']) player.x += PLAYER_SPEED;
+  if (keys['ArrowLeft']) player.x -= currentSpeed;
+  if (keys['ArrowRight']) player.x += currentSpeed;
   // Gravity
   player.vy += GRAVITY;
   player.y += player.vy;
@@ -288,19 +302,6 @@ function update() {
       feedbackTimer = 30;
     }
   });
-  // Star timer
-  if (starActive) {
-    starTimer--;
-    if (starTimer <= 0) starActive = false;
-  }
-  // If starActive, player is shielded and has super speed
-  if (starActive) {
-    shielded = true;
-    PLAYER_SPEED = 10;
-  } else {
-    shielded = false;
-    PLAYER_SPEED = 5;
-  }
   // Obstacle collision (ignore if shielded)
   obstacles.forEach(o => {
     if (!shielded && player.x + PLAYER_WIDTH > o.x && player.x < o.x + o.width && player.y + PLAYER_HEIGHT > o.y && player.y < o.y + o.height) {

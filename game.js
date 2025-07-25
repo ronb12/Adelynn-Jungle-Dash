@@ -28,6 +28,8 @@ const imgFrog = new Image(); imgFrog.src = 'sprites/frog_obstacle.png';
 const imgParrot = new Image(); imgParrot.src = 'sprites/parrot_sidekick.png';
 const imgFlag = new Image(); imgFlag.src = 'sprites/goal_flag.png';
 const imgPowerup = new Image(); imgPowerup.src = 'sprites/powerup_fruit.png';
+const imgCrab = new Image(); imgCrab.src = 'sprites/crab_enemy.png';
+const sndEnemy = new Audio('audio/gameover.wav'); // Use gameover sound for now
 
 // --- Game state ---
 let player = {
@@ -64,6 +66,7 @@ let playerCelebrateTick = 0;
 let powerups = [];
 let shielded = false;
 let shieldTimer = 0;
+let crabs = [];
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -88,6 +91,19 @@ function spawnPlatform(x) {
   // 20% chance to spawn a power-up
   if (Math.random() < 0.2) {
     powerups.push({ x: x + PLATFORM_WIDTH/2, y: y - 60, radius: 16, collected: false });
+  }
+  // 20% chance to spawn a crab enemy
+  if (Math.random() < 0.2) {
+    crabs.push({
+      x: x + 20 + Math.random() * (PLATFORM_WIDTH-60),
+      y: y - 32,
+      width: 48,
+      height: 32,
+      vx: Math.random() < 0.5 ? 1 : -1,
+      platformX: x,
+      platformW: PLATFORM_WIDTH,
+      defeated: false
+    });
   }
   // 30% chance to spawn an obstacle (frog or log)
   if (Math.random() < 0.3) {
@@ -122,6 +138,7 @@ function resetGame() {
   powerups = [];
   shielded = false;
   shieldTimer = 0;
+  crabs = [];
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -232,6 +249,37 @@ function update() {
       music.pause();
     }
   });
+  // Crab movement
+  crabs.forEach(c => {
+    if (c.defeated) return;
+    c.x += c.vx;
+    if (c.x < c.platformX + 10 || c.x > c.platformX + c.platformW - c.width - 10) c.vx *= -1;
+  });
+  // Crab collision
+  crabs.forEach(c => {
+    if (c.defeated) return;
+    // Player jumps on crab
+    if (
+      player.x + PLAYER_WIDTH > c.x &&
+      player.x < c.x + c.width &&
+      player.y + PLAYER_HEIGHT > c.y &&
+      player.y + PLAYER_HEIGHT - player.vy <= c.y &&
+      player.vy > 0
+    ) {
+      c.defeated = true;
+      player.vy = JUMP_POWER/2;
+      sndEnemy.currentTime = 0; sndEnemy.play();
+      feedbackMsg = 'Crab defeated!';
+      feedbackTimer = 30;
+    }
+    // Player touches crab from side
+    else if (!shielded && player.x + PLAYER_WIDTH > c.x && player.x < c.x + c.width && player.y + PLAYER_HEIGHT > c.y && player.y < c.y + c.height) {
+      gameOver = true;
+      document.getElementById('restartBtn').style.display = 'block';
+      sndGameOver.currentTime = 0; sndGameOver.play();
+      music.pause();
+    }
+  });
   // Sidekick follows
   sidekick.x += (player.x - 40 - sidekick.x) * 0.2;
   sidekick.y += (player.y + PLAYER_HEIGHT - 10 - sidekick.y) * 0.2;
@@ -324,6 +372,15 @@ function draw() {
       ctx.stroke();
     }
     ctx.restore();
+  });
+  // Crabs
+  crabs.forEach(c => {
+    if (c.defeated) return;
+    if (imgCrab.complete) ctx.drawImage(imgCrab, c.x - cameraX, c.y, c.width, c.height);
+    else {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(c.x - cameraX, c.y, c.width, c.height);
+    }
   });
   // Player (jungle girl) idle bounce
   let girlY = player.y + Math.sin(animTick/10)*4;

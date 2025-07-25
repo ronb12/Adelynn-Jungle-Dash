@@ -1,0 +1,22 @@
+{
+  "name": "Adelynn's Jungle Dash",
+  "short_name": "Adelynn's Jungle Dash",
+  "description": "A fun coin collection adventure game for kids!",
+  "start_url": "/mainmenu.html",
+  "display": "standalone",
+  "background_color": "#4CAF50",
+  "theme_color": "#388e3c",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "sprites/pwa_coin_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "sprites/pwa_coin_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+} 

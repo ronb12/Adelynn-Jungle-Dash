@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Adelynn's Jungle Dash - Main Menu</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#388e3c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Adelynn's Jungle Dash">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="sprites/pwa_coin_192.png">
+  <link rel="icon" type="image/png" href="sprites/pwa_coin_192.png">
+</head>
+<body class="jungle-bg">
+  <div class="menu-container">
+    <div class="jungle-logo">Adelynn's Jungle Dash!</div>
+    <button class="menu-btn" onclick="window.location.href='index.html'">Start Game</button>
+    <button class="menu-btn" onclick="document.getElementById('howToPlayModal').style.display='block'">How to Play</button>
+  </div>
+  <div id="howToPlayModal" class="modal" tabindex="-1" aria-modal="true" role="dialog" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('howToPlayModal').style.display='none'" tabindex="0" role="button" aria-label="Close">&times;</span>
+      <h2>How to Play</h2>
+      <ul style="text-align:left; font-size:1.1em;">
+        <li>Tap <b>Start Game</b> to begin your adventure!</li>
+        <li><b>Move</b> left/right with arrow keys or on-screen buttons.</li>
+        <li><b>Jump</b> with the up arrow, spacebar, or jump button.</li>
+        <li><b>Collect coins</b> for points and try to beat your high score!</li>
+        <li><b>Avoid logs</b> and obstacles. If you hit one, the game ends.</li>
+        <li>Play again and have fun!</li>
+      </ul>
+    </div>
+  </div>
+  <script>
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') document.getElementById('howToPlayModal').style.display = 'none';
+    });
+  </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.log('Service worker registered!', reg);
+    }).catch(function(err) {
+      console.log('Service worker registration failed:', err);
+    });
+  }
+  </script>
+</body>
+</html> 

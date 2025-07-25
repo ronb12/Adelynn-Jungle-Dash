@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jungle-dash-v2';
+const CACHE_NAME = 'jungle-dash-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -12,12 +12,18 @@ const ASSETS = [
   '/sprites/jungle_girl_512.png',
   '/sprites/monkey_sidekick.png',
   '/sprites/coin.png',
+  '/sprites/banana_coin.png',
+  '/sprites/platform_log.png',
+  '/sprites/platform_leaf.png',
   '/sprites/obstacle_log.png',
   '/sprites/jungle_bg.png',
+  '/sprites/frog_obstacle.png',
+  '/sprites/parrot_sidekick.png',
   '/audio/jump.wav',
   '/audio/coin.wav',
   '/audio/gameover.wav',
   '/audio/bg_music.mp3',
+  '/audio/jungle_ambience.mp3',
   '/favicon.png'
 ];
 

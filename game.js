@@ -56,8 +56,10 @@ let highScoreMsgTimer = 0;
 let feedbackMsg = '';
 let feedbackTimer = 0;
 let musicStarted = false;
-let flag = { x: 4000, y: CANVAS_HEIGHT - GROUND_HEIGHT - 96, width: 32, height: 96 };
+let flag = { x: 4000, y: CANVAS_HEIGHT - GROUND_HEIGHT - 96, width: 32, height: 96, topY: CANVAS_HEIGHT - GROUND_HEIGHT - 96, animY: CANVAS_HEIGHT - GROUND_HEIGHT - 96 };
 let levelComplete = false;
+let flagAnimTick = 0;
+let playerCelebrateTick = 0;
 
 // --- Controls ---
 document.addEventListener('keydown', e => keys[e.code] = true);
@@ -104,7 +106,11 @@ function resetGame() {
   parrot.y = player.y - 40;
   flag.x = 4000;
   flag.y = CANVAS_HEIGHT - GROUND_HEIGHT - 96;
+  flag.topY = CANVAS_HEIGHT - GROUND_HEIGHT - 96;
+  flag.animY = flag.topY + 60;
   levelComplete = false;
+  flagAnimTick = 0;
+  playerCelebrateTick = 0;
   // Initial ground and platforms
   for (let i = 0; i < 20; i++) {
     spawnPlatform(i*180 + 200);
@@ -114,6 +120,19 @@ function resetGame() {
 
 function update() {
   if (gameOver || levelComplete) return;
+  if (levelComplete) {
+    // Animate flag raising
+    if (flag.animY > flag.topY) {
+      flag.animY -= 2;
+      if (flag.animY < flag.topY) flag.animY = flag.topY;
+    }
+    // Player celebration jump
+    playerCelebrateTick++;
+    if (playerCelebrateTick < 60) {
+      player.y = flag.y + PLAYER_HEIGHT - 32 - Math.abs(Math.sin(playerCelebrateTick/8))*32;
+    }
+    return;
+  }
   animTick++;
   // Controls
   if ((keys['Space'] || keys['ArrowUp']) && player.onGround) {
@@ -284,16 +303,16 @@ function draw() {
     ctx.fillStyle = 'yellow';
     ctx.fillRect(parrot.x - cameraX, parrot.y, parrot.width, parrot.height);
   }
-  // Draw flag
-  if (imgFlag.complete) ctx.drawImage(imgFlag, flag.x - cameraX, flag.y, flag.width, flag.height);
+  // Draw flag (animate flag top)
+  if (imgFlag.complete) ctx.drawImage(imgFlag, flag.x - cameraX, flag.animY, flag.width, flag.height);
   else {
     ctx.fillStyle = '#388e3c';
-    ctx.fillRect(flag.x - cameraX + 14, flag.y + 10, 4, 80);
+    ctx.fillRect(flag.x - cameraX + 14, flag.animY + 10, 4, 80);
     ctx.fillStyle = '#ffd700';
     ctx.beginPath();
-    ctx.moveTo(flag.x - cameraX + 18, flag.y + 10);
-    ctx.lineTo(flag.x - cameraX + 32, flag.y + 18);
-    ctx.lineTo(flag.x - cameraX + 18, flag.y + 26);
+    ctx.moveTo(flag.x - cameraX + 18, flag.animY + 10);
+    ctx.lineTo(flag.x - cameraX + 32, flag.animY + 18);
+    ctx.lineTo(flag.x - cameraX + 18, flag.animY + 26);
     ctx.closePath();
     ctx.fill();
   }

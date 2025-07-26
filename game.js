@@ -51,6 +51,98 @@ let audio = {
 };
 let audioContext = null;
 
+// Particle system
+let particles = [];
+
+class Particle {
+    constructor(x, y, type = 'coin') {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 8; // Random horizontal velocity
+        this.vy = -Math.random() * 6 - 2; // Upward velocity
+        this.life = 1.0; // Life from 1.0 to 0.0
+        this.decay = 0.02; // How fast particle fades
+        this.size = Math.random() * 4 + 2; // Random size
+        this.type = type; // 'coin', 'jump', 'sparkle'
+        this.color = this.getColor();
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+    }
+
+    getColor() {
+        switch(this.type) {
+            case 'coin':
+                return Math.random() < 0.3 ? '#FFD700' : '#FFA500'; // Gold or orange
+            case 'jump':
+                return '#8B4513'; // Brown dust
+            case 'sparkle':
+                return ['#FFD700', '#FFA500', '#FF6347', '#87CEEB'][Math.floor(Math.random() * 4)];
+            default:
+                return '#FFFFFF';
+        }
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.3; // Gravity
+        this.life -= this.decay;
+        this.rotation += this.rotationSpeed;
+        this.vx *= 0.98; // Air resistance
+    }
+
+    draw(ctx) {
+        if (this.life <= 0) return;
+
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+
+        switch(this.type) {
+            case 'coin':
+                // Draw coin particle
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                // Add shine
+                ctx.fillStyle = '#FFF8DC';
+                ctx.beginPath();
+                ctx.arc(-this.size * 0.3, -this.size * 0.3, this.size * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'jump':
+                // Draw dust particle
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'sparkle':
+                // Draw sparkle
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    const angle = (i * Math.PI) / 2;
+                    const x1 = Math.cos(angle) * this.size;
+                    const y1 = Math.sin(angle) * this.size;
+                    const x2 = Math.cos(angle) * (this.size * 0.5);
+                    const y2 = Math.sin(angle) * (this.size * 0.5);
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                }
+                ctx.stroke();
+                break;
+        }
+
+        ctx.restore();
+    }
+}
+
 // Initialize audio context for sound effects
 function initAudioContext() {
     try {
@@ -212,6 +304,36 @@ function playGameOverSound() {
             oscillator.stop(audioContext.currentTime + 0.5);
         }
     }
+}
+
+// Particle effect functions
+function createCoinParticles(x, y) {
+    for (let i = 0; i < 8; i++) {
+        particles.push(new Particle(x, y, 'coin'));
+    }
+    // Add some sparkles too
+    for (let i = 0; i < 3; i++) {
+        particles.push(new Particle(x, y, 'sparkle'));
+    }
+}
+
+function createJumpParticles(x, y) {
+    for (let i = 0; i < 6; i++) {
+        particles.push(new Particle(x, y, 'jump'));
+    }
+}
+
+function updateParticles() {
+    particles = particles.filter(particle => {
+        particle.update();
+        return particle.life > 0;
+    });
+}
+
+function drawParticles() {
+    particles.forEach(particle => {
+        particle.draw(ctx);
+    });
 }
 
 // Initialize game
@@ -416,23 +538,17 @@ function gameLoop() {
 
 // Update game state
 function update() {
-    // Handle player movement
+    if (!gameRunning || gamePaused) return;
+    
     handlePlayerMovement();
-    
-    // Update player physics
     updatePlayerPhysics();
-    
-    // Spawn objects
+    updateObjects();
+    checkCollisions();
+    updateParticles(); // Add particle updates
     spawnObjects();
     
-    // Update objects
-    updateObjects();
-    
-    // Check collisions
-    checkCollisions();
-    
-    // Update UI
-    updateUI();
+    // Increase game speed over time
+    gameSpeed += 0.001;
 }
 
 // Handle player movement
@@ -536,21 +652,14 @@ function updatePlayerPhysics() {
 function jump() {
     if (player.onGround && !player.isJumping) {
         player.velocityY = -15;
-        player.onGround = false;
         player.isJumping = true;
+        player.onGround = false;
+        
+        // Create jump particles
+        createJumpParticles(player.x + player.width / 2, player.y + player.height);
         
         // Play jump sound
-        if (audio.jump) {
-            try {
-                audio.jump.currentTime = 0;
-                audio.jump.play().catch(e => console.log('Audio play failed:', e));
-            } catch (e) {
-                console.log('Audio play failed:', e);
-            }
-        } else {
-            // Use generated jump sound if audio file not available
-            playJumpSound();
-        }
+        playJumpSound();
     }
 }
 
@@ -625,7 +734,7 @@ function updateObjects() {
 function checkCollisions() {
     // Check coin collisions
     coinObjects.forEach(coin => {
-        if (!coin.collected && 
+        if (!coin.collected &&
             player.x < coin.x - cameraX + coin.width &&
             player.x + player.width > coin.x - cameraX &&
             player.y < coin.y + coin.height &&
@@ -635,18 +744,11 @@ function checkCollisions() {
             coins++;
             score += 10;
             
+            // Create coin particles
+            createCoinParticles(coin.x - cameraX + coin.width / 2, coin.y + coin.height / 2);
+            
             // Play coin sound
-            if (audio.coin) {
-                try {
-                    audio.coin.currentTime = 0;
-                    audio.coin.play().catch(e => console.log('Audio play failed:', e));
-                } catch (e) {
-                    console.log('Audio play failed:', e);
-                }
-            } else {
-                // Use generated coin sound if audio file not available
-                playCoinSound();
-            }
+            playCoinSound();
         }
     });
     
@@ -712,17 +814,21 @@ function render() {
     // Draw background
     drawBackground();
     
+    // Draw ground
+    drawGround();
+    
+    // Draw objects
+    drawCoins();
+    drawObstacles();
+    
     // Draw player
     drawPlayer();
     
-    // Draw coins
-    drawCoins();
+    // Draw particles (on top of everything)
+    drawParticles();
     
-    // Draw obstacles
-    drawObstacles();
-    
-    // Draw ground
-    drawGround();
+    // Update UI
+    updateUI();
 }
 
 // Draw background

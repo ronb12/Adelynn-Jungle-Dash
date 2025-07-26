@@ -422,6 +422,45 @@ let totalCoinsCollected = 0;
 let totalPowerupsCollected = 0;
 let gameStartTime = 0;
 
+// Leaderboard system
+let leaderboard = [];
+const MAX_LEADERBOARD_ENTRIES = 10;
+
+// Load leaderboard from localStorage
+function loadLeaderboard() {
+    const saved = localStorage.getItem('jungleDashLeaderboard');
+    if (saved) {
+        leaderboard = JSON.parse(saved);
+    }
+}
+
+// Save leaderboard to localStorage
+function saveLeaderboard() {
+    localStorage.setItem('jungleDashLeaderboard', JSON.stringify(leaderboard));
+}
+
+// Add score to leaderboard
+function addToLeaderboard(score, distance, coins) {
+    const entry = {
+        score: score,
+        distance: Math.floor(distance),
+        coins: coins,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+    };
+    
+    leaderboard.push(entry);
+    leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
+    
+    // Keep only top scores
+    if (leaderboard.length > MAX_LEADERBOARD_ENTRIES) {
+        leaderboard = leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
+    }
+    
+    saveLeaderboard();
+    return leaderboard.indexOf(entry) + 1; // Return position (1-based)
+}
+
 // Initialize game
 function initGame() {
     // Initialize audio context
@@ -431,27 +470,33 @@ function initGame() {
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     
-    // Set canvas size
+    // Set canvas size and ground position
     canvas.width = 800;
     canvas.height = 600;
-    
-    // Calculate ground position
     groundY = canvas.height - 100;
     
-    // Set player initial position
+    // Set player starting position
     player.y = groundY - player.height;
     
-    // Load assets
-    loadAssets();
-    
-    // Initialize settings
-    document.getElementById('musicVolume').value = gameSettings.musicVolume;
-    document.getElementById('sfxVolume').value = gameSettings.sfxVolume;
-    document.getElementById('difficulty').value = gameSettings.difficulty;
-    document.getElementById('particlesEnabled').checked = gameSettings.particlesEnabled;
-    
-    // Show main menu
-    showMainMenu();
+    // Load assets and initialize game
+    loadAssets().then(() => {
+        // Initialize UI settings
+        document.getElementById('musicVolume').value = gameSettings.musicVolume;
+        document.getElementById('musicVolumeValue').textContent = gameSettings.musicVolume + '%';
+        document.getElementById('sfxVolume').value = gameSettings.sfxVolume;
+        document.getElementById('sfxVolumeValue').textContent = gameSettings.sfxVolume + '%';
+        document.getElementById('difficulty').value = gameSettings.difficulty;
+        document.getElementById('particlesEnabled').checked = gameSettings.particlesEnabled;
+        
+        // Load leaderboard
+        loadLeaderboard();
+        
+        // Show main menu
+        showMainMenu();
+        
+        // Start game loop
+        gameLoop();
+    });
     
     // Set up event listeners
     setupEventListeners();
@@ -544,15 +589,7 @@ function loadAssets() {
     loadAnimationFrames();
 
     // Wait for all assets to load
-    Promise.all([...spritePromises, ...audioPromises]).then(() => {
-        console.log('All assets loaded!');
-        // Start background music
-        if (audio.background) {
-            audio.background.loop = true;
-            audio.background.volume = 0.3;
-            audio.background.play().catch(e => console.log('Background music failed to play:', e));
-        }
-    });
+    return Promise.all([...spritePromises, ...audioPromises]);
 }
 
 // Setup event listeners
@@ -1546,6 +1583,25 @@ function gameOver() {
     }
     finalDistance.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
 
+    // Add to leaderboard
+    const position = addToLeaderboard(score, distance, coins);
+    const leaderboardDiv = document.getElementById('leaderboard');
+    if (leaderboardDiv) {
+        leaderboardDiv.innerHTML = ''; // Clear previous entries
+        leaderboard.forEach((entry, index) => {
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'leaderboard-entry';
+            entryDiv.innerHTML = `
+                <span>${index + 1}.</span>
+                <span>${entry.score}</span>
+                <span>${entry.distance}m</span>
+                <span>${entry.coins} coins</span>
+                <span>${entry.date} ${entry.time}</span>
+            `;
+            leaderboardDiv.appendChild(entryDiv);
+        });
+    }
+
     // Return to main menu after 3 seconds
     setTimeout(() => {
         document.getElementById('gameOverScreen').style.display = 'none';
@@ -1819,6 +1875,52 @@ function getAchievementUnit(type) {
         case 'powerups': return 'power-ups';
         case 'survival': return 'seconds';
         default: return '';
+    }
+}
+
+// Leaderboard screen functions
+function showLeaderboard() {
+    document.getElementById('leaderboardScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+    populateFullLeaderboard();
+}
+
+function hideLeaderboard() {
+    document.getElementById('leaderboardScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+function populateFullLeaderboard() {
+    const container = document.getElementById('fullLeaderboard');
+    container.innerHTML = '';
+    
+    if (leaderboard.length === 0) {
+        const noScores = document.createElement('div');
+        noScores.className = 'no-scores';
+        noScores.textContent = 'No scores yet! Play a game to set a record!';
+        container.appendChild(noScores);
+        return;
+    }
+    
+    leaderboard.forEach((entry, index) => {
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'leaderboard-entry-full';
+        entryDiv.innerHTML = `
+            <span class="rank">${index + 1}</span>
+            <span class="score">${entry.score}</span>
+            <span class="distance">${entry.distance}m</span>
+            <span class="coins">${entry.coins}</span>
+            <span class="date">${entry.date} ${entry.time}</span>
+        `;
+        container.appendChild(entryDiv);
+    });
+}
+
+function clearLeaderboard() {
+    if (confirm('Are you sure you want to clear all scores? This cannot be undone.')) {
+        leaderboard = [];
+        saveLeaderboard();
+        populateFullLeaderboard();
     }
 }
 

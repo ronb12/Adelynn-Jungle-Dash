@@ -37,8 +37,21 @@
         <h2>Game Over!</h2>
         <p>Final Score: <span id="finalScore">0</span></p>
         <p>Coins Collected: <span id="finalCoins">0</span></p>
-        <button class="menu-btn" onclick="restartGame()">Play Again!</button>
-        <button class="menu-btn" onclick="window.location.href='mainmenu.html'">Main Menu</button>
+        <p id="finalDistance">Distance: 0 m | Best: 0 m</p>
+        
+        <!-- Leaderboard Section -->
+        <div class="leaderboard-section">
+          <h3>🏆 High Scores</h3>
+          <div id="leaderboard" class="leaderboard">
+            <!-- Will be populated by JavaScript -->
+          </div>
+        </div>
+        
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="restartGame()">Play Again!</button>
+          <button class="menu-btn" onclick="showLeaderboard()">View All Scores</button>
+          <button class="menu-btn" onclick="window.location.href='mainmenu.html'">Main Menu</button>
+        </div>
       </div>
     </div>
     
@@ -60,6 +73,7 @@
           <button class="menu-btn" onclick="showSettings()">Settings</button>
           <button class="menu-btn" onclick="showTutorial()">Tutorial</button>
           <button class="menu-btn" onclick="showAchievements()">Achievements</button>
+          <button class="menu-btn" onclick="showLeaderboard()">Leaderboard</button>
           <button class="menu-btn" onclick="showCredits()">Credits</button>
         </div>
         <div class="menu-footer">
@@ -181,6 +195,29 @@
         </div>
         <div class="menu-buttons">
           <button class="menu-btn" onclick="hideAchievements()">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Leaderboard Screen -->
+    <div id="leaderboardScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>🏆 Leaderboard</h2>
+        <div class="leaderboard-full">
+          <div class="leaderboard-header">
+            <span>Rank</span>
+            <span>Score</span>
+            <span>Distance</span>
+            <span>Coins</span>
+            <span>Date</span>
+          </div>
+          <div id="fullLeaderboard" class="leaderboard-list">
+            <!-- Will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideLeaderboard()">Back to Menu</button>
+          <button class="menu-btn" onclick="clearLeaderboard()">Clear Scores</button>
         </div>
       </div>
     </div>

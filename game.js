@@ -353,24 +353,17 @@ function handlePlayerMovement() {
         player.animationSpeed = 6; // Normal animation speed
     }
     
-    // Character stays in place, world moves around them
-    // Left/right movement is limited to a small area for dodging
-    if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 50) {
+    // Allow full left/right movement across the screen
+    if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 0) {
         player.x -= moveSpeed;
         player.isMoving = true;
-        player.direction = -1; // Moving left (dodging)
+        player.direction = -1; // Moving left
     }
     
-    if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < 200) {
+    if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < canvas.width - player.width) {
         player.x += moveSpeed;
         player.isMoving = true;
-        player.direction = 1; // Moving right (dodging)
-    }
-    
-    // Character is always "running forward" when on ground
-    if (player.onGround && !player.isJumping) {
-        player.isMoving = true;
-        player.direction = 1; // Always face forward (right)
+        player.direction = 1; // Moving right
     }
     
     // Update animation
@@ -435,28 +428,48 @@ function jump() {
 
 // Spawn objects
 function spawnObjects() {
-    // Spawn coins
-    if (Math.random() < 0.02) {
+    // Spawn coins with more variety
+    if (Math.random() < 0.03) { // Increased spawn rate
+        const coinY = Math.random() * (groundY - 150) + 50;
         coinObjects.push({
             x: canvas.width,
-            y: Math.random() * (groundY - 100) + 50,
+            y: coinY,
             width: 40,
             height: 40,
-            collected: false
+            collected: false,
+            type: Math.random() < 0.2 ? 'gold' : 'silver' // Different coin types
         });
     }
     
-    // Spawn obstacles
-    if (Math.random() < 0.01) {
+    // Spawn obstacles with more variety
+    if (Math.random() < 0.015) { // Slightly increased spawn rate
         const obstacleTypes = ['frog_obstacle', 'crab_enemy', 'coconut_enemy'];
         const randomType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
         
+        // Vary obstacle positions and sizes
+        const obstacleHeight = 30 + Math.random() * 20; // 30-50 pixels
+        const obstacleWidth = 25 + Math.random() * 15; // 25-40 pixels
+        const obstacleY = groundY - obstacleHeight;
+        
         obstacles.push({
             x: canvas.width,
-            y: groundY - 40,
-            width: 30,
-            height: 40,
-            type: randomType
+            y: obstacleY,
+            width: obstacleWidth,
+            height: obstacleHeight,
+            type: randomType,
+            speed: gameSpeed + Math.random() * 2 // Vary speed slightly
+        });
+    }
+    
+    // Spawn floating obstacles (like birds or flying enemies)
+    if (Math.random() < 0.008) {
+        obstacles.push({
+            x: canvas.width,
+            y: Math.random() * (groundY - 200) + 50,
+            width: 35,
+            height: 25,
+            type: 'flying_enemy',
+            speed: gameSpeed + 1
         });
     }
 }
@@ -473,7 +486,7 @@ function updateObjects() {
     
     // Update obstacles
     obstacles.forEach(obstacle => {
-        obstacle.x -= gameSpeed;
+        obstacle.x -= obstacle.speed; // Use obstacle.speed for movement
     });
     
     // Remove off-screen obstacles
@@ -672,29 +685,39 @@ function drawCoins() {
     coinObjects.forEach(coin => {
         if (!coin.collected) {
             if (coinSprite && coinSprite.complete) {
-                // Draw coin sprite
-                ctx.drawImage(coinSprite, coin.x, coin.y, coin.width, coin.height);
+                // Draw coin sprite with rotation effect
+                ctx.save();
+                ctx.translate(coin.x + coin.width/2, coin.y + coin.height/2);
+                ctx.rotate(Date.now() * 0.003); // Rotate coins
+                ctx.drawImage(coinSprite, -coin.width/2, -coin.height/2, coin.width, coin.height);
+                ctx.restore();
             } else {
-                // Fallback to circle if sprite not loaded
-                ctx.fillStyle = '#FFD700';
+                // Enhanced fallback coin graphics
+                const isGold = coin.type === 'gold';
+                ctx.fillStyle = isGold ? '#FFD700' : '#C0C0C0';
                 ctx.beginPath();
                 ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Coin shine
-                ctx.fillStyle = '#FFF';
+                // Coin shine effect
+                ctx.fillStyle = isGold ? '#FFF8DC' : '#FFFFFF';
                 ctx.beginPath();
-                ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 3, 0, Math.PI * 2);
+                ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 4, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Dollar sign
-                ctx.fillStyle = '#333';
-                ctx.font = '12px Arial';
+                // Coin symbol
+                ctx.fillStyle = isGold ? '#B8860B' : '#696969';
+                ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('$', coin.x + coin.width/2, coin.y + coin.height/2 + 4);
+                ctx.fillText(isGold ? '$' : '¢', coin.x + coin.width/2, coin.y + coin.height/2 + 5);
+                
+                // Pulsing effect
+                const pulse = Math.sin(Date.now() * 0.005) * 0.1 + 1;
+                ctx.globalAlpha = 0.7 + pulse * 0.3;
             }
         }
     });
+    ctx.globalAlpha = 1; // Reset transparency
 }
 
 // Draw obstacles
@@ -705,14 +728,49 @@ function drawObstacles() {
             // Draw obstacle sprite
             ctx.drawImage(obstacleSprite, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
         } else {
-            // Fallback to rectangle if sprite not loaded
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-            
-            // Draw log details
-            ctx.fillStyle = '#654321';
-            ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
-            ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+            // Enhanced fallback graphics based on obstacle type
+            if (obstacle.type === 'flying_enemy') {
+                // Draw flying enemy (bird-like)
+                ctx.fillStyle = '#8B0000';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                
+                // Wings
+                ctx.fillStyle = '#DC143C';
+                ctx.fillRect(obstacle.x - 5, obstacle.y + 5, 8, 8);
+                ctx.fillRect(obstacle.x + obstacle.width - 3, obstacle.y + 5, 8, 8);
+                
+                // Eye
+                ctx.fillStyle = '#FFFF00';
+                ctx.fillRect(obstacle.x + 5, obstacle.y + 5, 4, 4);
+            } else {
+                // Ground obstacles
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                
+                // Obstacle details based on type
+                if (obstacle.type === 'frog_obstacle') {
+                    // Frog details
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
+                    // Eyes
+                    ctx.fillStyle = '#FFD700';
+                    ctx.fillRect(obstacle.x + 8, obstacle.y + 8, 3, 3);
+                    ctx.fillRect(obstacle.x + obstacle.width - 11, obstacle.y + 8, 3, 3);
+                } else if (obstacle.type === 'crab_enemy') {
+                    // Crab details
+                    ctx.fillStyle = '#DC143C';
+                    ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width - 6, obstacle.height - 6);
+                    // Claws
+                    ctx.fillStyle = '#8B0000';
+                    ctx.fillRect(obstacle.x - 3, obstacle.y + 5, 6, 8);
+                    ctx.fillRect(obstacle.x + obstacle.width - 3, obstacle.y + 5, 6, 8);
+                } else {
+                    // Coconut details
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
+                    ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+                }
+            }
         }
     });
 }

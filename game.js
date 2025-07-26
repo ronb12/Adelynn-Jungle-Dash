@@ -1440,41 +1440,41 @@ function render() {
     updateUI();
 }
 
-// Draw background with Mario Bros-style elements
+// Draw simplified, cleaner background
 function drawBackground() {
     // Clear canvas with sky blue background
     ctx.fillStyle = '#87CEEB';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw clouds
-    for (let i = 0; i < 5; i++) {
-        const x = (i * 200 - cameraX * 0.3) % (canvas.width + 200);
-        const y = 50 + Math.sin(i) * 20;
-        drawCloud(x, y);
+    // Draw simple clouds
+    for (let i = 0; i < 3; i++) {
+        const x = (i * 300 - cameraX * 0.2) % (canvas.width + 300);
+        const y = 80 + Math.sin(i) * 30;
+        drawSimpleCloud(x, y);
     }
     
-    // Draw Mario Bros-style bricks (platforms)
-    const brickSize = 40;
-    const brickRows = 3;
-    const bricksPerRow = 20;
+    // Draw Mario Bros-style bricks (platforms) - simplified
+    const brickSize = 50;
+    const brickRows = 2;
+    const bricksPerRow = 15;
     
     for (let row = 0; row < brickRows; row++) {
         for (let col = 0; col < bricksPerRow; col++) {
             const x = col * brickSize - cameraX * 0.5;
-            const y = canvas.height - 200 - (row * brickSize);
+            const y = canvas.height - 250 - (row * brickSize);
             
             // Only draw bricks that are visible
             if (x > -brickSize && x < canvas.width + brickSize) {
-                // Brick pattern
-                ctx.fillStyle = '#8B4513'; // Brown brick color
+                // Brick body
+                ctx.fillStyle = '#CD853F';
                 ctx.fillRect(x, y, brickSize, brickSize);
                 
-                // Brick lines
-                ctx.strokeStyle = '#654321';
+                // Brick border
+                ctx.strokeStyle = '#8B4513';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, brickSize, brickSize);
                 
-                // Brick mortar lines
+                // Simple brick pattern
                 ctx.strokeStyle = '#A0522D';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
@@ -1485,17 +1485,14 @@ function drawBackground() {
         }
     }
     
-    // Draw logs as platforms
-    const logSize = 60;
+    // Draw simplified logs as platforms
+    const logSize = 80;
     const logPositions = [
-        {x: 300, y: canvas.height - 250},
-        {x: 800, y: canvas.height - 300},
-        {x: 1200, y: canvas.height - 280},
-        {x: 1600, y: canvas.height - 320},
-        {x: 2000, y: canvas.height - 260},
-        {x: 2400, y: canvas.height - 290},
-        {x: 2800, y: canvas.height - 310},
-        {x: 3200, y: canvas.height - 270}
+        {x: 400, y: canvas.height - 280},
+        {x: 900, y: canvas.height - 320},
+        {x: 1400, y: canvas.height - 300},
+        {x: 1900, y: canvas.height - 340},
+        {x: 2400, y: canvas.height - 290}
     ];
     
     logPositions.forEach(log => {
@@ -1505,316 +1502,41 @@ function drawBackground() {
         if (x > -logSize && x < canvas.width + logSize) {
             // Log body
             ctx.fillStyle = '#8B4513';
-            ctx.fillRect(x, y, logSize, 20);
+            ctx.fillRect(x, y, logSize, 25);
             
-            // Log bark texture
+            // Log border
             ctx.strokeStyle = '#654321';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x, y, logSize, 20);
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, logSize, 25);
             
-            // Log end circles
-            ctx.fillStyle = '#A0522D';
-            ctx.beginPath();
-            ctx.arc(x, y + 10, 10, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(x + logSize, y + 10, 10, 0, Math.PI * 2);
-            ctx.fill();
+            // Log texture lines
+            ctx.strokeStyle = '#A0522D';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x + (i + 1) * logSize/4, y);
+                ctx.lineTo(x + (i + 1) * logSize/4, y + 25);
+                ctx.stroke();
+            }
         }
     });
 }
 
-// Draw cloud
-function drawCloud(x, y) {
+// Draw simple cloud
+function drawSimpleCloud(x, y) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, 30, 0, Math.PI * 2);
     ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
-    ctx.arc(x + 50, y, 20, 0, Math.PI * 2);
-    ctx.arc(x + 25, y - 15, 15, 0, Math.PI * 2);
+    ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
+    ctx.arc(x + 25, y - 20, 20, 0, Math.PI * 2);
     ctx.fill();
-}
-
-// Draw player
-function drawPlayer() {
-    ctx.save();
-    ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
-    
-    // 360° rotation
-    ctx.translate(player.x + player.width/2, player.y + player.height/2);
-    ctx.rotate(player.angle);
-    ctx.translate(-player.width/2, -player.height/2);
-    
-    // Sprint effect
-    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
-    if (isSprinting && player.isMoving && player.onGround) {
-        ctx.shadowColor = '#FFD700';
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-    }
-    
-    // Draw animated sprite
-    const frames = playerSprites[currentAnimation];
-    if (frames && frames.length > 0 && frames[animationFrame]) {
-        const currentFrame = frames[animationFrame];
-        ctx.drawImage(
-            currentFrame,
-            0, 0,
-            currentFrame.width, currentFrame.height,
-            0, 0,
-            player.width, player.height
-        );
-    } else {
-        // Fallback to static sprites
-        let sprite = sprites.jungle_girl;
-        if (player.isMoving && player.onGround) {
-            sprite = sprites.jungle_girl_run;
-        }
-        
-        if (sprite && sprite.complete) {
-            ctx.drawImage(
-                sprite,
-                0, 0,
-                sprite.width, sprite.height,
-                0, 0,
-                player.width, player.height
-            );
-        } else {
-            // Fallback rectangle
-            if (isSprinting && player.isMoving && player.onGround) {
-                ctx.fillStyle = '#FF4500';
-            } else {
-                ctx.fillStyle = '#FF6B6B';
-            }
-            ctx.fillRect(0, 0, player.width, player.height);
-            ctx.fillStyle = '#333';
-            ctx.fillRect(10, 10, 8, 8);
-            ctx.fillRect(32, 10, 8, 8);
-            ctx.fillStyle = '#FFB6C1';
-            ctx.fillRect(15, 25, 20, 10);
-        }
-    }
-    
-    ctx.restore();
-}
-
-// Draw Mario Bros-style coins
-function drawCoins() {
-    coinObjects.forEach(coin => {
-        const x = coin.x - cameraX;
-        const y = coin.y;
-        
-        if (x > -coin.width && x < canvas.width + coin.width) {
-            // Coin glow effect
-            ctx.shadowColor = '#FFD700';
-            ctx.shadowBlur = 10;
-            
-            // Coin body (gold color)
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(x + coin.width/2, y + coin.height/2, coin.width/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Coin border
-            ctx.strokeStyle = '#FFA500';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Coin shine
-            ctx.fillStyle = '#FFFFFF';
-            ctx.globalAlpha = 0.6;
-            ctx.beginPath();
-            ctx.arc(x + coin.width/3, y + coin.height/3, coin.width/6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-            
-            // Dollar sign
-            ctx.fillStyle = '#8B4513';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('$', x + coin.width/2, y + coin.height/2);
-            
-            // Reset shadow
-            ctx.shadowBlur = 0;
-            
-            // Coin rotation animation
-            ctx.save();
-            ctx.translate(x + coin.width/2, y + coin.height/2);
-            ctx.rotate(coin.rotation);
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(-coin.width/4, -coin.height/4, coin.width/2, coin.height/2);
-            ctx.restore();
-        }
-    });
-}
-
-// Draw Mario Bros-style obstacles and enemies
-function drawObstacles() {
-    obstacles.forEach(obstacle => {
-        const x = obstacle.x - cameraX;
-        const y = obstacle.y;
-        
-        if (x > -obstacle.width && x < canvas.width + obstacle.width) {
-            switch(obstacle.type) {
-                case 'goomba':
-                    // Draw Goomba (brown mushroom-like enemy)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Goomba face
-                    ctx.fillStyle = '#654321';
-                    ctx.fillRect(x + 5, y + 5, 30, 20);
-                    
-                    // Eyes
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(x + 8, y + 8, 6, 6);
-                    ctx.fillRect(x + 26, y + 8, 6, 6);
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(x + 10, y + 10, 2, 2);
-                    ctx.fillRect(x + 28, y + 10, 2, 2);
-                    
-                    // Angry eyebrows
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(x + 8, y + 6);
-                    ctx.lineTo(x + 14, y + 8);
-                    ctx.moveTo(x + 32, y + 8);
-                    ctx.lineTo(x + 26, y + 6);
-                    ctx.stroke();
-                    break;
-                    
-                case 'koopa':
-                    // Draw Koopa (turtle-like enemy)
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Shell pattern
-                    ctx.fillStyle = '#32CD32';
-                    ctx.fillRect(x + 5, y + 5, 30, 30);
-                    
-                    // Shell spots
-                    ctx.fillStyle = '#006400';
-                    ctx.fillRect(x + 10, y + 10, 5, 5);
-                    ctx.fillRect(x + 25, y + 10, 5, 5);
-                    ctx.fillRect(x + 10, y + 25, 5, 5);
-                    ctx.fillRect(x + 25, y + 25, 5, 5);
-                    
-                    // Head
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x + 15, y + 35, 10, 5);
-                    break;
-                    
-                case 'monkey':
-                    // Draw Monkey (jungle enemy)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Monkey face
-                    ctx.fillStyle = '#D2691E';
-                    ctx.fillRect(x + 8, y + 8, 24, 24);
-                    
-                    // Eyes
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(x + 12, y + 12, 4, 4);
-                    ctx.fillRect(x + 24, y + 12, 4, 4);
-                    
-                    // Nose
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x + 18, y + 18, 4, 4);
-                    
-                    // Ears
-                    ctx.fillStyle = '#D2691E';
-                    ctx.fillRect(x + 5, y + 5, 8, 8);
-                    ctx.fillRect(x + 27, y + 5, 8, 8);
-                    break;
-                    
-                case 'snake':
-                    // Draw Snake (jungle enemy)
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Snake pattern
-                    ctx.fillStyle = '#32CD32';
-                    ctx.fillRect(x + 5, y + 5, 30, 30);
-                    
-                    // Snake spots
-                    ctx.fillStyle = '#006400';
-                    ctx.fillRect(x + 8, y + 8, 6, 6);
-                    ctx.fillRect(x + 26, y + 8, 6, 6);
-                    ctx.fillRect(x + 8, y + 26, 6, 6);
-                    ctx.fillRect(x + 26, y + 26, 6, 6);
-                    
-                    // Snake tongue
-                    ctx.fillStyle = 'red';
-                    ctx.fillRect(x + 18, y + 35, 4, 8);
-                    break;
-                    
-                default:
-                    // Default obstacle
-                    ctx.fillStyle = '#FF6347';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-            }
-        }
-    });
-}
-
-// Draw power-ups
-function drawPowerUps() {
-    powerUps.forEach(powerup => {
-        if (!powerup.collected) {
-            ctx.save();
-            ctx.translate(powerup.x - cameraX + powerup.width/2, powerup.y + powerup.height/2);
-            ctx.rotate(Date.now() * 0.002);
-            ctx.translate(-powerup.width/2, -powerup.height/2);
-            // Draw different shapes/colors for each type
-            switch(powerup.type) {
-                case 'speed':
-                    ctx.fillStyle = '#00BFFF';
-                    ctx.beginPath();
-                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('S', powerup.width/2, powerup.height/2 + 7);
-                    break;
-                case 'shield':
-                    ctx.fillStyle = '#FFD700';
-                    ctx.beginPath();
-                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(powerup.width/2, powerup.height/2, 14, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('H', powerup.width/2, powerup.height/2 + 7);
-                    break;
-                case 'magnet':
-                    ctx.fillStyle = '#FF6347';
-                    ctx.beginPath();
-                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('M', powerup.width/2, powerup.height/2 + 7);
-                    break;
-            }
-            ctx.restore();
-        }
-    });
 }
 
 // Draw ground
 function drawGround() {
-    const groundHeight = 60;
-    const grassHeight = 20;
+    const groundHeight = 80;
+    const grassHeight = 25;
     
     // Dirt base
     ctx.fillStyle = '#8B4513';
@@ -1824,22 +1546,22 @@ function drawGround() {
     ctx.fillStyle = '#228B22';
     ctx.fillRect(0, groundY, canvas.width, grassHeight);
     
-    // Grass texture lines
+    // Simple grass texture
     ctx.strokeStyle = '#32CD32';
     ctx.lineWidth = 2;
-    for (let i = 0; i < canvas.width; i += 30) {
-        const x = (i - cameraX * 0.8) % (canvas.width + 30);
+    for (let i = 0; i < canvas.width; i += 40) {
+        const x = (i - cameraX * 0.8) % (canvas.width + 40);
         ctx.beginPath();
         ctx.moveTo(x, groundY);
-        ctx.lineTo(x + 15, groundY - 5);
+        ctx.lineTo(x + 20, groundY - 8);
         ctx.stroke();
     }
     
-    // Dirt texture
+    // Simple dirt texture
     ctx.strokeStyle = '#654321';
     ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 40) {
-        const x = (i - cameraX * 0.8) % (canvas.width + 40);
+    for (let i = 0; i < canvas.width; i += 50) {
+        const x = (i - cameraX * 0.8) % (canvas.width + 50);
         ctx.beginPath();
         ctx.moveTo(x, groundY + grassHeight);
         ctx.lineTo(x, groundY + groundHeight);
@@ -2647,4 +2369,177 @@ function playBackgroundMusic() {
     } catch (error) {
         console.log('Failed to play background music:', error);
     }
+}
+
+// Draw improved, more visible coins
+function drawCoins() {
+    coinObjects.forEach(coin => {
+        const x = coin.x - cameraX;
+        const y = coin.y;
+        
+        if (x > -coin.width && x < canvas.width + coin.width) {
+            // Coin glow effect
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Coin body (bright gold)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(x + coin.width/2, y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Coin border (thicker)
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Coin shine (more prominent)
+            ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.arc(x + coin.width/3, y + coin.height/3, coin.width/5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+            
+            // Dollar sign (larger and bolder)
+            ctx.fillStyle = '#8B4513';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', x + coin.width/2, y + coin.height/2);
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+            
+            // Coin rotation animation
+            ctx.save();
+            ctx.translate(x + coin.width/2, y + coin.height/2);
+            ctx.rotate(coin.rotation);
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(-coin.width/4, -coin.height/4, coin.width/2, coin.height/2);
+            ctx.restore();
+        }
+    });
+}
+
+// Draw improved, more visible enemies
+function drawObstacles() {
+    obstacles.forEach(obstacle => {
+        const x = obstacle.x - cameraX;
+        const y = obstacle.y;
+        
+        if (x > -obstacle.width && x < canvas.width + obstacle.width) {
+            // Add shadow for better visibility
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            
+            switch(obstacle.type) {
+                case 'goomba':
+                    // Draw Goomba (larger and more colorful)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Goomba face (more prominent)
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(x + 8, y + 8, 24, 24);
+                    
+                    // Eyes (larger)
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(x + 10, y + 10, 8, 8);
+                    ctx.fillRect(x + 22, y + 10, 8, 8);
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(x + 12, y + 12, 4, 4);
+                    ctx.fillRect(x + 24, y + 12, 4, 4);
+                    
+                    // Angry eyebrows (thicker)
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(x + 8, y + 6);
+                    ctx.lineTo(x + 16, y + 10);
+                    ctx.moveTo(x + 32, y + 10);
+                    ctx.lineTo(x + 24, y + 6);
+                    ctx.stroke();
+                    break;
+                    
+                case 'koopa':
+                    // Draw Koopa (larger and more colorful)
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Shell pattern (more prominent)
+                    ctx.fillStyle = '#32CD32';
+                    ctx.fillRect(x + 6, y + 6, 28, 28);
+                    
+                    // Shell spots (larger)
+                    ctx.fillStyle = '#006400';
+                    ctx.fillRect(x + 12, y + 12, 6, 6);
+                    ctx.fillRect(x + 22, y + 12, 6, 6);
+                    ctx.fillRect(x + 12, y + 22, 6, 6);
+                    ctx.fillRect(x + 22, y + 22, 6, 6);
+                    
+                    // Head (more visible)
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x + 14, y + 34, 12, 6);
+                    break;
+                    
+                case 'monkey':
+                    // Draw Monkey (larger and more colorful)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Monkey face (more prominent)
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(x + 6, y + 6, 28, 28);
+                    
+                    // Eyes (larger)
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(x + 12, y + 12, 6, 6);
+                    ctx.fillRect(x + 22, y + 12, 6, 6);
+                    
+                    // Nose (more visible)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(x + 18, y + 18, 6, 6);
+                    
+                    // Ears (larger)
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(x + 4, y + 4, 10, 10);
+                    ctx.fillRect(x + 26, y + 4, 10, 10);
+                    break;
+                    
+                case 'snake':
+                    // Draw Snake (larger and more colorful)
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Snake pattern (more prominent)
+                    ctx.fillStyle = '#32CD32';
+                    ctx.fillRect(x + 6, y + 6, 28, 28);
+                    
+                    // Snake spots (larger)
+                    ctx.fillStyle = '#006400';
+                    ctx.fillRect(x + 10, y + 10, 8, 8);
+                    ctx.fillRect(x + 22, y + 10, 8, 8);
+                    ctx.fillRect(x + 10, y + 22, 8, 8);
+                    ctx.fillRect(x + 22, y + 22, 8, 8);
+                    
+                    // Snake tongue (more visible)
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(x + 18, y + 34, 4, 10);
+                    break;
+                    
+                default:
+                    // Default obstacle (more visible)
+                    ctx.fillStyle = '#FF6347';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+            }
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+    });
 }

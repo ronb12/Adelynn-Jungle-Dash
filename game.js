@@ -20,7 +20,7 @@ let player = {
     onGround: true,
     // Movement variables
     isMoving: false,
-    direction: 1, // 1 for right, -1 for left
+    direction: 1, // 1 for right (facing obstacles), -1 for left
     animationSpeed: 6 // kept for potential future use
 };
 
@@ -338,7 +338,7 @@ function update() {
 
 // Handle player movement
 function handlePlayerMovement() {
-    const baseMoveSpeed = 5;
+    const baseMoveSpeed = 3; // Reduced for smoother movement
     const sprintMultiplier = 1.5; // Sprint speed multiplier
     let moveSpeed = baseMoveSpeed;
     let wasMoving = player.isMoving;
@@ -362,7 +362,7 @@ function handlePlayerMovement() {
     if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < canvas.width - player.width) {
         player.x += moveSpeed;
         player.isMoving = true;
-        player.direction = 1; // Moving right
+        player.direction = 1; // Moving right (facing obstacles)
     }
     
     // Update animation
@@ -611,6 +611,9 @@ function drawPlayer() {
         // Save context for flipping
         ctx.save();
         
+        // Add brightness and contrast adjustments to make character more visible
+        ctx.filter = 'brightness(1.2) contrast(1.1)';
+        
         // Flip horizontally if moving left
         if (player.direction === -1) {
             ctx.scale(-1, 1);
@@ -621,7 +624,9 @@ function drawPlayer() {
         const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
         if (isSprinting && player.isMoving && player.onGround) {
             ctx.shadowColor = '#FFD700';
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
         }
         
         // Draw the character sprite (single frame)

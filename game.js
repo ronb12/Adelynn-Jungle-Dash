@@ -20,7 +20,7 @@ let player = {
     onGround: true,
     // Movement variables
     isMoving: false,
-    direction: 1, // 1 for right (facing obstacles), -1 for left
+    direction: 1, // 1 for right (default facing right), -1 for left
     animationSpeed: 6 // kept for potential future use
 };
 
@@ -364,6 +364,11 @@ function handlePlayerMovement() {
         player.x += moveSpeed;
         player.isMoving = true;
         player.direction = 1; // Moving right
+    }
+    
+    // If not moving, face right by default
+    if (!player.isMoving) {
+        player.direction = 1; // Face right when idle
     }
     
     // Update animation
@@ -812,7 +817,7 @@ function restartGame() {
     player.isJumping = false;
     player.onGround = true;
     player.isMoving = false;
-    player.direction = 1;
+    player.direction = 1; // Face right by default
     
     // Hide game over screen
     document.getElementById('gameOverScreen').style.display = 'none';

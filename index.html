@@ -73,6 +73,7 @@
           <button class="menu-btn" onclick="showSettings()">Settings</button>
           <button class="menu-btn" onclick="showTutorial()">Tutorial</button>
           <button class="menu-btn" onclick="showAchievements()">Achievements</button>
+          <button class="menu-btn" onclick="showChallenges()">Daily Challenges</button>
           <button class="menu-btn" onclick="showLeaderboard()">Leaderboard</button>
           <button class="menu-btn" onclick="showCredits()">Credits</button>
         </div>
@@ -218,6 +219,25 @@
         <div class="menu-buttons">
           <button class="menu-btn" onclick="hideLeaderboard()">Back to Menu</button>
           <button class="menu-btn" onclick="clearLeaderboard()">Clear Scores</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Daily Challenges Screen -->
+    <div id="challengesScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>🎯 Daily Challenges</h2>
+        <div class="challenges-content">
+          <div class="challenge-info">
+            <p>Complete challenges to earn bonus points!</p>
+            <p>New challenges every day at midnight.</p>
+          </div>
+          <div id="dailyChallengesList" class="challenges-list">
+            <!-- Will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideChallenges()">Back to Menu</button>
         </div>
       </div>
     </div>

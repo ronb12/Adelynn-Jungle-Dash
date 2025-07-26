@@ -648,3 +648,115 @@ body {
     color: #666;
     font-style: italic;
 } 
+
+/* Daily Challenges styles */
+.challenges-content {
+    text-align: left;
+    margin: 20px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.challenge-info {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    border-left: 4px solid #2196f3;
+}
+
+.challenge-info p {
+    margin: 5px 0;
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.challenges-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.challenge-item {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #ff9800;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.challenge-item:hover {
+    transform: translateY(-2px);
+}
+
+.challenge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.challenge-header h3 {
+    color: #2a5298;
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.challenge-status {
+    font-size: 1.5em;
+}
+
+.challenge-status.completed {
+    color: #4CAF50;
+}
+
+.challenge-status.in-progress {
+    color: #ff9800;
+}
+
+.challenge-description {
+    color: #666;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.challenge-progress {
+    margin: 15px 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(45deg, #ff9800, #ff5722);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+}
+
+.challenge-reward {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: right;
+}
+
+.no-challenges {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+} 

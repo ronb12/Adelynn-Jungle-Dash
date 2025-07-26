@@ -461,6 +461,158 @@ function addToLeaderboard(score, distance, coins) {
     return leaderboard.indexOf(entry) + 1; // Return position (1-based)
 }
 
+// Daily challenges system
+let dailyChallenges = [];
+let challengeProgress = {};
+let lastChallengeDate = '';
+
+// Challenge types and their generation functions
+const CHALLENGE_TYPES = {
+    collectCoins: {
+        name: 'Coin Collector',
+        description: 'Collect {target} coins in a single run',
+        generate: () => ({ target: Math.floor(Math.random() * 50) + 10, current: 0 }),
+        check: (progress, target) => progress >= target
+    },
+    runDistance: {
+        name: 'Distance Runner',
+        description: 'Run {target} meters in a single run',
+        generate: () => ({ target: Math.floor(Math.random() * 1000) + 200, current: 0 }),
+        check: (progress, target) => progress >= target
+    },
+    surviveTime: {
+        name: 'Survivor',
+        description: 'Survive for {target} seconds in a single run',
+        generate: () => ({ target: Math.floor(Math.random() * 120) + 30, current: 0 }),
+        check: (progress, target) => progress >= target
+    },
+    collectPowerups: {
+        name: 'Power Player',
+        description: 'Collect {target} power-ups in a single run',
+        generate: () => ({ target: Math.floor(Math.random() * 8) + 2, current: 0 }),
+        check: (progress, target) => progress >= target
+    },
+    avoidObstacles: {
+        name: 'Ninja Runner',
+        description: 'Avoid {target} obstacles in a single run',
+        generate: () => ({ target: Math.floor(Math.random() * 20) + 5, current: 0 }),
+        check: (progress, target) => progress >= target
+    }
+};
+
+// Generate daily challenges
+function generateDailyChallenges() {
+    const today = new Date().toDateString();
+    
+    // Check if we need new challenges
+    if (lastChallengeDate === today && dailyChallenges.length > 0) {
+        return; // Already have today's challenges
+    }
+    
+    // Generate 3 random challenges
+    const challengeTypes = Object.keys(CHALLENGE_TYPES);
+    dailyChallenges = [];
+    
+    for (let i = 0; i < 3; i++) {
+        const type = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
+        const challenge = CHALLENGE_TYPES[type];
+        const data = challenge.generate();
+        
+        dailyChallenges.push({
+            id: `challenge_${i}`,
+            type: type,
+            name: challenge.name,
+            description: challenge.description.replace('{target}', data.target),
+            target: data.target,
+            current: 0,
+            completed: false,
+            reward: Math.floor(data.target * 0.5) + 10 // Reward based on difficulty
+        });
+    }
+    
+    lastChallengeDate = today;
+    saveChallenges();
+}
+
+// Save challenges to localStorage
+function saveChallenges() {
+    localStorage.setItem('jungleDashChallenges', JSON.stringify({
+        challenges: dailyChallenges,
+        progress: challengeProgress,
+        lastDate: lastChallengeDate
+    }));
+}
+
+// Load challenges from localStorage
+function loadChallenges() {
+    const saved = localStorage.getItem('jungleDashChallenges');
+    if (saved) {
+        const data = JSON.parse(saved);
+        dailyChallenges = data.challenges || [];
+        challengeProgress = data.progress || {};
+        lastChallengeDate = data.lastDate || '';
+    }
+    
+    // Generate new challenges if needed
+    generateDailyChallenges();
+}
+
+// Update challenge progress
+function updateChallengeProgress(type, amount = 1) {
+    dailyChallenges.forEach(challenge => {
+        if (challenge.type === type && !challenge.completed) {
+            challenge.current += amount;
+            
+            if (CHALLENGE_TYPES[type].check(challenge.current, challenge.target)) {
+                challenge.completed = true;
+                showChallengeCompletion(challenge);
+            }
+        }
+    });
+    
+    saveChallenges();
+}
+
+// Show challenge completion notification
+function showChallengeCompletion(challenge) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: linear-gradient(45deg, #ff9800, #ff5722);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 16px;
+        z-index: 10000;
+        animation: slideIn 0.5s ease-out;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        max-width: 300px;
+    `;
+    notification.innerHTML = `
+        <div>🎯 Challenge Complete!</div>
+        <div style="font-size: 14px; margin-top: 5px;">${challenge.name}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Reward: +${challenge.reward} points</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Add reward to score
+    score += challenge.reward;
+    
+    // Remove notification after 4 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 4000);
+}
+
 // Initialize game
 function initGame() {
     // Initialize audio context
@@ -490,6 +642,9 @@ function initGame() {
         
         // Load leaderboard
         loadLeaderboard();
+        
+        // Load challenges
+        loadChallenges();
         
         // Show main menu
         showMainMenu();
@@ -765,6 +920,10 @@ function update() {
     if (gameRunning && !gamePaused) {
         distance += gameSpeed * 0.1; // Adjust multiplier for tuning
         if (distance > bestDistance) bestDistance = distance;
+        
+        // Update challenge progress
+        updateChallengeProgress('runDistance', gameSpeed * 0.1);
+        updateChallengeProgress('surviveTime', 1/60); // 1/60 second per frame
     }
 
     // Check and unlock achievements
@@ -1076,8 +1235,13 @@ function checkCollisions() {
             totalCoinsCollected++; // Track total coins for achievements
             score += 10;
             
-            // Create coin particles
-            createCoinParticles(coin.x - cameraX + coin.width / 2, coin.y + coin.height / 2);
+            // Update challenge progress
+            updateChallengeProgress('collectCoins');
+            
+            // Create coin collection particles
+            if (gameSettings.particlesEnabled) {
+                createCoinParticles(coin.x, coin.y);
+            }
             
             // Play coin sound
             playCoinSound();
@@ -1111,6 +1275,12 @@ function checkCollisions() {
                 // Remove the obstacle that was hit
                 obstacles = obstacles.filter(o => o !== obstacle);
             }
+        } else {
+            // Player avoided this obstacle - update challenge progress
+            if (!obstacle.avoided && obstacle.x - cameraX < player.x - 50) {
+                obstacle.avoided = true;
+                updateChallengeProgress('avoidObstacles');
+            }
         }
     });
 
@@ -1123,6 +1293,10 @@ function checkCollisions() {
             player.y + player.height > powerup.y) {
             powerup.collected = true;
             totalPowerupsCollected++; // Track total power-ups for achievements
+            
+            // Update challenge progress
+            updateChallengeProgress('collectPowerups');
+            
             switch(powerup.type) {
                 case 'speed':
                     playerPowerup.speed = true;
@@ -1198,6 +1372,29 @@ function updateUI() {
         document.getElementById('gameUI').appendChild(distanceDiv);
     }
     distanceDiv.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
+    
+    // Show daily challenges
+    let challengesDiv = document.getElementById('challengesStatus');
+    if (!challengesDiv) {
+        challengesDiv = document.createElement('div');
+        challengesDiv.id = 'challengesStatus';
+        challengesDiv.style.fontSize = '12px';
+        challengesDiv.style.color = '#ff9800';
+        challengesDiv.style.fontWeight = 'bold';
+        challengesDiv.style.marginTop = '5px';
+        challengesDiv.style.textAlign = 'center';
+        document.getElementById('gameUI').appendChild(challengesDiv);
+    }
+    
+    const activeChallenges = dailyChallenges.filter(c => !c.completed);
+    if (activeChallenges.length > 0) {
+        const challengeText = activeChallenges.map(c => 
+            `${c.name}: ${Math.floor(c.current)}/${c.target}`
+        ).join(' | ');
+        challengesDiv.textContent = `Daily Challenges: ${challengeText}`;
+    } else {
+        challengesDiv.textContent = 'All daily challenges completed! 🎉';
+    }
 }
 
 // Update audio status display
@@ -1922,6 +2119,57 @@ function clearLeaderboard() {
         saveLeaderboard();
         populateFullLeaderboard();
     }
+}
+
+// Daily challenges screen functions
+function showChallenges() {
+    document.getElementById('challengesScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+    populateChallenges();
+}
+
+function hideChallenges() {
+    document.getElementById('challengesScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+function populateChallenges() {
+    const container = document.getElementById('dailyChallengesList');
+    container.innerHTML = '';
+    
+    if (dailyChallenges.length === 0) {
+        const noChallenges = document.createElement('div');
+        noChallenges.className = 'no-challenges';
+        noChallenges.textContent = 'No challenges available. Check back tomorrow!';
+        container.appendChild(noChallenges);
+        return;
+    }
+    
+    dailyChallenges.forEach(challenge => {
+        const challengeDiv = document.createElement('div');
+        challengeDiv.className = 'challenge-item';
+        const progress = Math.min(challenge.current, challenge.target);
+        const percentage = (progress / challenge.target) * 100;
+        
+        challengeDiv.innerHTML = `
+            <div class="challenge-header">
+                <h3>${challenge.name}</h3>
+                <span class="challenge-status ${challenge.completed ? 'completed' : 'in-progress'}">
+                    ${challenge.completed ? '✅' : '🎯'}
+                </span>
+            </div>
+            <p class="challenge-description">${challenge.description}</p>
+            <div class="challenge-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentage}%"></div>
+                </div>
+                <span class="progress-text">${Math.floor(challenge.current)}/${challenge.target}</span>
+            </div>
+            <div class="challenge-reward">Reward: +${challenge.reward} points</div>
+        `;
+        
+        container.appendChild(challengeDiv);
+    });
 }
 
 // Initialize game when page loads

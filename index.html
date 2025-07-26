@@ -51,6 +51,103 @@
       </div>
     </div>
     
+    <!-- Main Menu Screen -->
+    <div id="mainMenuScreen" class="game-screen">
+      <div class="screen-content">
+        <h1 class="game-title">Adelynn's Jungle Dash</h1>
+        <div class="menu-buttons">
+          <button class="menu-btn primary" onclick="startGame()">Start Game</button>
+          <button class="menu-btn" onclick="showSettings()">Settings</button>
+          <button class="menu-btn" onclick="showTutorial()">Tutorial</button>
+          <button class="menu-btn" onclick="showCredits()">Credits</button>
+        </div>
+        <div class="menu-footer">
+          <p>Use WASD/Arrows to move, Space to jump, Shift to sprint</p>
+          <p>Arrow keys to face direction, Q/E to rotate</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Screen -->
+    <div id="settingsScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>Settings</h2>
+        <div class="settings-group">
+          <label>Music Volume:</label>
+          <input type="range" id="musicVolume" min="0" max="100" value="30" onchange="updateMusicVolume()">
+          <span id="musicVolumeValue">30%</span>
+        </div>
+        <div class="settings-group">
+          <label>Sound Effects Volume:</label>
+          <input type="range" id="sfxVolume" min="0" max="100" value="50" onchange="updateSfxVolume()">
+          <span id="sfxVolumeValue">50%</span>
+        </div>
+        <div class="settings-group">
+          <label>Difficulty:</label>
+          <select id="difficulty" onchange="updateDifficulty()">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="settings-group">
+          <label>Particle Effects:</label>
+          <input type="checkbox" id="particlesEnabled" checked onchange="toggleParticles()">
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideSettings()">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tutorial Screen -->
+    <div id="tutorialScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>How to Play</h2>
+        <div class="tutorial-content">
+          <div class="tutorial-section">
+            <h3>Movement</h3>
+            <p>• <strong>WASD</strong> or <strong>Arrow Keys</strong>: Move character</p>
+            <p>• <strong>Space</strong>: Jump</p>
+            <p>• <strong>Shift</strong>: Sprint (when on ground)</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>Character Control</h3>
+            <p>• <strong>Arrow Keys</strong>: Face direction</p>
+            <p>• <strong>Q/E</strong>: Rotate character</p>
+            <p>• Character automatically faces movement direction</p>
+          </div>
+          <div class="tutorial-section">
+            <h3>Objectives</h3>
+            <p>• Collect <strong>coins</strong> for points</p>
+            <p>• Avoid <strong>obstacles</strong> and enemies</p>
+            <p>• Run as far as possible!</p>
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideTutorial()">Got it!</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Credits Screen -->
+    <div id="creditsScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>Credits</h2>
+        <div class="credits-content">
+          <p><strong>Game Developer:</strong> Adelynn's Jungle Dash Team</p>
+          <p><strong>Character Sprites:</strong> Custom animated character</p>
+          <p><strong>Background Music:</strong> Mixkit (Free License)</p>
+          <p><strong>Sound Effects:</strong> Mixkit (Free License)</p>
+          <p><strong>Game Engine:</strong> HTML5 Canvas + JavaScript</p>
+          <p><strong>Special Thanks:</strong> To all players and testers!</p>
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideCredits()">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+    
     <!-- Mobile Controls -->
     <div id="mobileControls">
       <button id="leftBtn" class="control-btn">←</button>

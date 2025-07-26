@@ -64,6 +64,15 @@ let audioContext = null;
 // Particle system
 let particles = [];
 
+// Game state management
+let gameState = 'menu'; // 'menu', 'playing', 'paused', 'gameOver'
+let gameSettings = {
+    musicVolume: 30,
+    sfxVolume: 50,
+    difficulty: 'normal',
+    particlesEnabled: true
+};
+
 class Particle {
     constructor(x, y, type = 'coin') {
         this.x = x;
@@ -165,32 +174,32 @@ function initAudioContext() {
 
 // Generate coin sound effect
 function playCoinSound() {
-    if (!audioContext) return;
-    
-    try {
-        // Create oscillator for coin sound
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        // Connect nodes
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Set up coin sound characteristics
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // High pitch
-        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1); // Drop in pitch
-        oscillator.type = 'sine';
-        
-        // Set up volume envelope
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-        
-        // Play the sound
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
-        
-    } catch (e) {
-        console.log('Failed to play coin sound:', e);
+    if (audio.coin) {
+        try {
+            audio.coin.currentTime = 0;
+            audio.coin.volume = gameSettings.sfxVolume / 100;
+            audio.coin.play().catch(e => console.log('Coin audio play failed:', e));
+        } catch (e) {
+            console.log('Coin audio play failed:', e);
+        }
+    } else {
+        // Generate coin sound using Web Audio API
+        if (audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(gameSettings.sfxVolume / 200, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
     }
 }
 
@@ -318,6 +327,8 @@ function playGameOverSound() {
 
 // Particle effect functions
 function createCoinParticles(x, y) {
+    if (!gameSettings.particlesEnabled) return;
+    
     for (let i = 0; i < 8; i++) {
         particles.push(new Particle(x, y, 'coin'));
     }
@@ -328,6 +339,8 @@ function createCoinParticles(x, y) {
 }
 
 function createJumpParticles(x, y) {
+    if (!gameSettings.particlesEnabled) return;
+    
     for (let i = 0; i < 6; i++) {
         particles.push(new Particle(x, y, 'jump'));
     }
@@ -348,25 +361,39 @@ function drawParticles() {
 
 // Initialize game
 function initGame() {
+    // Initialize audio context
+    initAudioContext();
+    
+    // Set up canvas
     canvas = document.getElementById('gameCanvas');
     ctx = canvas.getContext('2d');
     
-    // Set canvas size for mobile
-    if (window.innerWidth < 800) {
-        canvas.width = window.innerWidth - 20;
-        canvas.height = window.innerHeight * 0.6;
-        groundY = canvas.height - 50;
-    }
+    // Set canvas size
+    canvas.width = 800;
+    canvas.height = 600;
     
-    // Ensure player is properly positioned on the ground
+    // Calculate ground position
+    groundY = canvas.height - 100;
+    
+    // Set player initial position
     player.y = groundY - player.height;
     
-    // Initialize audio context for sound effects
-    initAudioContext();
-    
+    // Load assets
     loadAssets();
+    
+    // Initialize settings
+    document.getElementById('musicVolume').value = gameSettings.musicVolume;
+    document.getElementById('sfxVolume').value = gameSettings.sfxVolume;
+    document.getElementById('difficulty').value = gameSettings.difficulty;
+    document.getElementById('particlesEnabled').checked = gameSettings.particlesEnabled;
+    
+    // Show main menu
+    showMainMenu();
+    
+    // Set up event listeners
     setupEventListeners();
-    startGame();
+    
+    console.log('Game initialized!');
 }
 
 // Load game assets
@@ -538,31 +565,37 @@ function setupEventListeners() {
 
 // Start the game
 function startGame() {
+    gameState = 'playing';
     gameRunning = true;
     gamePaused = false;
     score = 0;
     coins = 0;
     lives = 999; // Infinite lives for testing
     gameSpeed = 5;
+    cameraX = 0;
     
-    // Reset player
+    // Reset player position
     player.x = 100;
     player.y = groundY - player.height;
     player.velocityY = 0;
     player.isJumping = false;
     player.onGround = true;
-    // Reset movement variables
     player.isMoving = false;
-    player.direction = 1;
+    player.angle = 0;
     
-    // Clear arrays
-    obstacles = [];
+    // Clear game objects
     coinObjects = [];
-    powerUps = [];
+    obstacles = [];
+    particles = [];
     
-    // Hide UI screens
-    document.getElementById('gameOverScreen').style.display = 'none';
-    document.getElementById('pauseScreen').style.display = 'none';
+    // Hide menu and show game
+    hideMainMenu();
+    
+    // Start background music
+    if (audio.background && audio.background.paused) {
+        audio.background.volume = gameSettings.musicVolume / 100;
+        audio.background.play().catch(e => console.log('Background music failed to play:', e));
+    }
     
     // Start game loop
     gameLoop();
@@ -1109,11 +1142,24 @@ function drawGround() {
 
 // Game over
 function gameOver() {
+    gameState = 'gameOver';
     gameRunning = false;
     
+    // Stop background music
+    if (audio.background && !audio.background.paused) {
+        audio.background.pause();
+    }
+    
+    // Show game over screen briefly, then return to menu
     document.getElementById('finalScore').textContent = score;
     document.getElementById('finalCoins').textContent = coins;
     document.getElementById('gameOverScreen').style.display = 'flex';
+    
+    // Return to main menu after 3 seconds
+    setTimeout(() => {
+        document.getElementById('gameOverScreen').style.display = 'none';
+        showMainMenu();
+    }, 3000);
 }
 
 // Restart game
@@ -1144,23 +1190,31 @@ function restartGame() {
 
 // Toggle pause
 function togglePause() {
-    if (!gameRunning) return;
-    
-    gamePaused = !gamePaused;
+    if (gameState !== 'playing') return;
     
     if (gamePaused) {
-        // Pause background music
-        if (audio.background && !audio.background.paused) {
-            audio.background.pause();
-        }
-        document.getElementById('pauseScreen').style.display = 'flex';
-    } else {
+        // Resume game
+        gamePaused = false;
+        gameState = 'playing';
+        document.getElementById('pauseScreen').style.display = 'none';
+        
         // Resume background music
         if (audio.background && audio.background.paused) {
             audio.background.play().catch(e => console.log('Background music resume failed:', e));
         }
-        document.getElementById('pauseScreen').style.display = 'none';
+        
         gameLoop();
+    } else {
+        // Pause game
+        gamePaused = true;
+        gameState = 'paused';
+        
+        // Pause background music
+        if (audio.background && !audio.background.paused) {
+            audio.background.pause();
+        }
+        
+        document.getElementById('pauseScreen').style.display = 'flex';
     }
 }
 
@@ -1169,6 +1223,94 @@ function resumeGame() {
     gamePaused = false;
     document.getElementById('pauseScreen').style.display = 'none';
     gameLoop();
+}
+
+// Menu navigation functions
+function showMainMenu() {
+    gameState = 'menu';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+    document.getElementById('gameUI').classList.remove('show');
+    document.getElementById('gameCanvas').style.display = 'none';
+    // Stop background music
+    if (audio.background && !audio.background.paused) {
+        audio.background.pause();
+    }
+}
+
+function hideMainMenu() {
+    document.getElementById('mainMenuScreen').style.display = 'none';
+    document.getElementById('gameUI').classList.add('show');
+    document.getElementById('gameCanvas').style.display = 'block';
+}
+
+function showSettings() {
+    document.getElementById('settingsScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+}
+
+function hideSettings() {
+    document.getElementById('settingsScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+function showTutorial() {
+    document.getElementById('tutorialScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+}
+
+function hideTutorial() {
+    document.getElementById('tutorialScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+function showCredits() {
+    document.getElementById('creditsScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+}
+
+function hideCredits() {
+    document.getElementById('creditsScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+// Settings functions
+function updateMusicVolume() {
+    const volume = document.getElementById('musicVolume').value;
+    gameSettings.musicVolume = parseInt(volume);
+    document.getElementById('musicVolumeValue').textContent = volume + '%';
+    
+    if (audio.background) {
+        audio.background.volume = volume / 100;
+    }
+}
+
+function updateSfxVolume() {
+    const volume = document.getElementById('sfxVolume').value;
+    gameSettings.sfxVolume = parseInt(volume);
+    document.getElementById('sfxVolumeValue').textContent = volume + '%';
+}
+
+function updateDifficulty() {
+    const difficulty = document.getElementById('difficulty').value;
+    gameSettings.difficulty = difficulty;
+    
+    // Adjust game parameters based on difficulty
+    switch(difficulty) {
+        case 'easy':
+            gameSpeed = 3;
+            break;
+        case 'normal':
+            gameSpeed = 5;
+            break;
+        case 'hard':
+            gameSpeed = 7;
+            break;
+    }
+}
+
+function toggleParticles() {
+    const enabled = document.getElementById('particlesEnabled').checked;
+    gameSettings.particlesEnabled = enabled;
 }
 
 // Initialize game when page loads

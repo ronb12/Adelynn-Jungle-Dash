@@ -624,20 +624,55 @@ function render() {
 
 // Draw background
 function drawBackground() {
-    // Simple gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#87CEEB');
-    gradient.addColorStop(1, '#98FB98');
-    ctx.fillStyle = gradient;
+    // Parallax background layers
+    // Layer 1: Sky
+    ctx.fillStyle = 'linear-gradient(to bottom, #87ceeb 0%, #b0e0e6 100%)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw some clouds
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    for (let i = 0; i < 3; i++) {
-        const x = (Date.now() * 0.001 + i * 200) % (canvas.width + 100) - 50;
-        const y = 50 + i * 30;
-        drawCloud(x, y);
+
+    // Layer 2: Distant mountains (slowest)
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    for (let i = -1; i < 4; i++) {
+        let offset = ((cameraX * 0.2) % canvas.width) + i * canvas.width;
+        ctx.fillStyle = '#b0c4de';
+        ctx.beginPath();
+        ctx.moveTo(offset, canvas.height * 0.6);
+        ctx.lineTo(offset + 200, canvas.height * 0.4);
+        ctx.lineTo(offset + 400, canvas.height * 0.6);
+        ctx.lineTo(offset + 600, canvas.height * 0.5);
+        ctx.lineTo(offset + 800, canvas.height * 0.6);
+        ctx.lineTo(offset + canvas.width, canvas.height);
+        ctx.lineTo(offset, canvas.height);
+        ctx.closePath();
+        ctx.fill();
     }
+    ctx.restore();
+
+    // Layer 3: Midground trees
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    for (let i = -1; i < 4; i++) {
+        let offset = ((cameraX * 0.4) % canvas.width) + i * canvas.width;
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(offset + 100, canvas.height * 0.55, 30, 100);
+        ctx.fillRect(offset + 300, canvas.height * 0.5, 40, 120);
+        ctx.fillRect(offset + 600, canvas.height * 0.6, 25, 80);
+    }
+    ctx.restore();
+
+    // Layer 4: Foreground foliage (fastest)
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    for (let i = -1; i < 4; i++) {
+        let offset = ((cameraX * 0.7) % canvas.width) + i * canvas.width;
+        ctx.fillStyle = '#006400';
+        ctx.beginPath();
+        ctx.arc(offset + 50, canvas.height * 0.7, 40, 0, Math.PI * 2);
+        ctx.arc(offset + 200, canvas.height * 0.75, 30, 0, Math.PI * 2);
+        ctx.arc(offset + 500, canvas.height * 0.72, 50, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
 }
 
 // Draw cloud

@@ -5,7 +5,7 @@ let gamePaused = false;
 let score = 0;
 let coins = 0;
 let lives = 999; // Infinite lives for testing
-let gameSpeed = 5;
+let gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
 let gravity = 0.8;
 let groundY = 550;
 let cameraX = 0; // Camera position for side-scrolling
@@ -862,7 +862,7 @@ function startGame() {
     score = 0;
     coins = 0;
     lives = 999; // Infinite lives for testing
-    gameSpeed = 5;
+    gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
     cameraX = 0;
     
     // Reset player position
@@ -915,8 +915,8 @@ function update() {
     updateParticles(); // Add particle updates
     spawnObjects();
     
-    // Increase game speed over time
-    gameSpeed += 0.001;
+    // Increase game speed over time (more gradual)
+    gameSpeed += 0.0002; // Reduced from 0.001 to 0.0002 for slower progression
 
     // Update power-up timers
     if (playerPowerup.speed) {
@@ -952,13 +952,13 @@ function update() {
     // Trigger new special events
     triggerSpecialEvents();
 
-    // Update distance (endless mode)
+    // Update distance (endless mode) - slower, more realistic progression
     if (gameRunning && !gamePaused) {
-        distance += gameSpeed * 0.1; // Adjust multiplier for tuning
+        distance += gameSpeed * 0.02; // Reduced from 0.1 to 0.02 for slower progression
         if (distance > bestDistance) bestDistance = distance;
         
         // Update challenge progress
-        updateChallengeProgress('runDistance', gameSpeed * 0.1);
+        updateChallengeProgress('runDistance', gameSpeed * 0.02);
         updateChallengeProgress('surviveTime', 1/60); // 1/60 second per frame
     }
 
@@ -1024,12 +1024,20 @@ function handlePlayerMovement() {
         player.isMoving = true;
         // Automatic facing: set angle to movement direction
         player.angle = Math.atan2(moveY, moveX);
+        
+        // Mario Bros-style camera: follows player's forward movement
+        if (moveX > 0) {
+            // Camera moves forward when player moves right
+            cameraX += moveSpeed * 0.3; // Smooth camera following
+        } else if (moveX < 0 && player.x < 150) {
+            // Allow some backward movement before camera follows
+            cameraX += moveSpeed * 0.1; // Slower backward camera movement
+        }
     }
 
-    // Only keep a left boundary (player can't go off the left edge)
-    if (player.x < 50) {
-        player.x = 50;
-        cameraX += moveSpeed;
+    // Keep player in bounds and handle camera movement
+    if (player.x < 100) {
+        player.x = 100; // Keep player away from left edge
     }
     // Remove right boundary for infinite forward movement
     // if (player.x > canvas.width - player.width - 50) {
@@ -1848,7 +1856,7 @@ function restartGame() {
     score = 0;
     coins = 0;
     lives = 999; // Infinite lives for testing
-    gameSpeed = 5;
+    gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
     obstacles = [];
     coinObjects = [];
     powerUps = [];

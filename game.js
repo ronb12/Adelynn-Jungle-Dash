@@ -1028,7 +1028,7 @@ function handlePlayerMovement() {
         // Mario Bros-style camera: follows player's forward movement
         if (moveX > 0) {
             // Camera moves forward when player moves right
-            cameraX += moveSpeed * 0.3; // Smooth camera following
+            cameraX += moveSpeed * 0.4; // Increased for smoother following
         } else if (moveX < 0 && player.x < 150) {
             // Allow some backward movement before camera follows
             cameraX += moveSpeed * 0.1; // Slower backward camera movement
@@ -1039,11 +1039,11 @@ function handlePlayerMovement() {
     if (player.x < 100) {
         player.x = 100; // Keep player away from left edge
     }
-    // Remove right boundary for infinite forward movement
-    // if (player.x > canvas.width - player.width - 50) {
-    //     player.x = canvas.width - player.width - 50;
-    //     cameraX -= moveSpeed;
-    // }
+    // Ensure player always has room to move forward
+    if (player.x > canvas.width - 200) {
+        // Move camera forward to give player more space
+        cameraX += moveSpeed * 0.5;
+    }
     if (player.y < 0) player.y = 0;
     if (player.y > groundY - player.height) player.y = groundY - player.height;
 
@@ -1226,42 +1226,63 @@ function spawnObjects() {
             });
         }
     }
+
+    // Spawn Mario Bros-style enemies
+    if (Math.random() < 0.005) { // Reduced spawn rate
+        const enemyTypes = ['goomba', 'koopa', 'monkey', 'snake'];
+        const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+        
+        obstacles.push({
+            x: canvas.width + Math.random() * 200,
+            y: groundY - 40, // On ground
+            width: 40,
+            height: 40,
+            type: enemyType,
+            speed: 1 + Math.random() * 2,
+            direction: -1, // Move left
+            avoided: false
+        });
+    }
 }
 
 // Update objects
 function updateObjects() {
-    // Update obstacles with movement patterns
-    obstacles.forEach(obstacle => {
-        obstacle.x -= obstacle.speed;
-        
-        // Add movement patterns based on category
-        switch(obstacle.category) {
-            case 'flying':
-                // Flying enemies move in a sine wave pattern
-                obstacle.y = obstacle.originalY + Math.sin(Date.now() * 0.003 + obstacle.x * 0.01) * 30;
-                break;
-            case 'moving':
-                // Moving obstacles (like rolling logs) move up and down
-                obstacle.y = obstacle.originalY + Math.sin(Date.now() * 0.005 + obstacle.x * 0.02) * 20;
-                break;
-            case 'hazard':
-                // Spike pits stay in place but are more dangerous
-                break;
-            default:
-                // Ground obstacles stay in place
-                break;
+    // Update coins
+    coinObjects.forEach(coin => {
+        coin.rotation += 0.1;
+        // Remove coins that are off screen
+        if (coin.x < cameraX - coin.width) {
+            coinObjects = coinObjects.filter(c => c !== coin);
         }
     });
-    
-    // Remove off-screen obstacles (behind camera)
-    obstacles = obstacles.filter(obstacle => obstacle.x > cameraX - 100);
+
+    // Update obstacles and enemies
+    obstacles.forEach(obstacle => {
+        // Move Mario Bros-style enemies
+        if (obstacle.type === 'goomba' || obstacle.type === 'koopa' || 
+            obstacle.type === 'monkey' || obstacle.type === 'snake') {
+            obstacle.x += obstacle.speed * obstacle.direction;
+            
+            // Turn around at screen edges
+            if (obstacle.x < cameraX - 50) {
+                obstacle.direction = 1;
+            } else if (obstacle.x > cameraX + canvas.width + 50) {
+                obstacle.direction = -1;
+            }
+        }
+        
+        // Remove obstacles that are off screen
+        if (obstacle.x < cameraX - obstacle.width - 100) {
+            obstacles = obstacles.filter(o => o !== obstacle);
+        }
+    });
 
     // Update power-ups
     powerUps.forEach(powerup => {
-        powerup.x -= gameSpeed;
+        if (powerup.x < cameraX - powerup.width) {
+            powerUps = powerUps.filter(p => p !== powerup);
+        }
     });
-    // Remove off-screen power-ups
-    powerUps = powerUps.filter(powerup => powerup.x > cameraX - powerup.width && !powerup.collected);
 }
 
 // Check collisions
@@ -1421,57 +1442,88 @@ function render() {
     updateUI();
 }
 
-// Draw background
+// Draw background with Mario Bros-style elements
 function drawBackground() {
-    // Parallax background layers
-    // Layer 1: Sky
-    ctx.fillStyle = 'linear-gradient(to bottom, #87ceeb 0%, #b0e0e6 100%)';
+    // Clear canvas with sky blue background
+    ctx.fillStyle = '#87CEEB';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Layer 2: Distant mountains (slowest)
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    for (let i = -1; i < 4; i++) {
-        let offset = ((cameraX * 0.2) % canvas.width) + i * canvas.width;
-        ctx.fillStyle = '#b0c4de';
-        ctx.beginPath();
-        ctx.moveTo(offset, canvas.height * 0.6);
-        ctx.lineTo(offset + 200, canvas.height * 0.4);
-        ctx.lineTo(offset + 400, canvas.height * 0.6);
-        ctx.lineTo(offset + 600, canvas.height * 0.5);
-        ctx.lineTo(offset + 800, canvas.height * 0.6);
-        ctx.lineTo(offset + canvas.width, canvas.height);
-        ctx.lineTo(offset, canvas.height);
-        ctx.closePath();
-        ctx.fill();
+    
+    // Draw clouds
+    for (let i = 0; i < 5; i++) {
+        const x = (i * 200 - cameraX * 0.3) % (canvas.width + 200);
+        const y = 50 + Math.sin(i) * 20;
+        drawCloud(x, y);
     }
-    ctx.restore();
-
-    // Layer 3: Midground trees
-    ctx.save();
-    ctx.globalAlpha = 0.7;
-    for (let i = -1; i < 4; i++) {
-        let offset = ((cameraX * 0.4) % canvas.width) + i * canvas.width;
-        ctx.fillStyle = '#228B22';
-        ctx.fillRect(offset + 100, canvas.height * 0.55, 30, 100);
-        ctx.fillRect(offset + 300, canvas.height * 0.5, 40, 120);
-        ctx.fillRect(offset + 600, canvas.height * 0.6, 25, 80);
+    
+    // Draw Mario Bros-style bricks (platforms)
+    const brickSize = 40;
+    const brickRows = 3;
+    const bricksPerRow = 20;
+    
+    for (let row = 0; row < brickRows; row++) {
+        for (let col = 0; col < bricksPerRow; col++) {
+            const x = col * brickSize - cameraX * 0.5;
+            const y = canvas.height - 200 - (row * brickSize);
+            
+            // Only draw bricks that are visible
+            if (x > -brickSize && x < canvas.width + brickSize) {
+                // Brick pattern
+                ctx.fillStyle = '#8B4513'; // Brown brick color
+                ctx.fillRect(x, y, brickSize, brickSize);
+                
+                // Brick lines
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, brickSize, brickSize);
+                
+                // Brick mortar lines
+                ctx.strokeStyle = '#A0522D';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + brickSize/2, y);
+                ctx.lineTo(x + brickSize/2, y + brickSize);
+                ctx.stroke();
+            }
+        }
     }
-    ctx.restore();
-
-    // Layer 4: Foreground foliage (fastest)
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    for (let i = -1; i < 4; i++) {
-        let offset = ((cameraX * 0.7) % canvas.width) + i * canvas.width;
-        ctx.fillStyle = '#006400';
-        ctx.beginPath();
-        ctx.arc(offset + 50, canvas.height * 0.7, 40, 0, Math.PI * 2);
-        ctx.arc(offset + 200, canvas.height * 0.75, 30, 0, Math.PI * 2);
-        ctx.arc(offset + 500, canvas.height * 0.72, 50, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    ctx.restore();
+    
+    // Draw logs as platforms
+    const logSize = 60;
+    const logPositions = [
+        {x: 300, y: canvas.height - 250},
+        {x: 800, y: canvas.height - 300},
+        {x: 1200, y: canvas.height - 280},
+        {x: 1600, y: canvas.height - 320},
+        {x: 2000, y: canvas.height - 260},
+        {x: 2400, y: canvas.height - 290},
+        {x: 2800, y: canvas.height - 310},
+        {x: 3200, y: canvas.height - 270}
+    ];
+    
+    logPositions.forEach(log => {
+        const x = log.x - cameraX;
+        const y = log.y;
+        
+        if (x > -logSize && x < canvas.width + logSize) {
+            // Log body
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x, y, logSize, 20);
+            
+            // Log bark texture
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, logSize, 20);
+            
+            // Log end circles
+            ctx.fillStyle = '#A0522D';
+            ctx.beginPath();
+            ctx.arc(x, y + 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + logSize, y + 10, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
 }
 
 // Draw cloud
@@ -1548,121 +1600,163 @@ function drawPlayer() {
     ctx.restore();
 }
 
-// Draw coins
+// Draw Mario Bros-style coins
 function drawCoins() {
-    const coinSprite = sprites.banana_coin;
     coinObjects.forEach(coin => {
-        if (!coin.collected) {
-            // Apply camera offset for side-scrolling
-            const drawX = coin.x - cameraX;
+        const x = coin.x - cameraX;
+        const y = coin.y;
+        
+        if (x > -coin.width && x < canvas.width + coin.width) {
+            // Coin glow effect
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 10;
             
-            // Only draw if coin is visible on screen
-            if (drawX + coin.width > 0 && drawX < canvas.width) {
-                if (coinSprite && coinSprite.complete) {
-                    // Draw coin sprite with rotation effect
-                    ctx.save();
-                    ctx.translate(drawX + coin.width/2, coin.y + coin.height/2);
-                    ctx.rotate(Date.now() * 0.003); // Rotate coins
-                    ctx.drawImage(coinSprite, -coin.width/2, -coin.height/2, coin.width, coin.height);
-                    ctx.restore();
-                } else {
-                    // Enhanced fallback coin graphics
-                    const isGold = coin.type === 'gold';
-                    ctx.fillStyle = isGold ? '#FFD700' : '#C0C0C0';
-                    ctx.beginPath();
-                    ctx.arc(drawX + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Coin shine effect
-                    ctx.fillStyle = isGold ? '#FFF8DC' : '#FFFFFF';
-                    ctx.beginPath();
-                    ctx.arc(drawX + coin.width/2 - 3, coin.y + coin.height/2 - 3, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Coin symbol
-                    ctx.fillStyle = isGold ? '#B8860B' : '#696969';
-                    ctx.font = 'bold 14px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(isGold ? '$' : '¢', drawX + coin.width/2, coin.y + coin.height/2 + 5);
-                    
-                    // Pulsing effect
-                    const pulse = Math.sin(Date.now() * 0.005) * 0.1 + 1;
-                    ctx.globalAlpha = 0.7 + pulse * 0.3;
-                }
-            }
+            // Coin body (gold color)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(x + coin.width/2, y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Coin border
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Coin shine
+            ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = 0.6;
+            ctx.beginPath();
+            ctx.arc(x + coin.width/3, y + coin.height/3, coin.width/6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+            
+            // Dollar sign
+            ctx.fillStyle = '#8B4513';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', x + coin.width/2, y + coin.height/2);
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+            
+            // Coin rotation animation
+            ctx.save();
+            ctx.translate(x + coin.width/2, y + coin.height/2);
+            ctx.rotate(coin.rotation);
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(-coin.width/4, -coin.height/4, coin.width/2, coin.height/2);
+            ctx.restore();
         }
     });
-    ctx.globalAlpha = 1; // Reset transparency
 }
 
-// Draw obstacles
+// Draw Mario Bros-style obstacles and enemies
 function drawObstacles() {
     obstacles.forEach(obstacle => {
-        const obstacleSprite = sprites[obstacle.type];
-        if (obstacleSprite && obstacleSprite.complete) {
-            ctx.drawImage(obstacleSprite, obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
-        } else {
-            // Fallback to custom shapes based on category
-            switch(obstacle.category) {
-                case 'ground':
-                    // Ground enemies (frogs, crabs, coconuts)
+        const x = obstacle.x - cameraX;
+        const y = obstacle.y;
+        
+        if (x > -obstacle.width && x < canvas.width + obstacle.width) {
+            switch(obstacle.type) {
+                case 'goomba':
+                    // Draw Goomba (brown mushroom-like enemy)
                     ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Goomba face
                     ctx.fillStyle = '#654321';
-                    ctx.fillRect(obstacle.x - cameraX + 5, obstacle.y + 5, obstacle.width - 10, 10);
-                    ctx.fillRect(obstacle.x - cameraX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
-                    break;
+                    ctx.fillRect(x + 5, y + 5, 30, 20);
                     
-                case 'flying':
-                    // Flying enemies (birds, bats)
-                    ctx.fillStyle = '#2F4F4F';
-                    ctx.beginPath();
-                    ctx.ellipse(obstacle.x - cameraX + obstacle.width/2, obstacle.y + obstacle.height/2, 
-                               obstacle.width/2, obstacle.height/2, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    // Wings
-                    ctx.fillStyle = '#696969';
-                    ctx.beginPath();
-                    ctx.ellipse(obstacle.x - cameraX + obstacle.width/4, obstacle.y + obstacle.height/2, 
-                               obstacle.width/4, obstacle.height/3, 0, 0, Math.PI * 2);
-                    ctx.ellipse(obstacle.x - cameraX + obstacle.width*3/4, obstacle.y + obstacle.height/2, 
-                               obstacle.width/4, obstacle.height/3, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    break;
+                    // Eyes
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(x + 8, y + 8, 6, 6);
+                    ctx.fillRect(x + 26, y + 8, 6, 6);
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(x + 10, y + 10, 2, 2);
+                    ctx.fillRect(x + 28, y + 10, 2, 2);
                     
-                case 'hazard':
-                    // Spike pits
-                    ctx.fillStyle = '#DC143C';
-                    for (let i = 0; i < obstacle.width; i += 8) {
-                        ctx.beginPath();
-                        ctx.moveTo(obstacle.x - cameraX + i, obstacle.y + obstacle.height);
-                        ctx.lineTo(obstacle.x - cameraX + i + 4, obstacle.y);
-                        ctx.lineTo(obstacle.x - cameraX + i + 8, obstacle.y + obstacle.height);
-                        ctx.closePath();
-                        ctx.fill();
-                    }
-                    break;
-                    
-                case 'moving':
-                    // Moving obstacles (rolling logs)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
-                    // Log texture
-                    ctx.strokeStyle = '#654321';
+                    // Angry eyebrows
+                    ctx.strokeStyle = 'black';
                     ctx.lineWidth = 2;
-                    for (let i = 0; i < obstacle.height; i += 8) {
-                        ctx.beginPath();
-                        ctx.moveTo(obstacle.x - cameraX, obstacle.y + i);
-                        ctx.lineTo(obstacle.x - cameraX + obstacle.width, obstacle.y + i);
-                        ctx.stroke();
-                    }
+                    ctx.beginPath();
+                    ctx.moveTo(x + 8, y + 6);
+                    ctx.lineTo(x + 14, y + 8);
+                    ctx.moveTo(x + 32, y + 8);
+                    ctx.lineTo(x + 26, y + 6);
+                    ctx.stroke();
+                    break;
+                    
+                case 'koopa':
+                    // Draw Koopa (turtle-like enemy)
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Shell pattern
+                    ctx.fillStyle = '#32CD32';
+                    ctx.fillRect(x + 5, y + 5, 30, 30);
+                    
+                    // Shell spots
+                    ctx.fillStyle = '#006400';
+                    ctx.fillRect(x + 10, y + 10, 5, 5);
+                    ctx.fillRect(x + 25, y + 10, 5, 5);
+                    ctx.fillRect(x + 10, y + 25, 5, 5);
+                    ctx.fillRect(x + 25, y + 25, 5, 5);
+                    
+                    // Head
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x + 15, y + 35, 10, 5);
+                    break;
+                    
+                case 'monkey':
+                    // Draw Monkey (jungle enemy)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Monkey face
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(x + 8, y + 8, 24, 24);
+                    
+                    // Eyes
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(x + 12, y + 12, 4, 4);
+                    ctx.fillRect(x + 24, y + 12, 4, 4);
+                    
+                    // Nose
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(x + 18, y + 18, 4, 4);
+                    
+                    // Ears
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(x + 5, y + 5, 8, 8);
+                    ctx.fillRect(x + 27, y + 5, 8, 8);
+                    break;
+                    
+                case 'snake':
+                    // Draw Snake (jungle enemy)
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
+                    
+                    // Snake pattern
+                    ctx.fillStyle = '#32CD32';
+                    ctx.fillRect(x + 5, y + 5, 30, 30);
+                    
+                    // Snake spots
+                    ctx.fillStyle = '#006400';
+                    ctx.fillRect(x + 8, y + 8, 6, 6);
+                    ctx.fillRect(x + 26, y + 8, 6, 6);
+                    ctx.fillRect(x + 8, y + 26, 6, 6);
+                    ctx.fillRect(x + 26, y + 26, 6, 6);
+                    
+                    // Snake tongue
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(x + 18, y + 35, 4, 8);
                     break;
                     
                 default:
-                    // Default fallback
-                    ctx.fillStyle = '#A9A9A9';
-                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
-                    break;
+                    // Default obstacle
+                    ctx.fillStyle = '#FF6347';
+                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
             }
         }
     });
@@ -1721,16 +1815,38 @@ function drawPowerUps() {
 
 // Draw ground
 function drawGround() {
-    // Apply camera offset for side-scrolling
-    const groundStartX = -cameraX;
-    const groundEndX = canvas.width - cameraX;
+    const groundHeight = 60;
+    const grassHeight = 20;
     
+    // Dirt base
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(groundStartX, groundY, groundEndX - groundStartX, canvas.height - groundY);
+    ctx.fillRect(0, groundY, canvas.width, groundHeight);
     
-    // Draw grass on top
+    // Grass top
     ctx.fillStyle = '#228B22';
-    ctx.fillRect(groundStartX, groundY, groundEndX - groundStartX, 10);
+    ctx.fillRect(0, groundY, canvas.width, grassHeight);
+    
+    // Grass texture lines
+    ctx.strokeStyle = '#32CD32';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < canvas.width; i += 30) {
+        const x = (i - cameraX * 0.8) % (canvas.width + 30);
+        ctx.beginPath();
+        ctx.moveTo(x, groundY);
+        ctx.lineTo(x + 15, groundY - 5);
+        ctx.stroke();
+    }
+    
+    // Dirt texture
+    ctx.strokeStyle = '#654321';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < canvas.width; i += 40) {
+        const x = (i - cameraX * 0.8) % (canvas.width + 40);
+        ctx.beginPath();
+        ctx.moveTo(x, groundY + grassHeight);
+        ctx.lineTo(x, groundY + groundHeight);
+        ctx.stroke();
+    }
 }
 
 // Game over

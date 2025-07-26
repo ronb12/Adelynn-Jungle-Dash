@@ -1364,81 +1364,14 @@ function checkCollisions() {
 
 // Update UI
 function updateUI() {
+    // Update basic game info
     document.getElementById('scoreValue').textContent = score;
     document.getElementById('coinsValue').textContent = coins;
     document.getElementById('livesValue').textContent = lives;
-    updateAudioStatus();
     
-    // Show active power-ups
-    let powerupText = '';
-    if (playerPowerup.speed) powerupText += 'Speed (' + Math.ceil(playerPowerup.speedTimer/60) + 's) ';
-    if (playerPowerup.shield) powerupText += 'Shield (' + Math.ceil(playerPowerup.shieldTimer/60) + 's) ';
-    if (playerPowerup.magnet) powerupText += 'Magnet (' + Math.ceil(playerPowerup.magnetTimer/60) + 's) ';
-    let powerupDiv = document.getElementById('powerupStatus');
-    if (!powerupDiv) {
-        powerupDiv = document.createElement('div');
-        powerupDiv.id = 'powerupStatus';
-        powerupDiv.style.fontSize = '12px';
-        powerupDiv.style.color = '#1976D2';
-        powerupDiv.style.marginTop = '2px';
-        document.getElementById('gameUI').appendChild(powerupDiv);
-    }
-    powerupDiv.textContent = powerupText.trim();
-
-    // Show active special events
-    let eventText = '';
-    if (specialEvents.coinRain) eventText += 'COIN RAIN! ';
-    if (specialEvents.bonusRound) eventText += 'BONUS ROUND! ';
-    
-    let eventDiv = document.getElementById('eventStatus');
-    if (!eventDiv) {
-        eventDiv = document.createElement('div');
-        eventDiv.id = 'eventStatus';
-        eventDiv.style.fontSize = '14px';
-        eventDiv.style.color = '#FF6B35';
-        eventDiv.style.fontWeight = 'bold';
-        eventDiv.style.marginTop = '5px';
-        eventDiv.style.textAlign = 'center';
-        document.getElementById('gameUI').appendChild(eventDiv);
-    }
-    eventDiv.textContent = eventText;
-
-    // Show distance meter
-    let distanceDiv = document.getElementById('distanceStatus');
-    if (!distanceDiv) {
-        distanceDiv = document.createElement('div');
-        distanceDiv.id = 'distanceStatus';
-        distanceDiv.style.fontSize = '14px';
-        distanceDiv.style.color = '#388e3c';
-        distanceDiv.style.fontWeight = 'bold';
-        distanceDiv.style.marginTop = '5px';
-        distanceDiv.style.textAlign = 'center';
-        document.getElementById('gameUI').appendChild(distanceDiv);
-    }
-    distanceDiv.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
-    
-    // Show daily challenges
-    let challengesDiv = document.getElementById('challengesStatus');
-    if (!challengesDiv) {
-        challengesDiv = document.createElement('div');
-        challengesDiv.id = 'challengesStatus';
-        challengesDiv.style.fontSize = '12px';
-        challengesDiv.style.color = '#ff9800';
-        challengesDiv.style.fontWeight = 'bold';
-        challengesDiv.style.marginTop = '5px';
-        challengesDiv.style.textAlign = 'center';
-        document.getElementById('gameUI').appendChild(challengesDiv);
-    }
-    
-    const activeChallenges = dailyChallenges.filter(c => !c.completed);
-    if (activeChallenges.length > 0) {
-        const challengeText = activeChallenges.map(c => 
-            `${c.name}: ${Math.floor(c.current)}/${c.target}`
-        ).join(' | ');
-        challengesDiv.textContent = `Daily Challenges: ${challengeText}`;
-    } else {
-        challengesDiv.textContent = 'All daily challenges completed! 🎉';
-    }
+    // Update final scores for game over screen
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalCoins').textContent = coins;
 }
 
 // Update audio status display

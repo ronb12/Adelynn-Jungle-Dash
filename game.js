@@ -41,7 +41,14 @@ let touchControls = {
 
 // Asset loading
 let sprites = {};
-let audio = {};
+let audio = {
+    coin: null,
+    jump: null,
+    background: null,
+    powerup: null,
+    collision: null,
+    gameOver: null
+};
 let audioContext = null;
 
 // Initialize audio context for sound effects
@@ -116,6 +123,97 @@ function playJumpSound() {
     }
 }
 
+// Enhanced sound effect functions
+function playPowerupSound() {
+    if (audio.powerup) {
+        try {
+            audio.powerup.currentTime = 0;
+            audio.powerup.volume = 0.4;
+            audio.powerup.play().catch(e => console.log('Powerup audio play failed:', e));
+        } catch (e) {
+            console.log('Powerup audio play failed:', e);
+        }
+    } else {
+        // Generate powerup sound using Web Audio API
+        if (audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+    }
+}
+
+function playCollisionSound() {
+    if (audio.collision) {
+        try {
+            audio.collision.currentTime = 0;
+            audio.collision.volume = 0.5;
+            audio.collision.play().catch(e => console.log('Collision audio play failed:', e));
+        } catch (e) {
+            console.log('Collision audio play failed:', e);
+        }
+    } else {
+        // Generate collision sound using Web Audio API
+        if (audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+    }
+}
+
+function playGameOverSound() {
+    if (audio.gameOver) {
+        try {
+            audio.gameOver.currentTime = 0;
+            audio.gameOver.volume = 0.6;
+            audio.gameOver.play().catch(e => console.log('Game over audio play failed:', e));
+        } catch (e) {
+            console.log('Game over audio play failed:', e);
+        }
+    } else {
+        // Generate game over sound using Web Audio API
+        if (audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5);
+            
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+    }
+}
+
 // Initialize game
 function initGame() {
     canvas = document.getElementById('gameCanvas');
@@ -141,66 +239,65 @@ function initGame() {
 
 // Load game assets
 function loadAssets() {
-    // Load sprites - only include files that actually exist
-    const spriteFiles = [
-        'jungle_girl.png', // Use the available character sprite
-        'jungle_girl_run.png', // Use running character sprite
-        'banana_coin.png', // Use banana coin instead of regular coin
-        'frog_obstacle.png', // Use frog obstacle
-        'crab_enemy.png', // Use crab enemy
-        'coconut_enemy.png' // Use coconut enemy
-    ];
-    
-    let loadedSprites = 0;
-    spriteFiles.forEach(filename => {
-        const img = new Image();
-        img.onload = () => {
-            loadedSprites++;
-            if (loadedSprites === spriteFiles.length) {
-                console.log('All sprites loaded!');
-            }
-        };
-        img.onerror = () => {
-            console.log(`Failed to load sprite: ${filename} - will use fallback`);
-            loadedSprites++;
-        };
-        img.src = `sprites/${filename}`;
-        sprites[filename.replace('.png', '')] = img;
-    });
-    
-    // Load audio with fallback support
-    const audioFiles = [
-        { name: 'coin', files: ['coin.wav'] }, // Use available .wav file
-        { name: 'jump', files: ['jump.wav'] }  // Use available .wav file
-    ];
-    
-    audioFiles.forEach(audioFile => {
-        // Try to load audio with fallback
-        const sound = new Audio();
-        let audioLoaded = false;
-        
-        audioFile.files.forEach((file, index) => {
-            if (!audioLoaded) {
-                sound.src = `audio/${file}`;
-                sound.load();
-                
-                sound.addEventListener('canplaythrough', () => {
-                    if (!audioLoaded) {
-                        audioLoaded = true;
-                        audio[audioFile.name] = sound;
-                        console.log(`Audio loaded: ${audioFile.name}`);
-                    }
-                }, { once: true });
-                
-                sound.addEventListener('error', () => {
-                    if (index === audioFile.files.length - 1 && !audioLoaded) {
-                        console.log(`Audio file not available: ${audioFile.name} - game will play silently`);
-                        // Create a silent audio as fallback
-                        audio[audioFile.name] = null;
-                    }
-                });
-            }
+    // Load sprites
+    const spriteFiles = {
+        'jungle_girl': 'sprites/jungle_girl.png',
+        'jungle_girl_run': 'sprites/jungle_girl_run.png',
+        'banana_coin': 'sprites/banana_coin.png',
+        'frog_obstacle': 'sprites/frog_obstacle.png',
+        'crab_enemy': 'sprites/crab_enemy.png',
+        'coconut_enemy': 'sprites/coconut_enemy.png'
+    };
+
+    const spritePromises = Object.entries(spriteFiles).map(([key, path]) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                sprites[key] = img;
+                resolve();
+            };
+            img.onerror = () => {
+                console.log(`Failed to load sprite: ${path}`);
+                resolve(); // Continue loading other assets
+            };
+            img.src = path;
         });
+    });
+
+    // Load audio files
+    const audioFiles = {
+        'coin': 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Coin collect sound
+        'jump': 'https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3', // Jump sound
+        'background': 'https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3', // Background music
+        'powerup': 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3', // Power-up sound
+        'collision': 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3', // Collision sound
+        'gameOver': 'https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3' // Game over sound
+    };
+
+    const audioPromises = Object.entries(audioFiles).map(([key, url]) => {
+        return new Promise((resolve) => {
+            const audioElement = new Audio();
+            audioElement.oncanplaythrough = () => {
+                audio[key] = audioElement;
+                resolve();
+            };
+            audioElement.onerror = () => {
+                console.log(`Failed to load audio: ${key} - will use generated sounds`);
+                resolve(); // Continue loading other assets
+            };
+            audioElement.src = url;
+        });
+    });
+
+    // Wait for all assets to load
+    Promise.all([...spritePromises, ...audioPromises]).then(() => {
+        console.log('All assets loaded!');
+        // Start background music
+        if (audio.background) {
+            audio.background.loop = true;
+            audio.background.volume = 0.3;
+            audio.background.play().catch(e => console.log('Background music failed to play:', e));
+        }
     });
 }
 
@@ -560,8 +657,13 @@ function checkCollisions() {
             player.y < obstacle.y + obstacle.height &&
             player.y + player.height > obstacle.y) {
             
+            // Play collision sound
+            playCollisionSound();
+            
             lives--;
             if (lives <= 0) {
+                // Play game over sound
+                playGameOverSound();
                 gameOver();
             } else {
                 // Remove the obstacle that was hit
@@ -587,15 +689,16 @@ function updateAudioStatus() {
     if (audioStatus) {
         const coinAudio = audio.coin;
         const jumpAudio = audio.jump;
+        const backgroundAudio = audio.background;
         
-        if (coinAudio && jumpAudio) {
-            audioStatus.textContent = 'Sound effects: Available';
+        if (coinAudio && jumpAudio && backgroundAudio) {
+            audioStatus.textContent = 'Sound effects: Available | Music: Playing';
             audioStatus.style.color = '#4CAF50';
         } else if (audioContext) {
-            audioStatus.textContent = 'Sound effects: Generated';
+            audioStatus.textContent = 'Sound effects: Generated | Music: Generated';
             audioStatus.style.color = '#2196F3';
         } else {
-            audioStatus.textContent = 'Sound effects: Not available';
+            audioStatus.textContent = 'Sound effects: Not available | Music: Not available';
             audioStatus.style.color = '#FF9800';
         }
     }
@@ -884,8 +987,16 @@ function togglePause() {
     gamePaused = !gamePaused;
     
     if (gamePaused) {
+        // Pause background music
+        if (audio.background && !audio.background.paused) {
+            audio.background.pause();
+        }
         document.getElementById('pauseScreen').style.display = 'flex';
     } else {
+        // Resume background music
+        if (audio.background && audio.background.paused) {
+            audio.background.play().catch(e => console.log('Background music resume failed:', e));
+        }
         document.getElementById('pauseScreen').style.display = 'none';
         gameLoop();
     }

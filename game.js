@@ -638,13 +638,20 @@ function initGame() {
     
     // Load assets and initialize game
     loadAssets().then(() => {
-        // Initialize UI settings
-        document.getElementById('musicVolume').value = gameSettings.musicVolume;
-        document.getElementById('musicVolumeValue').textContent = gameSettings.musicVolume + '%';
-        document.getElementById('sfxVolume').value = gameSettings.sfxVolume;
-        document.getElementById('sfxVolumeValue').textContent = gameSettings.sfxVolume + '%';
-        document.getElementById('difficulty').value = gameSettings.difficulty;
-        document.getElementById('particlesEnabled').checked = gameSettings.particlesEnabled;
+        // Initialize UI settings with null checks
+        const musicVolumeEl = document.getElementById('musicVolume');
+        const musicVolumeValueEl = document.getElementById('musicVolumeValue');
+        const sfxVolumeEl = document.getElementById('sfxVolume');
+        const sfxVolumeValueEl = document.getElementById('sfxVolumeValue');
+        const difficultyEl = document.getElementById('difficulty');
+        const particlesEnabledEl = document.getElementById('particlesEnabled');
+        
+        if (musicVolumeEl) musicVolumeEl.value = gameSettings.musicVolume;
+        if (musicVolumeValueEl) musicVolumeValueEl.textContent = gameSettings.musicVolume + '%';
+        if (sfxVolumeEl) sfxVolumeEl.value = gameSettings.sfxVolume;
+        if (sfxVolumeValueEl) sfxVolumeValueEl.textContent = gameSettings.sfxVolume + '%';
+        if (difficultyEl) difficultyEl.value = gameSettings.difficulty;
+        if (particlesEnabledEl) particlesEnabledEl.checked = gameSettings.particlesEnabled;
         
         // Load leaderboard
         loadLeaderboard();
@@ -726,12 +733,12 @@ function loadAssets() {
 
     // Load audio files
     const audioFiles = {
-        'coin': 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Coin collect sound
-        'jump': 'https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3', // Jump sound
-        'background': 'https://assets.mixkit.co/active_storage/sfx/123/123-preview.mp3', // Background music
-        'powerup': 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3', // Power-up sound
-        'collision': 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3', // Collision sound
-        'gameOver': 'https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3' // Game over sound
+        'coin': 'audio/coin.wav',
+        'jump': 'audio/jump.wav',
+        'background': 'audio/bg_music.mp3',
+        'powerup': 'audio/powerup.wav',
+        'collision': 'audio/gameover.wav',
+        'gameOver': 'audio/gameover.wav'
     };
 
     const audioPromises = Object.entries(audioFiles).map(([key, url]) => {
@@ -2484,18 +2491,16 @@ function loadAccessibilitySettings() {
     document.body.classList.toggle('accessibility-large-text', largeText);
     document.body.classList.toggle('accessibility-reduced-motion', reducedMotion);
     
-    if (document.getElementById('colorblindMode')) {
-        document.getElementById('colorblindMode').checked = colorblindMode;
-    }
-    if (document.getElementById('highContrast')) {
-        document.getElementById('highContrast').checked = highContrast;
-    }
-    if (document.getElementById('largeText')) {
-        document.getElementById('largeText').checked = largeText;
-    }
-    if (document.getElementById('reducedMotion')) {
-        document.getElementById('reducedMotion').checked = reducedMotion;
-    }
+    // Update UI elements with null checks
+    const colorblindEl = document.getElementById('colorblindMode');
+    const highContrastEl = document.getElementById('highContrast');
+    const largeTextEl = document.getElementById('largeText');
+    const reducedMotionEl = document.getElementById('reducedMotion');
+    
+    if (colorblindEl) colorblindEl.checked = colorblindMode;
+    if (highContrastEl) highContrastEl.checked = highContrast;
+    if (largeTextEl) largeTextEl.checked = largeText;
+    if (reducedMotionEl) reducedMotionEl.checked = reducedMotion;
 }
 
 // Additional accessibility functions

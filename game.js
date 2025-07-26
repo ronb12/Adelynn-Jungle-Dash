@@ -26,6 +26,16 @@ let player = {
     angle: 0 // Angle in radians, 0 = facing right
 };
 
+// Sprite animation variables
+let playerSprites = {
+    idle: [],
+    run: []
+};
+let currentAnimation = 'idle';
+let animationFrame = 0;
+let animationSpeed = 0.2; // How fast to cycle through frames
+let frameCounter = 0;
+
 // Game objects arrays
 let obstacles = [];
 let coinObjects = [];
@@ -386,6 +396,35 @@ function loadAssets() {
         });
     });
 
+    // Load animation frames
+    const loadAnimationFrames = () => {
+        // Load idle animation frames (frames 1-10 for variety)
+        for (let i = 1; i <= 10; i++) {
+            const frameNum = i.toString().padStart(3, '0');
+            const img = new Image();
+            img.onload = () => {
+                playerSprites.idle.push(img);
+            };
+            img.onerror = () => {
+                console.log(`Failed to load idle frame ${frameNum}`);
+            };
+            img.src = `renders/Idle/frame_${frameNum}.png`;
+        }
+
+        // Load run animation frames (frames 1-10 for variety)
+        for (let i = 1; i <= 10; i++) {
+            const frameNum = i.toString().padStart(3, '0');
+            const img = new Image();
+            img.onload = () => {
+                playerSprites.run.push(img);
+            };
+            img.onerror = () => {
+                console.log(`Failed to load run frame ${frameNum}`);
+            };
+            img.src = `renders/RunForward/frame_${frameNum}.png`;
+        }
+    };
+
     // Load audio files
     const audioFiles = {
         'coin': 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Coin collect sound
@@ -410,6 +449,9 @@ function loadAssets() {
             audioElement.src = url;
         });
     });
+
+    // Load animation frames
+    loadAnimationFrames();
 
     // Wait for all assets to load
     Promise.all([...spritePromises, ...audioPromises]).then(() => {
@@ -610,24 +652,26 @@ function handlePlayerMovement() {
     if (player.y > groundY - player.height) player.y = groundY - player.height;
 
     // If not moving, keep angle as is (manual rotation only)
-    // Update animation
     updatePlayerAnimation();
 }
 
 // Update player animation
 function updatePlayerAnimation() {
-    // Since we're using a single-frame character sprite, 
-    // we don't need frame-based animation, but we can still
-    // track movement state for visual effects
+    frameCounter += animationSpeed;
+    
+    // Determine current animation state
     if (player.isMoving && player.onGround) {
-        // Character is running - visual effects handled in drawPlayer
-        player.isMoving = true;
-    } else if (player.isJumping) {
-        // Character is jumping - visual effects handled in drawPlayer
-        player.isJumping = true;
+        currentAnimation = 'run';
+        animationSpeed = 0.3; // Faster animation for running
     } else {
-        // Character is idle
-        player.isMoving = false;
+        currentAnimation = 'idle';
+        animationSpeed = 0.2; // Slower animation for idle
+    }
+    
+    // Update animation frame
+    const frames = playerSprites[currentAnimation];
+    if (frames && frames.length > 0) {
+        animationFrame = Math.floor(frameCounter) % frames.length;
     }
 }
 
@@ -896,54 +940,66 @@ function drawCloud(x, y) {
 
 // Draw player
 function drawPlayer() {
-    // Choose sprite based on movement state
-    let sprite = sprites.jungle_girl;
-    if (player.isMoving && player.onGround) {
-        sprite = sprites.jungle_girl_run;
+    ctx.save();
+    ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
+    
+    // 360° rotation
+    ctx.translate(player.x + player.width/2, player.y + player.height/2);
+    ctx.rotate(player.angle);
+    ctx.translate(-player.width/2, -player.height/2);
+    
+    // Sprint effect
+    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+    if (isSprinting && player.isMoving && player.onGround) {
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
     }
-    if (sprite && sprite.complete) {
-        ctx.save();
-        ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
-        // 360° rotation
-        ctx.translate(player.x + player.width/2, player.y + player.height/2);
-        ctx.rotate(player.angle);
-        ctx.translate(-player.width/2, -player.height/2);
-        // Sprint effect
-        const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
-        if (isSprinting && player.isMoving && player.onGround) {
-            ctx.shadowColor = '#FFD700';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-        }
+    
+    // Draw animated sprite
+    const frames = playerSprites[currentAnimation];
+    if (frames && frames.length > 0 && frames[animationFrame]) {
+        const currentFrame = frames[animationFrame];
         ctx.drawImage(
-            sprite,
+            currentFrame,
             0, 0,
-            sprite.width, sprite.height,
+            currentFrame.width, currentFrame.height,
             0, 0,
             player.width, player.height
         );
-        ctx.restore();
     } else {
-        // Fallback rectangle
-        const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
-        if (isSprinting && player.isMoving && player.onGround) {
-            ctx.fillStyle = '#FF4500';
-        } else {
-            ctx.fillStyle = '#FF6B6B';
+        // Fallback to static sprites
+        let sprite = sprites.jungle_girl;
+        if (player.isMoving && player.onGround) {
+            sprite = sprites.jungle_girl_run;
         }
-        ctx.save();
-        ctx.translate(player.x + player.width/2, player.y + player.height/2);
-        ctx.rotate(player.angle);
-        ctx.translate(-player.width/2, -player.height/2);
-        ctx.fillRect(0, 0, player.width, player.height);
-        ctx.fillStyle = '#333';
-        ctx.fillRect(10, 10, 8, 8);
-        ctx.fillRect(32, 10, 8, 8);
-        ctx.fillStyle = '#FFB6C1';
-        ctx.fillRect(15, 25, 20, 10);
-        ctx.restore();
+        
+        if (sprite && sprite.complete) {
+            ctx.drawImage(
+                sprite,
+                0, 0,
+                sprite.width, sprite.height,
+                0, 0,
+                player.width, player.height
+            );
+        } else {
+            // Fallback rectangle
+            if (isSprinting && player.isMoving && player.onGround) {
+                ctx.fillStyle = '#FF4500';
+            } else {
+                ctx.fillStyle = '#FF6B6B';
+            }
+            ctx.fillRect(0, 0, player.width, player.height);
+            ctx.fillStyle = '#333';
+            ctx.fillRect(10, 10, 8, 8);
+            ctx.fillRect(32, 10, 8, 8);
+            ctx.fillStyle = '#FFB6C1';
+            ctx.fillRect(15, 25, 20, 10);
+        }
     }
+    
+    ctx.restore();
 }
 
 // Draw coins

@@ -85,6 +85,16 @@ let playerPowerup = {
     magnetTimer: 0
 };
 
+// Enhanced obstacle and enemy types
+const OBSTACLE_TYPES = {
+    'frog_obstacle': { category: 'ground', speed: 1.0, damage: 1 },
+    'crab_enemy': { category: 'ground', speed: 1.2, damage: 1 },
+    'coconut_enemy': { category: 'ground', speed: 0.8, damage: 1 },
+    'flying_enemy': { category: 'flying', speed: 1.5, damage: 1 },
+    'spike_pit': { category: 'hazard', speed: 1.0, damage: 1 },
+    'rolling_log': { category: 'moving', speed: 1.3, damage: 1 }
+};
+
 class Particle {
     constructor(x, y, type = 'coin') {
         this.x = x;
@@ -371,6 +381,31 @@ function drawParticles() {
     });
 }
 
+// Special events system
+let specialEvents = {
+    coinRain: false,
+    coinRainTimer: 0,
+    bonusRound: false,
+    bonusRoundTimer: 0
+};
+
+// Trigger special events
+function triggerSpecialEvents() {
+    // Coin rain event (rare)
+    if (Math.random() < 0.001 && !specialEvents.coinRain) {
+        specialEvents.coinRain = true;
+        specialEvents.coinRainTimer = 180; // 3 seconds
+        console.log('Coin rain started!');
+    }
+    
+    // Bonus round event (very rare)
+    if (Math.random() < 0.0005 && !specialEvents.bonusRound) {
+        specialEvents.bonusRound = true;
+        specialEvents.bonusRoundTimer = 300; // 5 seconds
+        console.log('Bonus round started!');
+    }
+}
+
 // Initialize game
 function initGame() {
     // Initialize audio context
@@ -650,6 +685,26 @@ function update() {
         playerPowerup.magnetTimer--;
         if (playerPowerup.magnetTimer <= 0) playerPowerup.magnet = false;
     }
+
+    // Update special events
+    if (specialEvents.coinRain) {
+        specialEvents.coinRainTimer--;
+        if (specialEvents.coinRainTimer <= 0) {
+            specialEvents.coinRain = false;
+            console.log('Coin rain ended!');
+        }
+    }
+    
+    if (specialEvents.bonusRound) {
+        specialEvents.bonusRoundTimer--;
+        if (specialEvents.bonusRoundTimer <= 0) {
+            specialEvents.bonusRound = false;
+            console.log('Bonus round ended!');
+        }
+    }
+    
+    // Trigger new special events
+    triggerSpecialEvents();
 }
 
 // Handle player movement
@@ -797,22 +852,53 @@ function spawnObjects() {
     }
     
     // Spawn obstacles with more variety
-    if (Math.random() < 0.015) { // Slightly increased spawn rate
-        const obstacleTypes = ['frog_obstacle', 'crab_enemy', 'coconut_enemy'];
+    if (Math.random() < 0.015) {
+        const obstacleTypes = Object.keys(OBSTACLE_TYPES);
         const randomType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+        const obstacleData = OBSTACLE_TYPES[randomType];
+
+        // Vary obstacle positions and sizes based on type
+        let obstacleHeight, obstacleWidth, obstacleY;
         
-        // Vary obstacle positions and sizes
-        const obstacleHeight = 30 + Math.random() * 20; // 30-50 pixels
-        const obstacleWidth = 25 + Math.random() * 15; // 25-40 pixels
-        const obstacleY = groundY - obstacleHeight;
-        
+        switch(obstacleData.category) {
+            case 'ground':
+                obstacleHeight = 30 + Math.random() * 20;
+                obstacleWidth = 25 + Math.random() * 15;
+                obstacleY = groundY - obstacleHeight;
+                break;
+            case 'flying':
+                obstacleHeight = 25 + Math.random() * 15;
+                obstacleWidth = 30 + Math.random() * 10;
+                obstacleY = Math.random() * (groundY - 200) + 50;
+                break;
+            case 'hazard':
+                obstacleHeight = 20;
+                obstacleWidth = 40 + Math.random() * 20;
+                obstacleY = groundY - obstacleHeight;
+                break;
+            case 'moving':
+                obstacleHeight = 35 + Math.random() * 15;
+                obstacleWidth = 30 + Math.random() * 20;
+                obstacleY = groundY - obstacleHeight;
+                break;
+            default:
+                obstacleHeight = 30;
+                obstacleWidth = 25;
+                obstacleY = groundY - obstacleHeight;
+        }
+
         obstacles.push({
-            x: cameraX + canvas.width + Math.random() * 300, // Spawn ahead of camera
+            x: cameraX + canvas.width + Math.random() * 300,
             y: obstacleY,
             width: obstacleWidth,
             height: obstacleHeight,
             type: randomType,
-            speed: gameSpeed + Math.random() * 2 // Vary speed slightly
+            category: obstacleData.category,
+            speed: gameSpeed * obstacleData.speed,
+            damage: obstacleData.damage,
+            originalY: obstacleY, // For moving obstacles
+            moveDirection: Math.random() < 0.5 ? 1 : -1, // For moving obstacles
+            moveSpeed: 1 + Math.random() * 2 // For moving obstacles
         });
     }
     
@@ -840,21 +926,64 @@ function spawnObjects() {
             collected: false
         });
     }
+
+    // Special events: Coin rain
+    if (specialEvents.coinRain) {
+        // Spawn many coins during coin rain
+        for (let i = 0; i < 3; i++) {
+            const coinY = Math.random() * (groundY - 150) + 50;
+            coinObjects.push({
+                x: cameraX + canvas.width + Math.random() * 200,
+                y: coinY,
+                width: 40,
+                height: 40,
+                collected: false,
+                type: Math.random() < 0.4 ? 'gold' : 'silver', // More gold coins during rain
+                rotation: Math.random() * Math.PI * 2
+            });
+        }
+    }
+    
+    // Special events: Bonus round (more power-ups)
+    if (specialEvents.bonusRound) {
+        // Spawn more power-ups during bonus round
+        if (Math.random() < 0.05) {
+            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+            powerUps.push({
+                x: cameraX + canvas.width + Math.random() * 300,
+                y: Math.random() * (groundY - 120) + 60,
+                width: 40,
+                height: 40,
+                type: type,
+                collected: false
+            });
+        }
+    }
 }
 
 // Update objects
 function updateObjects() {
-    // Update coins
-    coinObjects.forEach(coin => {
-        coin.x -= gameSpeed;
-    });
-    
-    // Remove off-screen coins (behind camera)
-    coinObjects = coinObjects.filter(coin => coin.x > cameraX - 100);
-    
-    // Update obstacles
+    // Update obstacles with movement patterns
     obstacles.forEach(obstacle => {
-        obstacle.x -= obstacle.speed; // Use obstacle.speed for movement
+        obstacle.x -= obstacle.speed;
+        
+        // Add movement patterns based on category
+        switch(obstacle.category) {
+            case 'flying':
+                // Flying enemies move in a sine wave pattern
+                obstacle.y = obstacle.originalY + Math.sin(Date.now() * 0.003 + obstacle.x * 0.01) * 30;
+                break;
+            case 'moving':
+                // Moving obstacles (like rolling logs) move up and down
+                obstacle.y = obstacle.originalY + Math.sin(Date.now() * 0.005 + obstacle.x * 0.02) * 20;
+                break;
+            case 'hazard':
+                // Spike pits stay in place but are more dangerous
+                break;
+            default:
+                // Ground obstacles stay in place
+                break;
+        }
     });
     
     // Remove off-screen obstacles (behind camera)
@@ -971,6 +1100,24 @@ function updateUI() {
         document.getElementById('gameUI').appendChild(powerupDiv);
     }
     powerupDiv.textContent = powerupText.trim();
+
+    // Show active special events
+    let eventText = '';
+    if (specialEvents.coinRain) eventText += 'COIN RAIN! ';
+    if (specialEvents.bonusRound) eventText += 'BONUS ROUND! ';
+    
+    let eventDiv = document.getElementById('eventStatus');
+    if (!eventDiv) {
+        eventDiv = document.createElement('div');
+        eventDiv.id = 'eventStatus';
+        eventDiv.style.fontSize = '14px';
+        eventDiv.style.color = '#FF6B35';
+        eventDiv.style.fontWeight = 'bold';
+        eventDiv.style.marginTop = '5px';
+        eventDiv.style.textAlign = 'center';
+        document.getElementById('gameUI').appendChild(eventDiv);
+    }
+    eventDiv.textContent = eventText;
 }
 
 // Update audio status display
@@ -1197,42 +1344,71 @@ function drawCoins() {
 // Draw obstacles
 function drawObstacles() {
     obstacles.forEach(obstacle => {
-        // Apply camera offset for side-scrolling
-        const drawX = obstacle.x - cameraX;
-        
-        // Only draw if obstacle is visible on screen
-        if (drawX + obstacle.width > 0 && drawX < canvas.width) {
-            const obstacleSprite = sprites[obstacle.type];
-            if (obstacleSprite && obstacleSprite.complete) {
-                ctx.drawImage(obstacleSprite, drawX, obstacle.y, obstacle.width, obstacle.height);
-            } else {
-                // Fallback to custom shapes if sprite not loaded
-                if (obstacle.type === 'frog_obstacle') {
-                    // Frog-like obstacle
-                    ctx.fillStyle = '#228B22'; // Green
-                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
-                    ctx.fillStyle = '#32CD32'; // Light green for details
-                    ctx.fillRect(drawX + 5, obstacle.y + 5, obstacle.width - 10, 10);
-                    ctx.fillRect(drawX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
-                } else if (obstacle.type === 'crab_enemy') {
-                    // Crab-like obstacle
-                    ctx.fillStyle = '#DC143C'; // Crimson
-                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
-                    ctx.fillStyle = '#FF6347'; // Tomato for details
-                    ctx.fillRect(drawX + 3, obstacle.y + 3, obstacle.width - 6, 6);
-                    ctx.fillRect(drawX + 3, obstacle.y + obstacle.height - 9, obstacle.width - 6, 6);
-                } else if (obstacle.type === 'coconut_enemy') {
-                    // Coconut-like obstacle
-                    ctx.fillStyle = '#8B4513'; // Brown
-                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
-                    ctx.fillStyle = '#654321'; // Darker brown for details
-                    ctx.fillRect(drawX + 5, obstacle.y + 5, obstacle.width - 10, 10);
-                    ctx.fillRect(drawX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
-                } else {
-                    // Generic obstacle
+        const obstacleSprite = sprites[obstacle.type];
+        if (obstacleSprite && obstacleSprite.complete) {
+            ctx.drawImage(obstacleSprite, obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
+        } else {
+            // Fallback to custom shapes based on category
+            switch(obstacle.category) {
+                case 'ground':
+                    // Ground enemies (frogs, crabs, coconuts)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
+                    ctx.fillStyle = '#654321';
+                    ctx.fillRect(obstacle.x - cameraX + 5, obstacle.y + 5, obstacle.width - 10, 10);
+                    ctx.fillRect(obstacle.x - cameraX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+                    break;
+                    
+                case 'flying':
+                    // Flying enemies (birds, bats)
+                    ctx.fillStyle = '#2F4F4F';
+                    ctx.beginPath();
+                    ctx.ellipse(obstacle.x - cameraX + obstacle.width/2, obstacle.y + obstacle.height/2, 
+                               obstacle.width/2, obstacle.height/2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Wings
+                    ctx.fillStyle = '#696969';
+                    ctx.beginPath();
+                    ctx.ellipse(obstacle.x - cameraX + obstacle.width/4, obstacle.y + obstacle.height/2, 
+                               obstacle.width/4, obstacle.height/3, 0, 0, Math.PI * 2);
+                    ctx.ellipse(obstacle.x - cameraX + obstacle.width*3/4, obstacle.y + obstacle.height/2, 
+                               obstacle.width/4, obstacle.height/3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                    
+                case 'hazard':
+                    // Spike pits
+                    ctx.fillStyle = '#DC143C';
+                    for (let i = 0; i < obstacle.width; i += 8) {
+                        ctx.beginPath();
+                        ctx.moveTo(obstacle.x - cameraX + i, obstacle.y + obstacle.height);
+                        ctx.lineTo(obstacle.x - cameraX + i + 4, obstacle.y);
+                        ctx.lineTo(obstacle.x - cameraX + i + 8, obstacle.y + obstacle.height);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    break;
+                    
+                case 'moving':
+                    // Moving obstacles (rolling logs)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
+                    // Log texture
+                    ctx.strokeStyle = '#654321';
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < obstacle.height; i += 8) {
+                        ctx.beginPath();
+                        ctx.moveTo(obstacle.x - cameraX, obstacle.y + i);
+                        ctx.lineTo(obstacle.x - cameraX + obstacle.width, obstacle.y + i);
+                        ctx.stroke();
+                    }
+                    break;
+                    
+                default:
+                    // Default fallback
                     ctx.fillStyle = '#A9A9A9';
-                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
-                }
+                    ctx.fillRect(obstacle.x - cameraX, obstacle.y, obstacle.width, obstacle.height);
+                    break;
             }
         }
     });

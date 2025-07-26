@@ -10,6 +10,10 @@ let gravity = 0.8;
 let groundY = 550;
 let cameraX = 0; // Camera position for side-scrolling
 
+// Distance tracking
+let distance = 0;
+let bestDistance = 0;
+
 // Player object
 let player = {
     x: 100,
@@ -646,6 +650,7 @@ function startGame() {
     
     // Start game loop
     gameLoop();
+    distance = 0; // Reset distance on game start
 }
 
 // Game loop
@@ -705,6 +710,12 @@ function update() {
     
     // Trigger new special events
     triggerSpecialEvents();
+
+    // Update distance (endless mode)
+    if (gameRunning && !gamePaused) {
+        distance += gameSpeed * 0.1; // Adjust multiplier for tuning
+        if (distance > bestDistance) bestDistance = distance;
+    }
 }
 
 // Handle player movement
@@ -1118,6 +1129,20 @@ function updateUI() {
         document.getElementById('gameUI').appendChild(eventDiv);
     }
     eventDiv.textContent = eventText;
+
+    // Show distance meter
+    let distanceDiv = document.getElementById('distanceStatus');
+    if (!distanceDiv) {
+        distanceDiv = document.createElement('div');
+        distanceDiv.id = 'distanceStatus';
+        distanceDiv.style.fontSize = '14px';
+        distanceDiv.style.color = '#388e3c';
+        distanceDiv.style.fontWeight = 'bold';
+        distanceDiv.style.marginTop = '5px';
+        distanceDiv.style.textAlign = 'center';
+        document.getElementById('gameUI').appendChild(distanceDiv);
+    }
+    distanceDiv.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
 }
 
 // Update audio status display
@@ -1494,6 +1519,15 @@ function gameOver() {
     document.getElementById('finalCoins').textContent = coins;
     document.getElementById('gameOverScreen').style.display = 'flex';
     
+    // Show final distance
+    let finalDistance = document.getElementById('finalDistance');
+    if (!finalDistance) {
+        finalDistance = document.createElement('p');
+        finalDistance.id = 'finalDistance';
+        document.getElementById('gameOverScreen').querySelector('.screen-content').appendChild(finalDistance);
+    }
+    finalDistance.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
+
     // Return to main menu after 3 seconds
     setTimeout(() => {
         document.getElementById('gameOverScreen').style.display = 'none';

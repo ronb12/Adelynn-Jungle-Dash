@@ -353,16 +353,24 @@ function handlePlayerMovement() {
         player.animationSpeed = 6; // Normal animation speed
     }
     
-    if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 0) {
+    // Character stays in place, world moves around them
+    // Left/right movement is limited to a small area for dodging
+    if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 50) {
         player.x -= moveSpeed;
         player.isMoving = true;
-        player.direction = -1; // Moving left
+        player.direction = -1; // Moving left (dodging)
     }
     
-    if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < canvas.width - player.width) {
+    if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < 200) {
         player.x += moveSpeed;
         player.isMoving = true;
-        player.direction = 1; // Moving right (facing obstacles)
+        player.direction = 1; // Moving right (dodging)
+    }
+    
+    // Character is always "running forward" when on ground
+    if (player.onGround && !player.isJumping) {
+        player.isMoving = true;
+        player.direction = 1; // Always face forward (right)
     }
     
     // Update animation
@@ -612,7 +620,7 @@ function drawPlayer() {
         ctx.save();
         
         // Add brightness and contrast adjustments to make character more visible
-        ctx.filter = 'brightness(1.2) contrast(1.1)';
+        ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
         
         // Flip horizontally if moving left
         if (player.direction === -1) {

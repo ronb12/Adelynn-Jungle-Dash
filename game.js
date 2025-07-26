@@ -2543,3 +2543,71 @@ function drawObstacles() {
         }
     });
 }
+
+// Draw player with improved visibility and Mario Bros style
+function drawPlayer() {
+    ctx.save();
+    
+    // Move to player position
+    ctx.translate(player.x + player.width/2, player.y + player.height/2);
+    
+    // Apply rotation
+    ctx.rotate(player.angle);
+    
+    // Draw character with better visibility
+    const sprite = playerSprites[currentAnimation] && playerSprites[currentAnimation][animationFrame];
+    
+    if (sprite) {
+        // Draw character with bright colors and outline
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        // Brighten the character
+        ctx.filter = 'brightness(1.3) contrast(1.2) saturate(1.4)';
+        
+        ctx.drawImage(sprite, -player.width/2, -player.height/2, player.width, player.height);
+        
+        // Reset filter
+        ctx.filter = 'none';
+    } else {
+        // Fallback character if sprite not loaded
+        ctx.fillStyle = '#FF6B9D'; // Bright pink for visibility
+        ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+        
+        // Character outline
+        ctx.strokeStyle = '#8B0000';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-player.width/2, -player.height/2, player.width, player.height);
+        
+        // Simple face
+        ctx.fillStyle = '#FFE4E1';
+        ctx.fillRect(-player.width/4, -player.height/4, player.width/2, player.height/2);
+        
+        // Eyes
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-player.width/6, -player.height/6, 4, 4);
+        ctx.fillRect(player.width/12, -player.height/6, 4, 4);
+        
+        // Smile
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.width/6, 0, Math.PI);
+        ctx.stroke();
+    }
+    
+    // Sprint glow effect
+    if (keys['ShiftLeft'] || keys['ShiftRight'] || playerPowerup.speed) {
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        ctx.fillRect(-player.width/2 - 5, -player.height/2 - 5, player.width + 10, player.height + 10);
+    }
+    
+    ctx.restore();
+}

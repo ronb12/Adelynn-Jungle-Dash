@@ -99,16 +99,46 @@
           <span id="sfxVolumeValue">50%</span>
         </div>
         <div class="settings-group">
-          <label>Difficulty:</label>
-          <select id="difficulty" onchange="updateDifficulty()">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-        <div class="settings-group">
           <label>Particle Effects:</label>
           <input type="checkbox" id="particlesEnabled" checked onchange="toggleParticles()">
+        </div>
+        
+        <!-- Accessibility Settings -->
+        <div class="settings-section">
+          <h3>Accessibility</h3>
+          <div class="settings-group">
+            <label>Colorblind Mode:</label>
+            <input type="checkbox" id="colorblindMode" onchange="toggleColorblindMode()">
+          </div>
+          <div class="settings-group">
+            <label>High Contrast:</label>
+            <input type="checkbox" id="highContrast" onchange="toggleHighContrast()">
+          </div>
+          <div class="settings-group">
+            <label>Large Text:</label>
+            <input type="checkbox" id="largeText" onchange="toggleLargeText()">
+          </div>
+          <div class="settings-group">
+            <label>Reduced Motion:</label>
+            <input type="checkbox" id="reducedMotion" onchange="toggleReducedMotion()">
+          </div>
+          <div class="settings-group">
+            <label>Sound Cues:</label>
+            <input type="checkbox" id="soundCues" checked onchange="toggleSoundCues()">
+          </div>
+        </div>
+        
+        <!-- Difficulty Settings -->
+        <div class="settings-section">
+          <h3>Difficulty</h3>
+          <div class="settings-group">
+            <label>Auto-Adjust Difficulty:</label>
+            <input type="checkbox" id="autoAdjust" checked onchange="toggleAutoAdjust()">
+          </div>
+          <div class="settings-group">
+            <label>Current Level: <span id="currentLevel">1</span></label>
+            <input type="range" id="difficultyLevel" min="1" max="10" value="1" onchange="updateDifficultyLevel()">
+          </div>
         </div>
         <div class="menu-buttons">
           <button class="menu-btn" onclick="hideSettings()">Back to Menu</button>
@@ -247,6 +277,7 @@
       <button id="leftBtn" class="control-btn">←</button>
       <button id="rightBtn" class="control-btn">→</button>
       <button id="jumpBtn" class="control-btn">Jump</button>
+      <button id="sprintBtn" class="control-btn">Sprint</button>
     </div>
   </div>
 

@@ -50,7 +50,13 @@ let keys = {};
 let touchControls = {
     left: false,
     right: false,
-    jump: false
+    jump: false,
+    leftTouch: false,
+    rightTouch: false,
+    jumpTouch: false,
+    sprintTouch: false,
+    touchStartX: 0,
+    touchStartY: 0
 };
 
 // Asset loading
@@ -646,6 +652,9 @@ function initGame() {
         // Load challenges
         loadChallenges();
         
+        // Load accessibility settings
+        loadAccessibilitySettings();
+        
         // Show main menu
         showMainMenu();
         
@@ -777,43 +786,63 @@ function setupEventListeners() {
     if (leftBtn) {
         leftBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            touchControls.left = true;
+            keys.left = true;
         });
-        leftBtn.addEventListener('touchend', () => {
-            touchControls.left = false;
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.left = false;
         });
     }
     
     if (rightBtn) {
         rightBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            touchControls.right = true;
+            keys.right = true;
         });
-        rightBtn.addEventListener('touchend', () => {
-            touchControls.right = false;
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.right = false;
         });
     }
     
     if (jumpBtn) {
         jumpBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (gameRunning && !gamePaused) {
+            if (player.onGround) {
                 jump();
             }
         });
     }
     
-    // Mouse/touch controls for jumping
-    canvas.addEventListener('click', () => {
-        if (gameRunning && !gamePaused) {
-            jump();
+    // Swipe gestures for additional controls
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            touchControls.touchStartX = touch.clientX;
+            touchControls.touchStartY = touch.clientY;
         }
     });
     
     canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (gameRunning && !gamePaused) {
-            jump();
+        if (e.changedTouches.length === 1) {
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - touchControls.touchStartX;
+            const deltaY = touch.clientY - touchControls.touchStartY;
+            
+            // Swipe up for jump
+            if (deltaY < -50 && Math.abs(deltaX) < 50) {
+                if (player.onGround) {
+                    jump();
+                }
+            }
+            
+            // Swipe down for sprint
+            if (deltaY > 50 && Math.abs(deltaX) < 50) {
+                if (player.onGround) {
+                    keys.sprint = true;
+                    setTimeout(() => { keys.sprint = false; }, 1000);
+                }
+            }
         }
     });
 }
@@ -949,8 +978,8 @@ function handlePlayerMovement() {
     // Movement input
     let moveX = 0;
     let moveY = 0;
-    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) moveX -= 1;
-    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) moveX += 1;
+    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.leftTouch) moveX -= 1;
+    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.rightTouch) moveX += 1;
     if (keys['ArrowUp']) moveY -= 1;
     if (keys['ArrowDown']) moveY += 1;
 
@@ -2194,4 +2223,296 @@ window.addEventListener('resize', () => {
             }
         }
     }
-}); 
+});
+
+// Accessibility and mobile features
+let accessibilitySettings = {
+    colorblindMode: false,
+    highContrast: false,
+    largeText: false,
+    reducedMotion: false,
+    soundCues: true
+};
+
+let difficultyScaling = {
+    autoAdjust: true,
+    currentLevel: 1,
+    maxLevel: 10,
+    adjustmentRate: 0.1
+};
+
+// Colorblind-friendly color schemes
+const COLORBLIND_COLORS = {
+    coin: '#FFD700', // Bright yellow
+    obstacle: '#FF4444', // Bright red
+    powerup: '#00AAFF', // Bright blue
+    player: '#00FF00', // Bright green
+    background: '#FFFFFF', // White
+    text: '#000000' // Black
+};
+
+// High contrast color schemes
+const HIGH_CONTRAST_COLORS = {
+    coin: '#FFFF00', // Pure yellow
+    obstacle: '#FF0000', // Pure red
+    powerup: '#00FFFF', // Cyan
+    player: '#00FF00', // Pure green
+    background: '#000000', // Black
+    text: '#FFFFFF' // White
+};
+
+// Save accessibility settings
+function saveAccessibilitySettings() {
+    localStorage.setItem('jungleDashAccessibility', JSON.stringify(accessibilitySettings));
+    localStorage.setItem('jungleDashDifficulty', JSON.stringify(difficultyScaling));
+}
+
+// Load accessibility settings
+function loadAccessibilitySettings() {
+    const saved = localStorage.getItem('jungleDashAccessibility');
+    const savedDifficulty = localStorage.getItem('jungleDashDifficulty');
+    
+    if (saved) {
+        accessibilitySettings = { ...accessibilitySettings, ...JSON.parse(saved) };
+    }
+    
+    if (savedDifficulty) {
+        difficultyScaling = { ...difficultyScaling, ...JSON.parse(savedDifficulty) };
+    }
+    
+    // Apply settings
+    document.body.classList.toggle('colorblind-mode', accessibilitySettings.colorblindMode);
+    document.body.classList.toggle('high-contrast-mode', accessibilitySettings.highContrast);
+    document.body.classList.toggle('accessibility-large-text', accessibilitySettings.largeText);
+    document.body.classList.toggle('accessibility-reduced-motion', accessibilitySettings.reducedMotion);
+    
+    // Update UI elements
+    if (document.getElementById('colorblindMode')) {
+        document.getElementById('colorblindMode').checked = accessibilitySettings.colorblindMode;
+    }
+    if (document.getElementById('highContrast')) {
+        document.getElementById('highContrast').checked = accessibilitySettings.highContrast;
+    }
+    if (document.getElementById('largeText')) {
+        document.getElementById('largeText').checked = accessibilitySettings.largeText;
+    }
+    if (document.getElementById('reducedMotion')) {
+        document.getElementById('reducedMotion').checked = accessibilitySettings.reducedMotion;
+    }
+    if (document.getElementById('soundCues')) {
+        document.getElementById('soundCues').checked = accessibilitySettings.soundCues;
+    }
+    if (document.getElementById('autoAdjust')) {
+        document.getElementById('autoAdjust').checked = difficultyScaling.autoAdjust;
+    }
+    if (document.getElementById('difficultyLevel')) {
+        document.getElementById('difficultyLevel').value = difficultyScaling.currentLevel;
+        document.getElementById('currentLevel').textContent = difficultyScaling.currentLevel;
+    }
+}
+
+// Auto-adjust difficulty based on player performance
+function adjustDifficulty() {
+    if (!difficultyScaling.autoAdjust) return;
+    
+    const survivalTime = (Date.now() - gameStartTime) / 1000;
+    const coinsPerSecond = totalCoinsCollected / survivalTime;
+    
+    // Adjust based on performance
+    if (survivalTime > 30 && coinsPerSecond > 2) {
+        difficultyScaling.currentLevel = Math.min(difficultyScaling.maxLevel, 
+            difficultyScaling.currentLevel + difficultyScaling.adjustmentRate);
+    } else if (survivalTime < 10 || coinsPerSecond < 0.5) {
+        difficultyScaling.currentLevel = Math.max(1, 
+            difficultyScaling.currentLevel - difficultyScaling.adjustmentRate);
+    }
+    
+    // Apply difficulty scaling
+    gameSpeed = 2 + (difficultyScaling.currentLevel * 0.5);
+}
+
+// Setup enhanced touch controls
+function setupTouchControls() {
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    
+    // Left button
+    leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.left = true;
+    });
+    
+    leftBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys.left = false;
+    });
+    
+    // Right button
+    rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.right = true;
+    });
+    
+    rightBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys.right = false;
+    });
+    
+    // Jump button
+    jumpBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (player.onGround) {
+            jump();
+        }
+    });
+    
+    jumpBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys.jump = false;
+    });
+    
+    // Add swipe gestures for sprint
+    let canvas = document.getElementById('gameCanvas');
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys.sprint = true;
+        touchControls.touchStartX = e.touches[0].clientX;
+        touchControls.touchStartY = e.touches[0].clientY;
+    });
+    
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchControls.touchStartX;
+        const deltaY = touchEndY - touchControls.touchStartY;
+        
+        // Swipe up for jump
+        if (deltaY < -50 && Math.abs(deltaX) < 50) {
+            if (player.onGround) {
+                jump();
+            }
+        }
+        
+        // Swipe down for sprint
+        if (deltaY > 50 && Math.abs(deltaX) < 50) {
+            if (player.onGround) {
+                keys.sprint = false;
+                setTimeout(() => { keys.sprint = true; }, 1000);
+            }
+        }
+    });
+}
+
+// Accessibility toggle functions
+function toggleColorblindMode() {
+    accessibilitySettings.colorblindMode = !accessibilitySettings.colorblindMode;
+    document.body.classList.toggle('colorblind-mode', accessibilitySettings.colorblindMode);
+    saveAccessibilitySettings();
+}
+
+function toggleHighContrast() {
+    accessibilitySettings.highContrast = !accessibilitySettings.highContrast;
+    document.body.classList.toggle('high-contrast-mode', accessibilitySettings.highContrast);
+    saveAccessibilitySettings();
+}
+
+function toggleLargeText() {
+    accessibilitySettings.largeText = !accessibilitySettings.largeText;
+    document.body.classList.toggle('accessibility-large-text', accessibilitySettings.largeText);
+    saveAccessibilitySettings();
+}
+
+function toggleReducedMotion() {
+    accessibilitySettings.reducedMotion = !accessibilitySettings.reducedMotion;
+    document.body.classList.toggle('accessibility-reduced-motion', accessibilitySettings.reducedMotion);
+    saveAccessibilitySettings();
+}
+
+function toggleSoundCues() {
+    accessibilitySettings.soundCues = !accessibilitySettings.soundCues;
+    saveAccessibilitySettings();
+}
+
+function toggleAutoAdjust() {
+    difficultyScaling.autoAdjust = !difficultyScaling.autoAdjust;
+    saveAccessibilitySettings();
+}
+
+function updateDifficultyLevel() {
+    const level = document.getElementById('difficultyLevel').value;
+    difficultyScaling.currentLevel = parseInt(level);
+    document.getElementById('currentLevel').textContent = level;
+    saveAccessibilitySettings();
+}
+
+// Accessibility functions
+function toggleColorblindMode() {
+    const enabled = document.getElementById('colorblindMode').checked;
+    document.body.classList.toggle('colorblind-mode', enabled);
+    localStorage.setItem('colorblindMode', enabled);
+}
+
+function toggleHighContrast() {
+    const enabled = document.getElementById('highContrast').checked;
+    document.body.classList.toggle('high-contrast-mode', enabled);
+    localStorage.setItem('highContrast', enabled);
+}
+
+function toggleLargeText() {
+    const enabled = document.getElementById('largeText').checked;
+    document.body.classList.toggle('accessibility-large-text', enabled);
+    localStorage.setItem('largeText', enabled);
+}
+
+function toggleReducedMotion() {
+    const enabled = document.getElementById('reducedMotion').checked;
+    document.body.classList.toggle('accessibility-reduced-motion', enabled);
+    localStorage.setItem('reducedMotion', enabled);
+}
+
+// Load accessibility settings on page load
+function loadAccessibilitySettings() {
+    const colorblindMode = localStorage.getItem('colorblindMode') === 'true';
+    const highContrast = localStorage.getItem('highContrast') === 'true';
+    const largeText = localStorage.getItem('largeText') === 'true';
+    const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
+    
+    document.body.classList.toggle('colorblind-mode', colorblindMode);
+    document.body.classList.toggle('high-contrast-mode', highContrast);
+    document.body.classList.toggle('accessibility-large-text', largeText);
+    document.body.classList.toggle('accessibility-reduced-motion', reducedMotion);
+    
+    if (document.getElementById('colorblindMode')) {
+        document.getElementById('colorblindMode').checked = colorblindMode;
+    }
+    if (document.getElementById('highContrast')) {
+        document.getElementById('highContrast').checked = highContrast;
+    }
+    if (document.getElementById('largeText')) {
+        document.getElementById('largeText').checked = largeText;
+    }
+    if (document.getElementById('reducedMotion')) {
+        document.getElementById('reducedMotion').checked = reducedMotion;
+    }
+}
+
+// Additional accessibility functions
+function toggleSoundCues() {
+    const enabled = document.getElementById('soundCues').checked;
+    localStorage.setItem('soundCues', enabled);
+}
+
+function toggleAutoAdjust() {
+    const enabled = document.getElementById('autoAdjust').checked;
+    localStorage.setItem('autoAdjust', enabled);
+}
+
+function updateDifficultyLevel() {
+    const level = document.getElementById('difficultyLevel').value;
+    document.getElementById('currentLevel').textContent = level;
+    localStorage.setItem('difficultyLevel', level);
+}
+
+// Initialize game when page loads

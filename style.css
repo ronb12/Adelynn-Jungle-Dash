@@ -760,3 +760,198 @@ body {
     color: #666;
     font-style: italic;
 } 
+
+/* Mobile optimization and accessibility */
+@media (max-width: 768px) {
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+    }
+    
+    #gameUI {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 10px;
+        color: white;
+    }
+    
+    #mobileControls {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 1000;
+    }
+    
+    .control-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #333;
+        color: #333;
+        font-weight: bold;
+        touch-action: manipulation;
+    }
+    
+    .control-btn:active {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(0.95);
+    }
+    
+    .game-screen {
+        padding: 20px;
+    }
+    
+    .screen-content {
+        padding: 20px;
+        max-width: 90%;
+    }
+    
+    .menu-buttons {
+        gap: 10px;
+    }
+    
+    .menu-btn {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+}
+
+/* Settings sections */
+.settings-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #2196f3;
+}
+
+.settings-section h3 {
+    color: #2a5298;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+/* Accessibility features */
+.accessibility-large-text {
+    font-size: 18px !important;
+}
+
+.accessibility-high-contrast {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+.accessibility-reduced-motion * {
+    animation-duration: 0.1s !important;
+    transition-duration: 0.1s !important;
+}
+
+/* Colorblind-friendly colors */
+.colorblind-mode .coin {
+    background: #FFD700 !important;
+    border: 2px solid #000000 !important;
+}
+
+.colorblind-mode .obstacle {
+    background: #FF4444 !important;
+    border: 2px solid #000000 !important;
+}
+
+.colorblind-mode .powerup {
+    background: #00AAFF !important;
+    border: 2px solid #000000 !important;
+}
+
+/* High contrast mode */
+.high-contrast-mode {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+.high-contrast-mode .coin {
+    background: #FFFF00 !important;
+    border: 3px solid #FFFFFF !important;
+}
+
+.high-contrast-mode .obstacle {
+    background: #FF0000 !important;
+    border: 3px solid #FFFFFF !important;
+}
+
+.high-contrast-mode .powerup {
+    background: #00FFFF !important;
+    border: 3px solid #FFFFFF !important;
+}
+
+/* Performance optimization */
+.performance-mode {
+    filter: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.performance-mode * {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    #gameCanvas {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+    }
+    
+    #gameUI {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 10px;
+        color: white;
+    }
+    
+    #mobileControls {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 1000;
+    }
+    
+    .control-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid #333;
+        color: #333;
+        font-weight: bold;
+        touch-action: manipulation;
+    }
+    
+    .control-btn:active {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(0.95);
+    }
+} 

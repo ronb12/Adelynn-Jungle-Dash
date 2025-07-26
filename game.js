@@ -383,15 +383,16 @@ function handlePlayerMovement() {
         player.angle = Math.atan2(moveY, moveX);
     }
 
-    // Keep player within screen bounds (relative to camera)
+    // Only keep a left boundary (player can't go off the left edge)
     if (player.x < 50) {
         player.x = 50;
         cameraX += moveSpeed;
     }
-    if (player.x > canvas.width - player.width - 50) {
-        player.x = canvas.width - player.width - 50;
-        cameraX -= moveSpeed;
-    }
+    // Remove right boundary for infinite forward movement
+    // if (player.x > canvas.width - player.width - 50) {
+    //     player.x = canvas.width - player.width - 50;
+    //     cameraX -= moveSpeed;
+    // }
     if (player.y < 0) player.y = 0;
     if (player.y > groundY - player.height) player.y = groundY - player.height;
 

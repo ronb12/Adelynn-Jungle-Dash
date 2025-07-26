@@ -22,7 +22,8 @@ let player = {
     // Movement variables
     isMoving: false,
     direction: 1, // 1 for right (default facing right), -1 for left
-    animationSpeed: 6 // kept for potential future use
+    animationSpeed: 6, // kept for potential future use
+    angle: 0 // Angle in radians, 0 = facing right
 };
 
 // Game objects arrays
@@ -339,65 +340,62 @@ function update() {
 
 // Handle player movement
 function handlePlayerMovement() {
-    const baseMoveSpeed = 3; // Reduced for smoother movement
-    const sprintMultiplier = 1.5; // Sprint speed multiplier
+    const baseMoveSpeed = 3;
+    const sprintMultiplier = 1.5;
     let moveSpeed = baseMoveSpeed;
     player.isMoving = false;
-    
-    // Check for sprint (Shift key or double tap)
+
+    // Manual rotation with Q/E
+    const rotateSpeed = 0.08; // radians per frame
+    if (keys['KeyQ']) {
+        player.angle -= rotateSpeed;
+    }
+    if (keys['KeyE']) {
+        player.angle += rotateSpeed;
+    }
+
+    // Movement input
+    let moveX = 0;
+    let moveY = 0;
+    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) moveX -= 1;
+    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) moveX += 1;
+    if (keys['ArrowUp']) moveY -= 1;
+    if (keys['ArrowDown']) moveY += 1;
+
+    // Sprint
     const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
     if (isSprinting && player.onGround) {
         moveSpeed *= sprintMultiplier;
-        player.animationSpeed = 4; // Faster animation when sprinting
+        player.animationSpeed = 4;
     } else {
-        player.animationSpeed = 6; // Normal animation speed
+        player.animationSpeed = 6;
     }
-    
-    // Arrow key movement - character moves in the direction pressed
-    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) {
-        // Move left and face left
-        player.x -= moveSpeed;
+
+    // Normalize diagonal movement
+    if (moveX !== 0 || moveY !== 0) {
+        const len = Math.sqrt(moveX * moveX + moveY * moveY);
+        moveX /= len;
+        moveY /= len;
+        player.x += moveX * moveSpeed;
+        player.y += moveY * moveSpeed;
         player.isMoving = true;
-        player.direction = -1; // Face left
-        
-        // Move camera left (world scrolls right)
-        cameraX -= moveSpeed;
+        // Automatic facing: set angle to movement direction
+        player.angle = Math.atan2(moveY, moveX);
     }
-    
-    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) {
-        // Move right and face right
-        player.x += moveSpeed;
-        player.isMoving = true;
-        player.direction = 1; // Face right
-        
-        // Move camera right (world scrolls left)
-        cameraX += moveSpeed;
-    }
-    
-    // Up and down arrows for vertical movement (if needed)
-    if (keys['ArrowUp']) {
-        // Face up when pressing up arrow
-        player.direction = 2; // Face up
-    } else if (keys['ArrowDown']) {
-        // Face down when pressing down arrow
-        player.direction = -2; // Face down
-    }
-    
+
     // Keep player within screen bounds (relative to camera)
     if (player.x < 50) {
         player.x = 50;
-        cameraX += moveSpeed; // Keep camera moving
+        cameraX += moveSpeed;
     }
     if (player.x > canvas.width - player.width - 50) {
         player.x = canvas.width - player.width - 50;
-        cameraX -= moveSpeed; // Keep camera moving
+        cameraX -= moveSpeed;
     }
-    
-    // If not moving, face right by default
-    if (!player.isMoving) {
-        player.direction = 1; // Face right when idle
-    }
-    
+    if (player.y < 0) player.y = 0;
+    if (player.y > groundY - player.height) player.y = groundY - player.height;
+
+    // If not moving, keep angle as is (manual rotation only)
     // Update animation
     updatePlayerAnimation();
 }
@@ -654,37 +652,18 @@ function drawCloud(x, y) {
 // Draw player
 function drawPlayer() {
     // Choose sprite based on movement state
-    let sprite = sprites.jungle_girl; // Default to idle sprite
-    
+    let sprite = sprites.jungle_girl;
     if (player.isMoving && player.onGround) {
-        sprite = sprites.jungle_girl_run; // Use running sprite when moving
+        sprite = sprites.jungle_girl_run;
     }
-    
     if (sprite && sprite.complete) {
-        // Save context for transformations
         ctx.save();
-        
-        // Add brightness and contrast adjustments to make character more visible
         ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
-        
-        // Handle different directions
-        if (player.direction === -1) {
-            // Face left - flip horizontally
-            ctx.scale(-1, 1);
-            ctx.translate(-player.x - player.width, 0);
-        } else if (player.direction === 2) {
-            // Face up - rotate 90 degrees counterclockwise
-            ctx.translate(player.x + player.width/2, player.y + player.height/2);
-            ctx.rotate(-Math.PI/2);
-            ctx.translate(-(player.x + player.width/2), -(player.y + player.height/2));
-        } else if (player.direction === -2) {
-            // Face down - rotate 90 degrees clockwise
-            ctx.translate(player.x + player.width/2, player.y + player.height/2);
-            ctx.rotate(Math.PI/2);
-            ctx.translate(-(player.x + player.width/2), -(player.y + player.height/2));
-        }
-        
-        // Add sprint effect (slight glow when sprinting)
+        // 360° rotation
+        ctx.translate(player.x + player.width/2, player.y + player.height/2);
+        ctx.rotate(player.angle);
+        ctx.translate(-player.width/2, -player.height/2);
+        // Sprint effect
         const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
         if (isSprinting && player.isMoving && player.onGround) {
             ctx.shadowColor = '#FFD700';
@@ -692,33 +671,33 @@ function drawPlayer() {
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 2;
         }
-        
-        // Draw the character sprite (single frame)
         ctx.drawImage(
             sprite,
-            0, 0, // Source x, y
-            sprite.width, sprite.height, // Source width, height
-            player.x, player.y, // Destination x, y
-            player.width, player.height // Destination width, height
+            0, 0,
+            sprite.width, sprite.height,
+            0, 0,
+            player.width, player.height
         );
-        
         ctx.restore();
     } else {
-        // Fallback to rectangle if sprite not loaded
+        // Fallback rectangle
         const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
         if (isSprinting && player.isMoving && player.onGround) {
-            ctx.fillStyle = '#FF4500'; // Orange-red when sprinting
+            ctx.fillStyle = '#FF4500';
         } else {
             ctx.fillStyle = '#FF6B6B';
         }
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-        
-        // Draw player details
+        ctx.save();
+        ctx.translate(player.x + player.width/2, player.y + player.height/2);
+        ctx.rotate(player.angle);
+        ctx.translate(-player.width/2, -player.height/2);
+        ctx.fillRect(0, 0, player.width, player.height);
         ctx.fillStyle = '#333';
-        ctx.fillRect(player.x + 10, player.y + 10, 8, 8); // Eye
-        ctx.fillRect(player.x + 32, player.y + 10, 8, 8); // Eye
+        ctx.fillRect(10, 10, 8, 8);
+        ctx.fillRect(32, 10, 8, 8);
         ctx.fillStyle = '#FFB6C1';
-        ctx.fillRect(player.x + 15, player.y + 25, 20, 10); // Mouth
+        ctx.fillRect(15, 25, 20, 10);
+        ctx.restore();
     }
 }
 

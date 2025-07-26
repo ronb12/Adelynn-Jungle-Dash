@@ -142,6 +142,7 @@ function loadAssets() {
     // Load sprites - only include files that actually exist
     const spriteFiles = [
         'jungle_girl.png', // Use the available character sprite
+        'jungle_girl_run.png', // Use running character sprite
         'banana_coin.png', // Use banana coin instead of regular coin
         'frog_obstacle.png', // Use frog obstacle
         'crab_enemy.png', // Use crab enemy
@@ -599,7 +600,13 @@ function drawCloud(x, y) {
 
 // Draw player
 function drawPlayer() {
-    const sprite = sprites.jungle_girl;
+    // Choose sprite based on movement state
+    let sprite = sprites.jungle_girl; // Default to idle sprite
+    
+    if (player.isMoving && player.onGround) {
+        sprite = sprites.jungle_girl_run; // Use running sprite when moving
+    }
+    
     if (sprite && sprite.complete) {
         // Save context for flipping
         ctx.save();

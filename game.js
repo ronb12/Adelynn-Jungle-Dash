@@ -206,32 +206,47 @@ function initAudioContext() {
 
 // Generate coin sound effect
 function playCoinSound() {
-    if (audio.coin) {
-        try {
-            audio.coin.currentTime = 0;
-            audio.coin.volume = gameSettings.sfxVolume / 100;
-            audio.coin.play().catch(e => console.log('Coin audio play failed:', e));
-        } catch (e) {
-            console.log('Coin audio play failed:', e);
-        }
-    } else {
-        // Generate coin sound using Web Audio API
-        if (audioContext) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+    if (!audioContext) return;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Mario Bros coin sound: high pitch, quick, bright
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+        oscillator.type = 'square';
+        
+        gainNode.gain.setValueAtTime(0.3 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+        
+        // Add coin sparkle effect
+        setTimeout(() => {
+            const sparkle = audioContext.createOscillator();
+            const sparkleGain = audioContext.createGain();
             
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            sparkle.connect(sparkleGain);
+            sparkleGain.connect(audioContext.destination);
             
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+            sparkle.frequency.setValueAtTime(1000, audioContext.currentTime);
+            sparkle.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.05);
+            sparkle.type = 'sine';
             
-            gainNode.gain.setValueAtTime(gameSettings.sfxVolume / 200, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            sparkleGain.gain.setValueAtTime(0.1 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
+            sparkleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
             
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-        }
+            sparkle.start(audioContext.currentTime);
+            sparkle.stop(audioContext.currentTime + 0.1);
+        }, 50);
+        
+    } catch (error) {
+        console.log('Failed to play coin sound:', error);
     }
 }
 
@@ -240,90 +255,81 @@ function playJumpSound() {
     if (!audioContext) return;
     
     try {
-        // Create oscillator for jump sound
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         
-        // Connect nodes
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        // Set up jump sound characteristics
-        oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // Low pitch
-        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1); // Rise in pitch
-        oscillator.type = 'sine';
+        // Mario Bros jump sound: medium pitch, quick rise and fall
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
+        oscillator.type = 'sawtooth';
         
-        // Set up volume envelope
-        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        gainNode.gain.setValueAtTime(0.4 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
         
-        // Play the sound
         oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.15);
+        oscillator.stop(audioContext.currentTime + 0.25);
         
-    } catch (e) {
-        console.log('Failed to play jump sound:', e);
+    } catch (error) {
+        console.log('Failed to play jump sound:', error);
     }
 }
 
 // Enhanced sound effect functions
 function playPowerupSound() {
-    if (audio.powerup) {
-        try {
-            audio.powerup.currentTime = 0;
-            audio.powerup.volume = 0.4;
-            audio.powerup.play().catch(e => console.log('Powerup audio play failed:', e));
-        } catch (e) {
-            console.log('Powerup audio play failed:', e);
-        }
-    } else {
-        // Generate powerup sound using Web Audio API
-        if (audioContext) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
-        }
+    if (!audioContext) return;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Mario Bros powerup sound: ascending notes
+        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
+        oscillator.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.2);
+        oscillator.type = 'square';
+        
+        gainNode.gain.setValueAtTime(0.3 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        
+    } catch (error) {
+        console.log('Failed to play powerup sound:', error);
     }
 }
 
+// Play Mario Bros-style collision sound
 function playCollisionSound() {
-    if (audio.collision) {
-        try {
-            audio.collision.currentTime = 0;
-            audio.collision.volume = 0.5;
-            audio.collision.play().catch(e => console.log('Collision audio play failed:', e));
-        } catch (e) {
-            console.log('Collision audio play failed:', e);
-        }
-    } else {
-        // Generate collision sound using Web Audio API
-        if (audioContext) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
-            
-            gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-        }
+    if (!audioContext) return;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Mario Bros damage sound: low pitch, quick
+        oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+        oscillator.type = 'sawtooth';
+        
+        gainNode.gain.setValueAtTime(0.5 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+    } catch (error) {
+        console.log('Failed to play collision sound:', error);
     }
 }
 
@@ -731,28 +737,21 @@ function loadAssets() {
         }
     };
 
-    // Load audio files
+    // Load audio files - using generated sounds since local files are corrupted
     const audioFiles = {
-        'coin': 'audio/coin.wav',
-        'jump': 'audio/jump.wav',
-        'background': 'audio/bg_music.mp3',
-        'powerup': 'audio/powerup.wav',
-        'collision': 'audio/gameover.wav',
-        'gameOver': 'audio/gameover.wav'
+        'coin': null, // Will use generated sound
+        'jump': null, // Will use generated sound
+        'background': null, // Will use generated sound
+        'powerup': null, // Will use generated sound
+        'collision': null, // Will use generated sound
+        'gameOver': null // Will use generated sound
     };
 
     const audioPromises = Object.entries(audioFiles).map(([key, url]) => {
         return new Promise((resolve) => {
-            const audioElement = new Audio();
-            audioElement.oncanplaythrough = () => {
-                audio[key] = audioElement;
-                resolve();
-            };
-            audioElement.onerror = () => {
-                console.log(`Failed to load audio: ${key} - will use generated sounds`);
-                resolve(); // Continue loading other assets
-            };
-            audioElement.src = url;
+            // Skip loading since files are corrupted, use generated sounds
+            console.log(`Using generated sound for: ${key}`);
+            resolve();
         });
     });
 
@@ -883,9 +882,8 @@ function startGame() {
     hideMainMenu();
     
     // Start background music
-    if (audio.background && audio.background.paused) {
-        audio.background.volume = gameSettings.musicVolume / 100;
-        audio.background.play().catch(e => console.log('Background music failed to play:', e));
+    if (gameSettings.musicVolume > 0) {
+        playBackgroundMusic();
     }
     
     // Start game loop
@@ -2600,4 +2598,53 @@ function updateDifficultyLevel() {
     const level = document.getElementById('difficultyLevel').value;
     document.getElementById('currentLevel').textContent = level;
     localStorage.setItem('difficultyLevel', level);
+}
+
+// Play Mario Bros-style background music
+function playBackgroundMusic() {
+    if (!audioContext || !gameSettings.musicVolume) return;
+    
+    try {
+        // Create a simple Mario Bros-style melody
+        const notes = [
+            { freq: 523, duration: 0.2 }, // C
+            { freq: 659, duration: 0.2 }, // E
+            { freq: 784, duration: 0.2 }, // G
+            { freq: 1047, duration: 0.4 }, // C high
+            { freq: 784, duration: 0.2 }, // G
+            { freq: 659, duration: 0.2 }, // E
+            { freq: 523, duration: 0.4 }, // C
+        ];
+        
+        let currentTime = audioContext.currentTime;
+        
+        notes.forEach((note, index) => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(note.freq, currentTime);
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.1 * (gameSettings.musicVolume / 100), currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + note.duration);
+            
+            oscillator.start(currentTime);
+            oscillator.stop(currentTime + note.duration);
+            
+            currentTime += note.duration;
+        });
+        
+        // Loop the music
+        setTimeout(() => {
+            if (gameRunning && !gamePaused) {
+                playBackgroundMusic();
+            }
+        }, currentTime * 1000);
+        
+    } catch (error) {
+        console.log('Failed to play background music:', error);
+    }
 }

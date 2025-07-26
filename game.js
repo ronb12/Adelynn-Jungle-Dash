@@ -279,7 +279,7 @@ function startGame() {
     gamePaused = false;
     score = 0;
     coins = 0;
-    lives = 3;
+    lives = 999; // Infinite lives for testing
     gameSpeed = 5;
     
     // Reset player

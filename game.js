@@ -13,8 +13,8 @@ let groundY = 550;
 let player = {
     x: 100,
     y: groundY,
-    width: 50,
-    height: 50,
+    width: 80,
+    height: 80,
     velocityY: 0,
     isJumping: false,
     onGround: true,
@@ -432,8 +432,8 @@ function spawnObjects() {
         coinObjects.push({
             x: canvas.width,
             y: Math.random() * (groundY - 100) + 50,
-            width: 30,
-            height: 30,
+            width: 40,
+            height: 40,
             collected: false
         });
     }
@@ -445,9 +445,9 @@ function spawnObjects() {
         
         obstacles.push({
             x: canvas.width,
-            y: groundY - 60,
-            width: 40,
-            height: 60,
+            y: groundY - 70,
+            width: 50,
+            height: 70,
             type: randomType
         });
     }

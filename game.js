@@ -113,7 +113,7 @@ function loadAssets() {
                 
                 sound.addEventListener('error', () => {
                     if (index === audioFile.files.length - 1 && !audioLoaded) {
-                        console.log(`Failed to load audio: ${audioFile.name} - will play silently`);
+                        console.log(`Audio file not available: ${audioFile.name} - game will play silently`);
                         // Create a silent audio as fallback
                         audio[audioFile.name] = null;
                     }
@@ -439,6 +439,26 @@ function updateUI() {
     document.getElementById('scoreValue').textContent = score;
     document.getElementById('coinsValue').textContent = coins;
     document.getElementById('livesValue').textContent = lives;
+    
+    // Update audio status
+    updateAudioStatus();
+}
+
+// Update audio status display
+function updateAudioStatus() {
+    const audioStatus = document.getElementById('audioStatus');
+    if (audioStatus) {
+        const coinAudio = audio.coin;
+        const jumpAudio = audio.jump;
+        
+        if (coinAudio && jumpAudio) {
+            audioStatus.textContent = 'Sound effects: Available';
+            audioStatus.style.color = '#4CAF50';
+        } else {
+            audioStatus.textContent = 'Sound effects: Not available';
+            audioStatus.style.color = '#FF9800';
+        }
+    }
 }
 
 // Render game

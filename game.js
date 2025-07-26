@@ -366,8 +366,25 @@ function handlePlayerMovement() {
         player.direction = 1; // Moving right
     }
     
-    // If not moving, face right by default
-    if (!player.isMoving) {
+    // Allow arrow keys to control facing direction independently
+    // Up arrow: face up (direction = 2)
+    if (keys['ArrowUp']) {
+        player.direction = 2; // Face up
+    }
+    // Down arrow: face down (direction = -2)
+    else if (keys['ArrowDown']) {
+        player.direction = -2; // Face down
+    }
+    // Left arrow (when not moving): face left
+    else if (keys['ArrowLeft'] && !player.isMoving) {
+        player.direction = -1; // Face left
+    }
+    // Right arrow (when not moving): face right
+    else if (keys['ArrowRight'] && !player.isMoving) {
+        player.direction = 1; // Face right
+    }
+    // If no direction keys pressed and not moving, face right by default
+    else if (!player.isMoving) {
         player.direction = 1; // Face right when idle
     }
     
@@ -634,16 +651,27 @@ function drawPlayer() {
     }
     
     if (sprite && sprite.complete) {
-        // Save context for flipping
+        // Save context for transformations
         ctx.save();
         
         // Add brightness and contrast adjustments to make character more visible
         ctx.filter = 'brightness(1.5) contrast(1.3) saturate(1.2)';
         
-        // Flip horizontally if moving left
+        // Handle different directions
         if (player.direction === -1) {
+            // Face left - flip horizontally
             ctx.scale(-1, 1);
             ctx.translate(-player.x - player.width, 0);
+        } else if (player.direction === 2) {
+            // Face up - rotate 90 degrees counterclockwise
+            ctx.translate(player.x + player.width/2, player.y + player.height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.translate(-(player.x + player.width/2), -(player.y + player.height/2));
+        } else if (player.direction === -2) {
+            // Face down - rotate 90 degrees clockwise
+            ctx.translate(player.x + player.width/2, player.y + player.height/2);
+            ctx.rotate(Math.PI/2);
+            ctx.translate(-(player.x + player.width/2), -(player.y + player.height/2));
         }
         
         // Add sprint effect (slight glow when sprinting)

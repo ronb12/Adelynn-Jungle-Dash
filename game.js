@@ -40,6 +40,79 @@ let touchControls = {
 // Asset loading
 let sprites = {};
 let audio = {};
+let audioContext = null;
+
+// Initialize audio context for sound effects
+function initAudioContext() {
+    try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('Audio context initialized for sound effects');
+    } catch (e) {
+        console.log('Web Audio API not supported:', e);
+    }
+}
+
+// Generate coin sound effect
+function playCoinSound() {
+    if (!audioContext) return;
+    
+    try {
+        // Create oscillator for coin sound
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Connect nodes
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Set up coin sound characteristics
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // High pitch
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1); // Drop in pitch
+        oscillator.type = 'sine';
+        
+        // Set up volume envelope
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        // Play the sound
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+    } catch (e) {
+        console.log('Failed to play coin sound:', e);
+    }
+}
+
+// Generate jump sound effect
+function playJumpSound() {
+    if (!audioContext) return;
+    
+    try {
+        // Create oscillator for jump sound
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Connect nodes
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Set up jump sound characteristics
+        oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // Low pitch
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1); // Rise in pitch
+        oscillator.type = 'sine';
+        
+        // Set up volume envelope
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        
+        // Play the sound
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+        
+    } catch (e) {
+        console.log('Failed to play jump sound:', e);
+    }
+}
 
 // Initialize game
 function initGame() {
@@ -51,8 +124,13 @@ function initGame() {
         canvas.width = window.innerWidth - 20;
         canvas.height = window.innerHeight * 0.6;
         groundY = canvas.height - 50;
-        player.y = groundY;
     }
+    
+    // Ensure player is properly positioned on the ground
+    player.y = groundY - player.height;
+    
+    // Initialize audio context for sound effects
+    initAudioContext();
     
     loadAssets();
     setupEventListeners();
@@ -315,9 +393,9 @@ function updatePlayerPhysics() {
         player.y += player.velocityY;
     }
     
-    // Check ground collision
-    if (player.y >= groundY) {
-        player.y = groundY;
+    // Check ground collision - account for player height
+    if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
         player.velocityY = 0;
         player.onGround = true;
         player.isJumping = false;
@@ -339,6 +417,9 @@ function jump() {
             } catch (e) {
                 console.log('Audio play failed:', e);
             }
+        } else {
+            // Use generated jump sound if audio file not available
+            playJumpSound();
         }
     }
 }
@@ -412,6 +493,9 @@ function checkCollisions() {
                 } catch (e) {
                     console.log('Audio play failed:', e);
                 }
+            } else {
+                // Use generated coin sound if audio file not available
+                playCoinSound();
             }
         }
     });
@@ -454,6 +538,9 @@ function updateAudioStatus() {
         if (coinAudio && jumpAudio) {
             audioStatus.textContent = 'Sound effects: Available';
             audioStatus.style.color = '#4CAF50';
+        } else if (audioContext) {
+            audioStatus.textContent = 'Sound effects: Generated';
+            audioStatus.style.color = '#2196F3';
         } else {
             audioStatus.textContent = 'Sound effects: Not available';
             audioStatus.style.color = '#FF9800';
@@ -631,6 +718,27 @@ function gameOver() {
 
 // Restart game
 function restartGame() {
+    // Reset game state
+    score = 0;
+    coins = 0;
+    lives = 3;
+    gameSpeed = 5;
+    obstacles = [];
+    coinObjects = [];
+    powerUps = [];
+    
+    // Reset player position and state
+    player.x = 100;
+    player.y = groundY - player.height;
+    player.velocityY = 0;
+    player.isJumping = false;
+    player.onGround = true;
+    player.isMoving = false;
+    player.direction = 1;
+    
+    // Hide game over screen
+    document.getElementById('gameOverScreen').style.display = 'none';
+    
     startGame();
 }
 
@@ -666,14 +774,14 @@ window.addEventListener('resize', () => {
             canvas.height = window.innerHeight * 0.6;
             groundY = canvas.height - 50;
             if (player) {
-                player.y = groundY;
+                player.y = groundY - player.height;
             }
         } else {
             canvas.width = 800;
             canvas.height = 600;
             groundY = 550;
             if (player) {
-                player.y = groundY;
+                player.y = groundY - player.height;
             }
         }
     }

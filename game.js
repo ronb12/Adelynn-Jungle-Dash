@@ -73,6 +73,18 @@ let gameSettings = {
     particlesEnabled: true
 };
 
+// Power-up system
+const POWERUP_TYPES = ['speed', 'shield', 'magnet'];
+
+let playerPowerup = {
+    speed: false,
+    shield: false,
+    magnet: false,
+    speedTimer: 0,
+    shieldTimer: 0,
+    magnetTimer: 0
+};
+
 class Particle {
     constructor(x, y, type = 'coin') {
         this.x = x;
@@ -624,6 +636,20 @@ function update() {
     
     // Increase game speed over time
     gameSpeed += 0.001;
+
+    // Update power-up timers
+    if (playerPowerup.speed) {
+        playerPowerup.speedTimer--;
+        if (playerPowerup.speedTimer <= 0) playerPowerup.speed = false;
+    }
+    if (playerPowerup.shield) {
+        playerPowerup.shieldTimer--;
+        if (playerPowerup.shieldTimer <= 0) playerPowerup.shield = false;
+    }
+    if (playerPowerup.magnet) {
+        playerPowerup.magnetTimer--;
+        if (playerPowerup.magnetTimer <= 0) playerPowerup.magnet = false;
+    }
 }
 
 // Handle player movement
@@ -651,12 +677,27 @@ function handlePlayerMovement() {
     if (keys['ArrowDown']) moveY += 1;
 
     // Sprint
-    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || playerPowerup.speed;
     if (isSprinting && player.onGround) {
         moveSpeed *= sprintMultiplier;
         player.animationSpeed = 4;
     } else {
         player.animationSpeed = 6;
+    }
+
+    // Power-up: Magnet effect (attract coins)
+    if (playerPowerup.magnet) {
+        coinObjects.forEach(coin => {
+            if (!coin.collected) {
+                const dx = (player.x + player.width/2) - (coin.x - cameraX + coin.width/2);
+                const dy = (player.y + player.height/2) - (coin.y + coin.height/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 200) {
+                    coin.x += dx * 0.08;
+                    coin.y += dy * 0.08;
+                }
+            }
+        });
     }
 
     // Normalize diagonal movement
@@ -786,6 +827,19 @@ function spawnObjects() {
             speed: gameSpeed + 1
         });
     }
+
+    // Spawn power-ups
+    if (Math.random() < 0.008) {
+        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+        powerUps.push({
+            x: cameraX + canvas.width + Math.random() * 400,
+            y: Math.random() * (groundY - 120) + 60,
+            width: 40,
+            height: 40,
+            type: type,
+            collected: false
+        });
+    }
 }
 
 // Update objects
@@ -805,6 +859,13 @@ function updateObjects() {
     
     // Remove off-screen obstacles (behind camera)
     obstacles = obstacles.filter(obstacle => obstacle.x > cameraX - 100);
+
+    // Update power-ups
+    powerUps.forEach(powerup => {
+        powerup.x -= gameSpeed;
+    });
+    // Remove off-screen power-ups
+    powerUps = powerUps.filter(powerup => powerup.x > cameraX - powerup.width && !powerup.collected);
 }
 
 // Check collisions
@@ -839,6 +900,14 @@ function checkCollisions() {
             // Play collision sound
             playCollisionSound();
             
+            if (playerPowerup.shield) {
+                // Shield absorbs the hit
+                playerPowerup.shield = false;
+                // Remove the obstacle
+                obstacles = obstacles.filter(o => o !== obstacle);
+                return;
+            }
+            
             lives--;
             if (lives <= 0) {
                 // Play game over sound
@@ -850,6 +919,34 @@ function checkCollisions() {
             }
         }
     });
+
+    // Check power-up collisions
+    powerUps.forEach(powerup => {
+        if (!powerup.collected &&
+            player.x < powerup.x - cameraX + powerup.width &&
+            player.x + player.width > powerup.x - cameraX &&
+            player.y < powerup.y + powerup.height &&
+            player.y + player.height > powerup.y) {
+            powerup.collected = true;
+            switch(powerup.type) {
+                case 'speed':
+                    playerPowerup.speed = true;
+                    playerPowerup.speedTimer = 300; // 5 seconds at 60fps
+                    playPowerupSound();
+                    break;
+                case 'shield':
+                    playerPowerup.shield = true;
+                    playerPowerup.shieldTimer = 360; // 6 seconds
+                    playPowerupSound();
+                    break;
+                case 'magnet':
+                    playerPowerup.magnet = true;
+                    playerPowerup.magnetTimer = 360; // 6 seconds
+                    playPowerupSound();
+                    break;
+            }
+        }
+    });
 }
 
 // Update UI
@@ -857,9 +954,23 @@ function updateUI() {
     document.getElementById('scoreValue').textContent = score;
     document.getElementById('coinsValue').textContent = coins;
     document.getElementById('livesValue').textContent = lives;
-    
-    // Update audio status
     updateAudioStatus();
+    
+    // Show active power-ups
+    let powerupText = '';
+    if (playerPowerup.speed) powerupText += 'Speed (' + Math.ceil(playerPowerup.speedTimer/60) + 's) ';
+    if (playerPowerup.shield) powerupText += 'Shield (' + Math.ceil(playerPowerup.shieldTimer/60) + 's) ';
+    if (playerPowerup.magnet) powerupText += 'Magnet (' + Math.ceil(playerPowerup.magnetTimer/60) + 's) ';
+    let powerupDiv = document.getElementById('powerupStatus');
+    if (!powerupDiv) {
+        powerupDiv = document.createElement('div');
+        powerupDiv.id = 'powerupStatus';
+        powerupDiv.style.fontSize = '12px';
+        powerupDiv.style.color = '#1976D2';
+        powerupDiv.style.marginTop = '2px';
+        document.getElementById('gameUI').appendChild(powerupDiv);
+    }
+    powerupDiv.textContent = powerupText.trim();
 }
 
 // Update audio status display
@@ -897,6 +1008,7 @@ function render() {
     // Draw objects
     drawCoins();
     drawObstacles();
+    drawPowerUps(); // Add this line to draw power-ups
     
     // Draw player
     drawPlayer();
@@ -1122,6 +1234,57 @@ function drawObstacles() {
                     ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
                 }
             }
+        }
+    });
+}
+
+// Draw power-ups
+function drawPowerUps() {
+    powerUps.forEach(powerup => {
+        if (!powerup.collected) {
+            ctx.save();
+            ctx.translate(powerup.x - cameraX + powerup.width/2, powerup.y + powerup.height/2);
+            ctx.rotate(Date.now() * 0.002);
+            ctx.translate(-powerup.width/2, -powerup.height/2);
+            // Draw different shapes/colors for each type
+            switch(powerup.type) {
+                case 'speed':
+                    ctx.fillStyle = '#00BFFF';
+                    ctx.beginPath();
+                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('S', powerup.width/2, powerup.height/2 + 7);
+                    break;
+                case 'shield':
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(powerup.width/2, powerup.height/2, 14, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('H', powerup.width/2, powerup.height/2 + 7);
+                    break;
+                case 'magnet':
+                    ctx.fillStyle = '#FF6347';
+                    ctx.beginPath();
+                    ctx.arc(powerup.width/2, powerup.height/2, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('M', powerup.width/2, powerup.height/2 + 7);
+                    break;
+            }
+            ctx.restore();
         }
     });
 }

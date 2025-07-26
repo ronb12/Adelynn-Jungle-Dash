@@ -1955,36 +1955,50 @@ function hideCredits() {
 
 // Settings functions
 function updateMusicVolume() {
-    const volume = document.getElementById('musicVolume').value;
-    gameSettings.musicVolume = parseInt(volume);
-    document.getElementById('musicVolumeValue').textContent = volume + '%';
+    const volumeEl = document.getElementById('musicVolume');
+    const volumeValueEl = document.getElementById('musicVolumeValue');
     
-    if (audio.background) {
-        audio.background.volume = volume / 100;
+    if (volumeEl && volumeValueEl) {
+        const volume = volumeEl.value;
+        gameSettings.musicVolume = parseInt(volume);
+        volumeValueEl.textContent = volume + '%';
+        
+        if (audio.background) {
+            audio.background.volume = volume / 100;
+        }
     }
 }
 
 function updateSfxVolume() {
-    const volume = document.getElementById('sfxVolume').value;
-    gameSettings.sfxVolume = parseInt(volume);
-    document.getElementById('sfxVolumeValue').textContent = volume + '%';
+    const volumeEl = document.getElementById('sfxVolume');
+    const volumeValueEl = document.getElementById('sfxVolumeValue');
+    
+    if (volumeEl && volumeValueEl) {
+        const volume = volumeEl.value;
+        gameSettings.sfxVolume = parseInt(volume);
+        volumeValueEl.textContent = volume + '%';
+    }
 }
 
 function updateDifficulty() {
-    const difficulty = document.getElementById('difficulty').value;
-    gameSettings.difficulty = difficulty;
+    const difficultyEl = document.getElementById('difficulty');
     
-    // Adjust game parameters based on difficulty
-    switch(difficulty) {
-        case 'easy':
-            gameSpeed = 3;
-            break;
-        case 'normal':
-            gameSpeed = 5;
-            break;
-        case 'hard':
-            gameSpeed = 7;
-            break;
+    if (difficultyEl) {
+        const difficulty = difficultyEl.value;
+        gameSettings.difficulty = difficulty;
+        
+        // Adjust game settings based on difficulty
+        switch(difficulty) {
+            case 'easy':
+                gameSpeed = 1.5;
+                break;
+            case 'normal':
+                gameSpeed = 2;
+                break;
+            case 'hard':
+                gameSpeed = 3;
+                break;
+        }
     }
 }
 
@@ -2336,6 +2350,13 @@ function adjustDifficulty() {
     
     // Apply difficulty scaling
     gameSpeed = 2 + (difficultyScaling.currentLevel * 0.5);
+    
+    // Update UI if element exists
+    const difficultyLevelEl = document.getElementById('difficultyLevel');
+    const currentLevelEl = document.getElementById('currentLevel');
+    
+    if (difficultyLevelEl) difficultyLevelEl.value = difficultyScaling.currentLevel;
+    if (currentLevelEl) currentLevelEl.textContent = difficultyScaling.currentLevel;
 }
 
 // Setup enhanced touch controls
@@ -2448,10 +2469,14 @@ function toggleAutoAdjust() {
 }
 
 function updateDifficultyLevel() {
-    const level = document.getElementById('difficultyLevel').value;
-    difficultyScaling.currentLevel = parseInt(level);
-    document.getElementById('currentLevel').textContent = level;
-    saveAccessibilitySettings();
+    const difficultyLevelEl = document.getElementById('difficultyLevel');
+    const currentLevelEl = document.getElementById('currentLevel');
+    
+    if (difficultyLevelEl && currentLevelEl) {
+        const level = difficultyLevelEl.value;
+        currentLevelEl.textContent = level;
+        localStorage.setItem('difficultyLevel', level);
+    }
 }
 
 // Accessibility functions
@@ -2519,5 +2544,3 @@ function updateDifficultyLevel() {
     document.getElementById('currentLevel').textContent = level;
     localStorage.setItem('difficultyLevel', level);
 }
-
-// Initialize game when page loads

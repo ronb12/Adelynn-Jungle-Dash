@@ -1,1263 +1,140 @@
+// Simple Vertical Endless Runner Coin Collector Game
+
 // Game variables
-let canvas, ctx;
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
 let gameRunning = false;
-let gamePaused = false;
 let score = 0;
 let coins = 0;
-let lives = 999; // Infinite lives for testing
-let gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
-let gravity = 0.8;
-let groundY = 550;
-let cameraX = 0; // Camera position for side-scrolling
-
-// Distance tracking
-let distance = 0;
-let bestDistance = 0;
-
-// Player object
+let gameSpeed = 3;
 let player = {
-    x: 100,
-    y: groundY - 150, // Much larger height
-    width: 80, // Increased from 50
-    height: 120, // Increased from 50
-    velocityX: 0,
-    velocityY: 0,
-    onGround: false,
-    direction: 1,
-    angle: 0,
-    isJumping: false
+    x: canvas.width / 2,
+    y: canvas.height - 100,
+    width: 30,
+    height: 30,
+    speed: 5
 };
 
-// Sprite animation variables
-let playerSprites = {
-    idle: [],
-    run: []
-};
-let currentAnimation = 'idle';
-let animationFrame = 0;
-let animationSpeed = 0.2; // How fast to cycle through frames
-let frameCounter = 0;
-
-// Game objects arrays
-let obstacles = [];
 let coinObjects = [];
-let powerUps = [];
-
-// Input handling
-let keys = {};
-let touchControls = {
-    left: false,
-    right: false,
-    jump: false,
-    leftTouch: false,
-    rightTouch: false,
-    jumpTouch: false,
-    sprintTouch: false,
-    touchStartX: 0,
-    touchStartY: 0
-};
-
-// Asset loading
-let sprites = {};
-let audio = {
-    coin: null,
-    jump: null,
-    background: null,
-    powerup: null,
-    collision: null,
-    gameOver: null
-};
-let audioContext = null;
-
-// Particle system
+let obstacles = [];
 let particles = [];
 
-// Game state management
-let gameState = 'menu'; // 'menu', 'playing', 'paused', 'gameOver'
-let gameSettings = {
-    musicVolume: 30,
-    sfxVolume: 50,
-    difficulty: 'normal',
-    particlesEnabled: true
-};
-
-// Power-up system
-const POWERUP_TYPES = ['speed', 'shield', 'magnet'];
-
-let playerPowerup = {
-    speed: false,
-    shield: false,
-    magnet: false,
-    speedTimer: 0,
-    shieldTimer: 0,
-    magnetTimer: 0
-};
-
-// Enhanced obstacle and enemy types
-const OBSTACLE_TYPES = {
-    'frog_obstacle': { category: 'ground', speed: 1.0, damage: 1 },
-    'crab_enemy': { category: 'ground', speed: 1.2, damage: 1 },
-    'coconut_enemy': { category: 'ground', speed: 0.8, damage: 1 },
-    'flying_enemy': { category: 'flying', speed: 1.5, damage: 1 },
-    'spike_pit': { category: 'hazard', speed: 1.0, damage: 1 },
-    'rolling_log': { category: 'moving', speed: 1.3, damage: 1 }
-};
-
-class Particle {
-    constructor(x, y, type = 'coin') {
-        this.x = x;
-        this.y = y;
-        this.vx = (Math.random() - 0.5) * 8; // Random horizontal velocity
-        this.vy = -Math.random() * 6 - 2; // Upward velocity
-        this.life = 1.0; // Life from 1.0 to 0.0
-        this.decay = 0.02; // How fast particle fades
-        this.size = Math.random() * 4 + 2; // Random size
-        this.type = type; // 'coin', 'jump', 'sparkle'
-        this.color = this.getColor();
-        this.rotation = Math.random() * Math.PI * 2;
-        this.rotationSpeed = (Math.random() - 0.5) * 0.2;
-    }
-
-    getColor() {
-        switch(this.type) {
-            case 'coin':
-                return Math.random() < 0.3 ? '#FFD700' : '#FFA500'; // Gold or orange
-            case 'jump':
-                return '#8B4513'; // Brown dust
-            case 'sparkle':
-                return ['#FFD700', '#FFA500', '#FF6347', '#87CEEB'][Math.floor(Math.random() * 4)];
-            default:
-                return '#FFFFFF';
-        }
-    }
-
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += 0.3; // Gravity
-        this.life -= this.decay;
-        this.rotation += this.rotationSpeed;
-        this.vx *= 0.98; // Air resistance
-    }
-
-    draw(ctx) {
-        if (this.life <= 0) return;
-
-        ctx.save();
-        ctx.globalAlpha = this.life;
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-
-        switch(this.type) {
-            case 'coin':
-                // Draw coin particle
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                // Add shine
-                ctx.fillStyle = '#FFF8DC';
-                ctx.beginPath();
-                ctx.arc(-this.size * 0.3, -this.size * 0.3, this.size * 0.4, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'jump':
-                // Draw dust particle
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                break;
-
-            case 'sparkle':
-                // Draw sparkle
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                for (let i = 0; i < 4; i++) {
-                    const angle = (i * Math.PI) / 2;
-                    const x1 = Math.cos(angle) * this.size;
-                    const y1 = Math.sin(angle) * this.size;
-                    const x2 = Math.cos(angle) * (this.size * 0.5);
-                    const y2 = Math.sin(angle) * (this.size * 0.5);
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                }
-                ctx.stroke();
-                break;
-        }
-
-        ctx.restore();
-    }
-}
-
-// Initialize audio context for sound effects
-function initAudioContext() {
-    try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('Audio context initialized for sound effects');
-    } catch (e) {
-        console.log('Web Audio API not supported:', e);
-    }
-}
-
-// Generate coin sound effect
-function playCoinSound() {
-    if (!audioContext) return;
-    
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Mario Bros coin sound: high pitch, quick, bright
-        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-        oscillator.type = 'square';
-        
-        gainNode.gain.setValueAtTime(0.3 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.15);
-        
-        // Add coin sparkle effect
-        setTimeout(() => {
-            const sparkle = audioContext.createOscillator();
-            const sparkleGain = audioContext.createGain();
-            
-            sparkle.connect(sparkleGain);
-            sparkleGain.connect(audioContext.destination);
-            
-            sparkle.frequency.setValueAtTime(1000, audioContext.currentTime);
-            sparkle.frequency.exponentialRampToValueAtTime(1500, audioContext.currentTime + 0.05);
-            sparkle.type = 'sine';
-            
-            sparkleGain.gain.setValueAtTime(0.1 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
-            sparkleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            
-            sparkle.start(audioContext.currentTime);
-            sparkle.stop(audioContext.currentTime + 0.1);
-        }, 50);
-        
-    } catch (error) {
-        console.log('Failed to play coin sound:', error);
-    }
-}
-
-// Generate jump sound effect
-function playJumpSound() {
-    if (!audioContext) return;
-    
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Mario Bros jump sound: medium pitch, quick rise and fall
-        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
-        oscillator.type = 'sawtooth';
-        
-        gainNode.gain.setValueAtTime(0.4 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.25);
-        
-    } catch (error) {
-        console.log('Failed to play jump sound:', error);
-    }
-}
-
-// Enhanced sound effect functions
-function playPowerupSound() {
-    if (!audioContext) return;
-    
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Mario Bros powerup sound: ascending notes
-        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.1);
-        oscillator.frequency.exponentialRampToValueAtTime(900, audioContext.currentTime + 0.2);
-        oscillator.type = 'square';
-        
-        gainNode.gain.setValueAtTime(0.3 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-        
-    } catch (error) {
-        console.log('Failed to play powerup sound:', error);
-    }
-}
-
-// Play Mario Bros-style collision sound
-function playCollisionSound() {
-    if (!audioContext) return;
-    
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        // Mario Bros damage sound: low pitch, quick
-        oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
-        oscillator.type = 'sawtooth';
-        
-        gainNode.gain.setValueAtTime(0.5 * (gameSettings.sfxVolume / 100), audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
-        
-    } catch (error) {
-        console.log('Failed to play collision sound:', error);
-    }
-}
-
-function playGameOverSound() {
-    if (audio.gameOver) {
-        try {
-            audio.gameOver.currentTime = 0;
-            audio.gameOver.volume = 0.6;
-            audio.gameOver.play().catch(e => console.log('Game over audio play failed:', e));
-        } catch (e) {
-            console.log('Game over audio play failed:', e);
-        }
-    } else {
-        // Generate game over sound using Web Audio API
-        if (audioContext) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5);
-            
-            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        }
-    }
-}
-
-// Particle effect functions
-function createCoinParticles(x, y) {
-    if (!gameSettings.particlesEnabled) return;
-    
-    for (let i = 0; i < 8; i++) {
-        particles.push(new Particle(x, y, 'coin'));
-    }
-    // Add some sparkles too
-    for (let i = 0; i < 3; i++) {
-        particles.push(new Particle(x, y, 'sparkle'));
-    }
-}
-
-function createJumpParticles(x, y) {
-    if (!gameSettings.particlesEnabled) return;
-    
-    for (let i = 0; i < 6; i++) {
-        particles.push(new Particle(x, y, 'jump'));
-    }
-}
-
-function updateParticles() {
-    particles = particles.filter(particle => {
-        particle.update();
-        return particle.life > 0;
-    });
-}
-
-function drawParticles() {
-    particles.forEach(particle => {
-        particle.draw(ctx);
-    });
-}
-
-// Special events system
-let specialEvents = {
-    coinRain: false,
-    coinRainTimer: 0,
-    bonusRound: false,
-    bonusRoundTimer: 0
-};
-
-// Trigger special events
-function triggerSpecialEvents() {
-    if (Math.random() < 0.5) {
-        // Coin rain - reduced amount
-        console.log('Coin rain started!');
-        for (let i = 0; i < 5; i++) { // Reduced from 15 to 5
-            coinObjects.push({
-                x: Math.random() * canvas.width,
-                y: -50 - Math.random() * 100,
-                width: 30,
-                height: 30,
-                rotation: 0,
-                collected: false
-            });
-        }
-    } else {
-        // Bonus round - reduced duration
-        console.log('Bonus round started!');
-        gameSpeed *= 0.5;
-        setTimeout(() => {
-            gameSpeed *= 2;
-            console.log('Bonus round ended!');
-        }, 3000); // Reduced from 5000 to 3000
-    }
-}
-
-// Achievements system
-let achievements = {
-    coins: { current: 0, milestones: [10, 50, 100, 250, 500, 1000], unlocked: [] },
-    distance: { current: 0, milestones: [100, 500, 1000, 2500, 5000, 10000], unlocked: [] },
-    powerups: { current: 0, milestones: [5, 15, 30, 50, 100], unlocked: [] },
-    survival: { current: 0, milestones: [30, 60, 120, 300, 600], unlocked: [] } // seconds
-};
-
-let totalCoinsCollected = 0;
-let totalPowerupsCollected = 0;
-let gameStartTime = 0;
-
-// Leaderboard system
-let leaderboard = [];
-const MAX_LEADERBOARD_ENTRIES = 10;
-
-// Load leaderboard from localStorage
-function loadLeaderboard() {
-    const saved = localStorage.getItem('jungleDashLeaderboard');
-    if (saved) {
-        leaderboard = JSON.parse(saved);
-    }
-}
-
-// Save leaderboard to localStorage
-function saveLeaderboard() {
-    localStorage.setItem('jungleDashLeaderboard', JSON.stringify(leaderboard));
-}
-
-// Add score to leaderboard
-function addToLeaderboard(score, distance, coins) {
-    const entry = {
-        score: score,
-        distance: Math.floor(distance),
-        coins: coins,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString()
-    };
-    
-    leaderboard.push(entry);
-    leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
-    
-    // Keep only top scores
-    if (leaderboard.length > MAX_LEADERBOARD_ENTRIES) {
-        leaderboard = leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
-    }
-    
-    saveLeaderboard();
-    return leaderboard.indexOf(entry) + 1; // Return position (1-based)
-}
-
-// Daily challenges system
-let dailyChallenges = [];
-let challengeProgress = {};
-let lastChallengeDate = '';
-
-// Challenge types and their generation functions
-const CHALLENGE_TYPES = {
-    collectCoins: {
-        name: 'Coin Collector',
-        description: 'Collect {target} coins in a single run',
-        generate: () => ({ target: Math.floor(Math.random() * 50) + 10, current: 0 }),
-        check: (progress, target) => progress >= target
-    },
-    runDistance: {
-        name: 'Distance Runner',
-        description: 'Run {target} meters in a single run',
-        generate: () => ({ target: Math.floor(Math.random() * 1000) + 200, current: 0 }),
-        check: (progress, target) => progress >= target
-    },
-    surviveTime: {
-        name: 'Survivor',
-        description: 'Survive for {target} seconds in a single run',
-        generate: () => ({ target: Math.floor(Math.random() * 120) + 30, current: 0 }),
-        check: (progress, target) => progress >= target
-    },
-    collectPowerups: {
-        name: 'Power Player',
-        description: 'Collect {target} power-ups in a single run',
-        generate: () => ({ target: Math.floor(Math.random() * 8) + 2, current: 0 }),
-        check: (progress, target) => progress >= target
-    },
-    avoidObstacles: {
-        name: 'Ninja Runner',
-        description: 'Avoid {target} obstacles in a single run',
-        generate: () => ({ target: Math.floor(Math.random() * 20) + 5, current: 0 }),
-        check: (progress, target) => progress >= target
-    }
-};
-
-// Generate daily challenges
-function generateDailyChallenges() {
-    const today = new Date().toDateString();
-    
-    // Check if we need new challenges
-    if (lastChallengeDate === today && dailyChallenges.length > 0) {
-        return; // Already have today's challenges
-    }
-    
-    // Generate 3 random challenges
-    const challengeTypes = Object.keys(CHALLENGE_TYPES);
-    dailyChallenges = [];
-    
-    for (let i = 0; i < 3; i++) {
-        const type = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
-        const challenge = CHALLENGE_TYPES[type];
-        const data = challenge.generate();
-        
-        dailyChallenges.push({
-            id: `challenge_${i}`,
-            type: type,
-            name: challenge.name,
-            description: challenge.description.replace('{target}', data.target),
-            target: data.target,
-            current: 0,
-            completed: false,
-            reward: Math.floor(data.target * 0.5) + 10 // Reward based on difficulty
-        });
-    }
-    
-    lastChallengeDate = today;
-    saveChallenges();
-}
-
-// Save challenges to localStorage
-function saveChallenges() {
-    localStorage.setItem('jungleDashChallenges', JSON.stringify({
-        challenges: dailyChallenges,
-        progress: challengeProgress,
-        lastDate: lastChallengeDate
-    }));
-}
-
-// Load challenges from localStorage
-function loadChallenges() {
-    const saved = localStorage.getItem('jungleDashChallenges');
-    if (saved) {
-        const data = JSON.parse(saved);
-        dailyChallenges = data.challenges || [];
-        challengeProgress = data.progress || {};
-        lastChallengeDate = data.lastDate || '';
-    }
-    
-    // Generate new challenges if needed
-    generateDailyChallenges();
-}
-
-// Update challenge progress
-function updateChallengeProgress(type, amount = 1) {
-    dailyChallenges.forEach(challenge => {
-        if (challenge.type === type && !challenge.completed) {
-            challenge.current += amount;
-            
-            if (CHALLENGE_TYPES[type].check(challenge.current, challenge.target)) {
-                challenge.completed = true;
-                showChallengeCompletion(challenge);
-            }
-        }
-    });
-    
-    saveChallenges();
-}
-
-// Show challenge completion notification
-function showChallengeCompletion(challenge) {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        background: linear-gradient(45deg, #ff9800, #ff5722);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        font-weight: bold;
-        font-size: 16px;
-        z-index: 10000;
-        animation: slideIn 0.5s ease-out;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        max-width: 300px;
-    `;
-    notification.innerHTML = `
-        <div>🎯 Challenge Complete!</div>
-        <div style="font-size: 14px; margin-top: 5px;">${challenge.name}</div>
-        <div style="font-size: 12px; margin-top: 5px;">Reward: +${challenge.reward} points</div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Add reward to score
-    score += challenge.reward;
-    
-    // Remove notification after 4 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.5s ease-in';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, 4000);
-}
+// Game screens
+const startScreen = document.getElementById('startScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
 
 // Initialize game
 function initGame() {
-    // Initialize audio context
-    initAudioContext();
-    
-    // Set up canvas
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    
-    // Set canvas size and ground position
-    canvas.width = 800;
-    canvas.height = 600;
-    groundY = canvas.height - 100;
-    
-    // Set player starting position
-    player.y = groundY - player.height;
-    
-    // Load assets and initialize game
-    loadAssets().then(() => {
-        // Initialize UI settings with null checks
-        const musicVolumeEl = document.getElementById('musicVolume');
-        const musicVolumeValueEl = document.getElementById('musicVolumeValue');
-        const sfxVolumeEl = document.getElementById('sfxVolume');
-        const sfxVolumeValueEl = document.getElementById('sfxVolumeValue');
-        const difficultyEl = document.getElementById('difficulty');
-        const particlesEnabledEl = document.getElementById('particlesEnabled');
-        
-        if (musicVolumeEl) musicVolumeEl.value = gameSettings.musicVolume;
-        if (musicVolumeValueEl) musicVolumeValueEl.textContent = gameSettings.musicVolume + '%';
-        if (sfxVolumeEl) sfxVolumeEl.value = gameSettings.sfxVolume;
-        if (sfxVolumeValueEl) sfxVolumeValueEl.textContent = gameSettings.sfxVolume + '%';
-        if (difficultyEl) difficultyEl.value = gameSettings.difficulty;
-        if (particlesEnabledEl) particlesEnabledEl.checked = gameSettings.particlesEnabled;
-        
-        // Load leaderboard
-        loadLeaderboard();
-        
-        // Load challenges
-        loadChallenges();
-        
-        // Load accessibility settings
-        loadAccessibilitySettings();
-        
-        // Show main menu
-        showMainMenu();
-        
-        // Start game loop
-        gameLoop();
-    });
-    
-    // Set up event listeners
-    setupEventListeners();
-    
-    console.log('Game initialized!');
-}
-
-// Load game assets
-function loadAssets() {
-    // Load sprites
-    const spriteFiles = {
-        'jungle_girl': 'sprites/jungle_girl.png',
-        'jungle_girl_run': 'sprites/jungle_girl_run.png',
-        'banana_coin': 'sprites/banana_coin.png',
-        'frog_obstacle': 'sprites/frog_obstacle.png',
-        'crab_enemy': 'sprites/crab_enemy.png',
-        'coconut_enemy': 'sprites/coconut_enemy.png'
-    };
-
-    const spritePromises = Object.entries(spriteFiles).map(([key, path]) => {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                sprites[key] = img;
-                resolve();
-            };
-            img.onerror = () => {
-                console.log(`Failed to load sprite: ${path}`);
-                resolve(); // Continue loading other assets
-            };
-            img.src = path;
-        });
-    });
-
-    // Load animation frames
-    const loadAnimationFrames = () => {
-        // Load idle animation frames (frames 1-10 for variety)
-        for (let i = 1; i <= 10; i++) {
-            const frameNum = i.toString().padStart(3, '0');
-            const img = new Image();
-            img.onload = () => {
-                playerSprites.idle.push(img);
-            };
-            img.onerror = () => {
-                console.log(`Failed to load idle frame ${frameNum}`);
-            };
-            img.src = `renders/Idle/frame_${frameNum}.png`;
-        }
-
-        // Load run animation frames (frames 1-10 for variety)
-        for (let i = 1; i <= 10; i++) {
-            const frameNum = i.toString().padStart(3, '0');
-            const img = new Image();
-            img.onload = () => {
-                playerSprites.run.push(img);
-            };
-            img.onerror = () => {
-                console.log(`Failed to load run frame ${frameNum}`);
-            };
-            img.src = `renders/RunForward/frame_${frameNum}.png`;
-        }
-    };
-
-    // Load audio files - using generated sounds since local files are corrupted
-    const audioFiles = {
-        'coin': null, // Will use generated sound
-        'jump': null, // Will use generated sound
-        'background': null, // Will use generated sound
-        'powerup': null, // Will use generated sound
-        'collision': null, // Will use generated sound
-        'gameOver': null // Will use generated sound
-    };
-
-    const audioPromises = Object.entries(audioFiles).map(([key, url]) => {
-        return new Promise((resolve) => {
-            // Skip loading since files are corrupted, use generated sounds
-            console.log(`Using generated sound for: ${key}`);
-            resolve();
-        });
-    });
-
-    // Load animation frames
-    loadAnimationFrames();
-
-    // Wait for all assets to load
-    return Promise.all([...spritePromises, ...audioPromises]);
-}
-
-// Setup event listeners
-function setupEventListeners() {
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-        keys[e.code] = true;
-        
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-            e.preventDefault();
-            if (gameRunning && !gamePaused) {
-                jump();
-            }
-        }
-        
-        if (e.code === 'Escape') {
-            togglePause();
-        }
-    });
-    
-    document.addEventListener('keyup', (e) => {
-        keys[e.code] = false;
-    });
-    
-    // Mobile controls
-    const leftBtn = document.getElementById('leftBtn');
-    const rightBtn = document.getElementById('rightBtn');
-    const jumpBtn = document.getElementById('jumpBtn');
-    
-    if (leftBtn) {
-        leftBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            keys.left = true;
-        });
-        leftBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            keys.left = false;
-        });
-    }
-    
-    if (rightBtn) {
-        rightBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            keys.right = true;
-        });
-        rightBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            keys.right = false;
-        });
-    }
-    
-    if (jumpBtn) {
-        jumpBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (player.onGround) {
-                jump();
-            }
-        });
-    }
-    
-    // Swipe gestures for additional controls
-    canvas.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-            const touch = e.touches[0];
-            touchControls.touchStartX = touch.clientX;
-            touchControls.touchStartY = touch.clientY;
-        }
-    });
-    
-    canvas.addEventListener('touchend', (e) => {
-        if (e.changedTouches.length === 1) {
-            const touch = e.changedTouches[0];
-            const deltaX = touch.clientX - touchControls.touchStartX;
-            const deltaY = touch.clientY - touchControls.touchStartY;
-            
-            // Swipe up for jump
-            if (deltaY < -50 && Math.abs(deltaX) < 50) {
-                if (player.onGround) {
-                    jump();
-                }
-            }
-            
-            // Swipe down for sprint
-            if (deltaY > 50 && Math.abs(deltaX) < 50) {
-                if (player.onGround) {
-                    keys.sprint = true;
-                    setTimeout(() => { keys.sprint = false; }, 1000);
-                }
-            }
-        }
-    });
-}
-
-// Start the game
-function startGame() {
-    gameState = 'playing';
-    gameRunning = true;
-    gamePaused = false;
+    gameRunning = false;
     score = 0;
     coins = 0;
-    lives = 999; // Infinite lives for testing
-    gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
-    cameraX = 0;
-    
-    // Reset player position
-    player.x = 100;
-    player.y = groundY - player.height;
-    player.velocityY = 0;
-    player.isJumping = false;
-    player.onGround = true;
-    player.isMoving = false;
-    player.angle = 0;
-    
-    // Clear game objects
+    gameSpeed = 3;
     coinObjects = [];
     obstacles = [];
     particles = [];
     
-    // Hide menu and show game
-    hideMainMenu();
+    player.x = canvas.width / 2;
+    player.y = canvas.height - 100;
     
-    // Start background music
-    if (gameSettings.musicVolume > 0) {
-        playBackgroundMusic();
-    }
-    
-    // Start game loop
+    updateUI();
+    showStartScreen();
+}
+
+// Start game
+function startGame() {
+    gameRunning = true;
+    startScreen.style.display = 'none';
+    gameOverScreen.style.display = 'none';
     gameLoop();
-    distance = 0; // Reset distance on game start
-    gameStartTime = Date.now(); // Set game start time
 }
 
-// Game loop
-function gameLoop() {
-    if (!gameRunning || gamePaused) return;
-    
-    update();
-    render();
-    
-    requestAnimationFrame(gameLoop);
+// Game over
+function gameOver() {
+    gameRunning = false;
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalCoins').textContent = coins;
+    gameOverScreen.style.display = 'block';
 }
 
-// Update game state
-function update() {
-    if (!gameRunning || gamePaused) return;
-    
-    handlePlayerMovement();
-    updatePlayerPhysics();
-    updateObjects();
-    checkCollisions();
-    updateParticles(); // Add particle updates
-    spawnObjects();
-    
-    // Increase game speed over time (more gradual)
-    gameSpeed += 0.0002; // Reduced from 0.001 to 0.0002 for slower progression
-
-    // Update power-up timers
-    if (playerPowerup.speed) {
-        playerPowerup.speedTimer--;
-        if (playerPowerup.speedTimer <= 0) playerPowerup.speed = false;
-    }
-    if (playerPowerup.shield) {
-        playerPowerup.shieldTimer--;
-        if (playerPowerup.shieldTimer <= 0) playerPowerup.shield = false;
-    }
-    if (playerPowerup.magnet) {
-        playerPowerup.magnetTimer--;
-        if (playerPowerup.magnetTimer <= 0) playerPowerup.magnet = false;
-    }
-
-    // Update special events
-    if (specialEvents.coinRain) {
-        specialEvents.coinRainTimer--;
-        if (specialEvents.coinRainTimer <= 0) {
-            specialEvents.coinRain = false;
-            console.log('Coin rain ended!');
-        }
-    }
-    
-    if (specialEvents.bonusRound) {
-        specialEvents.bonusRoundTimer--;
-        if (specialEvents.bonusRoundTimer <= 0) {
-            specialEvents.bonusRound = false;
-            console.log('Bonus round ended!');
-        }
-    }
-    
-    // Trigger new special events
-    triggerSpecialEvents();
-
-    // Update distance (endless mode) - slower, more realistic progression
-    if (gameRunning && !gamePaused) {
-        distance += gameSpeed * 0.02; // Reduced from 0.1 to 0.02 for slower progression
-        if (distance > bestDistance) bestDistance = distance;
-        
-        // Update challenge progress
-        updateChallengeProgress('runDistance', gameSpeed * 0.02);
-        updateChallengeProgress('surviveTime', 1/60); // 1/60 second per frame
-    }
-
-    // Check and unlock achievements
-    checkAchievements();
+// Restart game
+function restartGame() {
+    initGame();
 }
 
-// Handle player movement
-function handlePlayerMovement() {
-    const baseMoveSpeed = 3;
-    const sprintMultiplier = 1.5;
-    let moveSpeed = baseMoveSpeed;
-    player.isMoving = false;
+// Show start screen
+function showStartScreen() {
+    startScreen.style.display = 'block';
+    gameOverScreen.style.display = 'none';
+}
 
-    // Manual rotation with Q/E
-    const rotateSpeed = 0.08; // radians per frame
-    if (keys['KeyQ']) {
-        player.angle -= rotateSpeed;
-    }
-    if (keys['KeyE']) {
-        player.angle += rotateSpeed;
-    }
+// Update UI
+function updateUI() {
+    document.getElementById('scoreValue').textContent = score;
+    document.getElementById('coinsValue').textContent = coins;
+}
 
-    // Movement input
-    let moveX = 0;
-    let moveY = 0;
-    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.leftTouch) moveX -= 1;
-    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.rightTouch) moveX += 1;
-    if (keys['ArrowUp']) moveY -= 1;
-    if (keys['ArrowDown']) moveY += 1;
+// Handle input
+let keys = {};
+document.addEventListener('keydown', (e) => {
+    keys[e.key] = true;
+});
 
-    // Sprint
-    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'] || playerPowerup.speed;
-    if (isSprinting && player.onGround) {
-        moveSpeed *= sprintMultiplier;
-        player.animationSpeed = 4;
+document.addEventListener('keyup', (e) => {
+    keys[e.key] = false;
+});
+
+// Touch controls
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    
+    if (x < canvas.width / 2) {
+        keys['ArrowLeft'] = true;
     } else {
-        player.animationSpeed = 6;
+        keys['ArrowRight'] = true;
     }
+});
 
-    // Power-up: Magnet effect (attract coins)
-    if (playerPowerup.magnet) {
-        coinObjects.forEach(coin => {
-            if (!coin.collected) {
-                const dx = (player.x + player.width/2) - (coin.x - cameraX + coin.width/2);
-                const dy = (player.y + player.height/2) - (coin.y + coin.height/2);
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 200) {
-                    coin.x += dx * 0.08;
-                    coin.y += dy * 0.08;
-                }
-            }
-        });
-    }
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys['ArrowLeft'] = false;
+    keys['ArrowRight'] = false;
+});
 
-    // Normalize diagonal movement
-    if (moveX !== 0 || moveY !== 0) {
-        const len = Math.sqrt(moveX * moveX + moveY * moveY);
-        moveX /= len;
-        moveY /= len;
-        player.x += moveX * moveSpeed;
-        player.y += moveY * moveSpeed;
-        player.isMoving = true;
-        // Automatic facing: set angle to movement direction
-        player.angle = Math.atan2(moveY, moveX);
-        
-        // Mario Bros-style camera: follows player's forward movement
-        if (moveX > 0) {
-            // Camera moves forward when player moves right
-            cameraX += moveSpeed * 0.4; // Increased for smoother following
-        } else if (moveX < 0 && player.x < 150) {
-            // Allow some backward movement before camera follows
-            cameraX += moveSpeed * 0.1; // Slower backward camera movement
-        }
+// Update player
+function updatePlayer() {
+    if (keys['ArrowLeft'] && player.x > 0) {
+        player.x -= player.speed;
     }
-
-    // Keep player in bounds and handle camera movement
-    if (player.x < 100) {
-        player.x = 100; // Keep player away from left edge
-    }
-    // Ensure player always has room to move forward
-    if (player.x > canvas.width - 200) {
-        // Move camera forward to give player more space
-        cameraX += moveSpeed * 0.5;
-    }
-    if (player.y < 0) player.y = 0;
-    if (player.y > groundY - player.height) player.y = groundY - player.height;
-
-    // If not moving, keep angle as is (manual rotation only)
-    updatePlayerAnimation();
-}
-
-// Update player animation
-function updatePlayerAnimation() {
-    frameCounter += animationSpeed;
-    
-    // Determine current animation state
-    if (player.isMoving && player.onGround) {
-        currentAnimation = 'run';
-        animationSpeed = 0.3; // Faster animation for running
-    } else {
-        currentAnimation = 'idle';
-        animationSpeed = 0.2; // Slower animation for idle
-    }
-    
-    // Update animation frame
-    const frames = playerSprites[currentAnimation];
-    if (frames && frames.length > 0) {
-        animationFrame = Math.floor(frameCounter) % frames.length;
+    if (keys['ArrowRight'] && player.x < canvas.width - player.width) {
+        player.x += player.speed;
     }
 }
 
-// Update player physics
-function updatePlayerPhysics() {
-    // Apply gravity
-    if (!player.onGround) {
-        player.velocityY += gravity;
-        player.y += player.velocityY;
-    }
-    
-    // Check ground collision - account for player height
-    if (player.y + player.height >= groundY) {
-        player.y = groundY - player.height;
-        player.velocityY = 0;
-        player.onGround = true;
-        player.isJumping = false;
-    }
-}
-
-// Jump function
-function jump() {
-    if (player.onGround && !player.isJumping) {
-        player.velocityY = -15;
-        player.isJumping = true;
-        player.onGround = false;
-        
-        // Create jump particles
-        createJumpParticles(player.x + player.width / 2, player.y + player.height);
-        
-        // Play jump sound
-        playJumpSound();
-    }
-}
-
-// Spawn objects
-function spawnObjects() {
-    // Spawn coins with more variety
-    if (Math.random() < 0.03) { // Increased spawn rate
-        const coinY = Math.random() * (groundY - 150) + 50;
+// Spawn coins
+function spawnCoins() {
+    if (Math.random() < 0.02) {
         coinObjects.push({
-            x: cameraX + canvas.width + Math.random() * 200, // Spawn ahead of camera
-            y: coinY,
-            width: 40,
-            height: 40,
-            collected: false,
-            type: Math.random() < 0.2 ? 'gold' : 'silver' // Different coin types
-        });
-    }
-    
-    // Spawn obstacles with more variety
-    if (Math.random() < 0.015) {
-        const obstacleTypes = Object.keys(OBSTACLE_TYPES);
-        const randomType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
-        const obstacleData = OBSTACLE_TYPES[randomType];
-
-        // Vary obstacle positions and sizes based on type
-        let obstacleHeight, obstacleWidth, obstacleY;
-        
-        switch(obstacleData.category) {
-            case 'ground':
-                obstacleHeight = 30 + Math.random() * 20;
-                obstacleWidth = 25 + Math.random() * 15;
-                obstacleY = groundY - obstacleHeight;
-                break;
-            case 'flying':
-                obstacleHeight = 25 + Math.random() * 15;
-                obstacleWidth = 30 + Math.random() * 10;
-                obstacleY = Math.random() * (groundY - 200) + 50;
-                break;
-            case 'hazard':
-                obstacleHeight = 20;
-                obstacleWidth = 40 + Math.random() * 20;
-                obstacleY = groundY - obstacleHeight;
-                break;
-            case 'moving':
-                obstacleHeight = 35 + Math.random() * 15;
-                obstacleWidth = 30 + Math.random() * 20;
-                obstacleY = groundY - obstacleHeight;
-                break;
-            default:
-                obstacleHeight = 30;
-                obstacleWidth = 25;
-                obstacleY = groundY - obstacleHeight;
-        }
-
-        obstacles.push({
-            x: cameraX + canvas.width + Math.random() * 300,
-            y: obstacleY,
-            width: obstacleWidth,
-            height: obstacleHeight,
-            type: randomType,
-            category: obstacleData.category,
-            speed: gameSpeed * obstacleData.speed,
-            damage: obstacleData.damage,
-            originalY: obstacleY, // For moving obstacles
-            moveDirection: Math.random() < 0.5 ? 1 : -1, // For moving obstacles
-            moveSpeed: 1 + Math.random() * 2 // For moving obstacles
-        });
-    }
-    
-    // Spawn floating obstacles (like birds or flying enemies)
-    if (Math.random() < 0.008) {
-        obstacles.push({
-            x: cameraX + canvas.width + Math.random() * 400, // Spawn ahead of camera
-            y: Math.random() * (groundY - 200) + 50,
-            width: 35,
-            height: 25,
-            type: 'flying_enemy',
-            speed: gameSpeed + 1
-        });
-    }
-
-    // Spawn power-ups
-    if (Math.random() < 0.008) {
-        const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-        powerUps.push({
-            x: cameraX + canvas.width + Math.random() * 400,
-            y: Math.random() * (groundY - 120) + 60,
-            width: 40,
-            height: 40,
-            type: type,
+            x: Math.random() * (canvas.width - 20),
+            y: -20,
+            width: 20,
+            height: 20,
             collected: false
         });
     }
+}
 
-    // Special events: Coin rain
-    if (specialEvents.coinRain) {
-        // Spawn many coins during coin rain
-        for (let i = 0; i < 3; i++) {
-            const coinY = Math.random() * (groundY - 150) + 50;
-            coinObjects.push({
-                x: cameraX + canvas.width + Math.random() * 200,
-                y: coinY,
-                width: 40,
-                height: 40,
-                collected: false,
-                type: Math.random() < 0.4 ? 'gold' : 'silver', // More gold coins during rain
-                rotation: Math.random() * Math.PI * 2
-            });
-        }
-    }
-    
-    // Special events: Bonus round (more power-ups)
-    if (specialEvents.bonusRound) {
-        // Spawn more power-ups during bonus round
-        if (Math.random() < 0.05) {
-            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-            powerUps.push({
-                x: cameraX + canvas.width + Math.random() * 300,
-                y: Math.random() * (groundY - 120) + 60,
-                width: 40,
-                height: 40,
-                type: type,
-                collected: false
-            });
-        }
-    }
-
-    // Spawn Mario Bros-style enemies
-    if (Math.random() < 0.005) { // Reduced spawn rate
-        const enemyTypes = ['goomba', 'koopa', 'monkey', 'snake'];
-        const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-        
+// Spawn obstacles
+function spawnObstacles() {
+    if (Math.random() < 0.01) {
         obstacles.push({
-            x: canvas.width + Math.random() * 200,
-            y: groundY - 40, // On ground
-            width: 40,
-            height: 40,
-            type: enemyType,
-            speed: 1 + Math.random() * 2,
-            direction: -1, // Move left
-            avoided: false
-        });
-    }
-
-    // Spawn coins with much lower rate
-    if (Math.random() < 0.002) { // Reduced from 0.01 to 0.002
-        coinObjects.push({
-            x: canvas.width + Math.random() * 200,
-            y: groundY - 60 + Math.random() * 100,
+            x: Math.random() * (canvas.width - 30),
+            y: -30,
             width: 30,
-            height: 30,
-            rotation: 0,
-            collected: false
+            height: 30
         });
     }
 }
@@ -1265,1378 +142,205 @@ function spawnObjects() {
 // Update objects
 function updateObjects() {
     // Update coins
-    coinObjects.forEach(coin => {
-        coin.rotation += 0.1;
-        // Remove coins that are off screen
-        if (coin.x < cameraX - coin.width) {
-            coinObjects = coinObjects.filter(c => c !== coin);
+    coinObjects.forEach((coin, index) => {
+        coin.y += gameSpeed;
+        if (coin.y > canvas.height) {
+            coinObjects.splice(index, 1);
         }
     });
-
-    // Update obstacles and enemies
-    obstacles.forEach(obstacle => {
-        // Move Mario Bros-style enemies
-        if (obstacle.type === 'goomba' || obstacle.type === 'koopa' || 
-            obstacle.type === 'monkey' || obstacle.type === 'snake') {
-            obstacle.x += obstacle.speed * obstacle.direction;
-            
-            // Turn around at screen edges
-            if (obstacle.x < cameraX - 50) {
-                obstacle.direction = 1;
-            } else if (obstacle.x > cameraX + canvas.width + 50) {
-                obstacle.direction = -1;
-            }
+    
+    // Update obstacles
+    obstacles.forEach((obstacle, index) => {
+        obstacle.y += gameSpeed;
+        if (obstacle.y > canvas.height) {
+            obstacles.splice(index, 1);
         }
+    });
+    
+    // Update particles
+    particles.forEach((particle, index) => {
+        particle.y += particle.vy;
+        particle.x += particle.vx;
+        particle.life--;
         
-        // Remove obstacles that are off screen
-        if (obstacle.x < cameraX - obstacle.width - 100) {
-            obstacles = obstacles.filter(o => o !== obstacle);
-        }
-    });
-
-    // Update power-ups
-    powerUps.forEach(powerup => {
-        if (powerup.x < cameraX - powerup.width) {
-            powerUps = powerUps.filter(p => p !== powerup);
+        if (particle.life <= 0) {
+            particles.splice(index, 1);
         }
     });
 }
 
 // Check collisions
 function checkCollisions() {
-    // Check coin collisions
-    coinObjects.forEach(coin => {
-        if (!coin.collected &&
-            player.x < coin.x - cameraX + coin.width &&
-            player.x + player.width > coin.x - cameraX &&
+    // Coin collisions
+    coinObjects.forEach((coin, index) => {
+        if (!coin.collected && 
+            player.x < coin.x + coin.width &&
+            player.x + player.width > coin.x &&
             player.y < coin.y + coin.height &&
             player.y + player.height > coin.y) {
             
             coin.collected = true;
             coins++;
-            totalCoinsCollected++; // Track total coins for achievements
             score += 10;
-            
-            // Update challenge progress
-            updateChallengeProgress('collectCoins');
-            
-            // Create coin collection particles
-            if (gameSettings.particlesEnabled) {
-                createCoinParticles(coin.x, coin.y);
-            }
-            
-            // Play coin sound
-            playCoinSound();
+            createCoinParticles(coin.x, coin.y);
+            coinObjects.splice(index, 1);
+            updateUI();
         }
     });
     
-    // Check obstacle collisions
-    obstacles.forEach(obstacle => {
-        if (player.x < obstacle.x - cameraX + obstacle.width &&
-            player.x + player.width > obstacle.x - cameraX &&
+    // Obstacle collisions
+    obstacles.forEach((obstacle) => {
+        if (player.x < obstacle.x + obstacle.width &&
+            player.x + player.width > obstacle.x &&
             player.y < obstacle.y + obstacle.height &&
             player.y + player.height > obstacle.y) {
             
-            // Play collision sound
-            playCollisionSound();
-            
-            if (playerPowerup.shield) {
-                // Shield absorbs the hit
-                playerPowerup.shield = false;
-                // Remove the obstacle
-                obstacles = obstacles.filter(o => o !== obstacle);
-                return;
-            }
-            
-            lives--;
-            if (lives <= 0) {
-                // Play game over sound
-                playGameOverSound();
-                gameOver();
-            } else {
-                // Remove the obstacle that was hit
-                obstacles = obstacles.filter(o => o !== obstacle);
-            }
-        } else {
-            // Player avoided this obstacle - update challenge progress
-            if (!obstacle.avoided && obstacle.x - cameraX < player.x - 50) {
-                obstacle.avoided = true;
-                updateChallengeProgress('avoidObstacles');
-            }
-        }
-    });
-
-    // Check power-up collisions
-    powerUps.forEach(powerup => {
-        if (!powerup.collected &&
-            player.x < powerup.x - cameraX + powerup.width &&
-            player.x + player.width > powerup.x - cameraX &&
-            player.y < powerup.y + powerup.height &&
-            player.y + player.height > powerup.y) {
-            powerup.collected = true;
-            totalPowerupsCollected++; // Track total power-ups for achievements
-            
-            // Update challenge progress
-            updateChallengeProgress('collectPowerups');
-            
-            switch(powerup.type) {
-                case 'speed':
-                    playerPowerup.speed = true;
-                    playerPowerup.speedTimer = 300; // 5 seconds at 60fps
-                    playPowerupSound();
-                    break;
-                case 'shield':
-                    playerPowerup.shield = true;
-                    playerPowerup.shieldTimer = 360; // 6 seconds
-                    playPowerupSound();
-                    break;
-                case 'magnet':
-                    playerPowerup.magnet = true;
-                    playerPowerup.magnetTimer = 360; // 6 seconds
-                    playPowerupSound();
-                    break;
-            }
+            gameOver();
         }
     });
 }
 
-// Update UI
-function updateUI() {
-    // Update basic game info
-    document.getElementById('scoreValue').textContent = score;
-    document.getElementById('coinsValue').textContent = coins;
-    document.getElementById('livesValue').textContent = lives;
-    
-    // Update final scores for game over screen
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('finalCoins').textContent = coins;
-}
-
-// Update audio status display
-function updateAudioStatus() {
-    const audioStatus = document.getElementById('audioStatus');
-    if (audioStatus) {
-        const coinAudio = audio.coin;
-        const jumpAudio = audio.jump;
-        const backgroundAudio = audio.background;
-        
-        if (coinAudio && jumpAudio && backgroundAudio) {
-            audioStatus.textContent = 'Sound effects: Available | Music: Playing';
-            audioStatus.style.color = '#4CAF50';
-        } else if (audioContext) {
-            audioStatus.textContent = 'Sound effects: Generated | Music: Generated';
-            audioStatus.style.color = '#2196F3';
-        } else {
-            audioStatus.textContent = 'Sound effects: Not available | Music: Not available';
-            audioStatus.style.color = '#FF9800';
-        }
+// Create coin particles
+function createCoinParticles(x, y) {
+    for (let i = 0; i < 5; i++) {
+        particles.push({
+            x: x + 10,
+            y: y + 10,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -Math.random() * 3,
+            life: 30,
+            color: '#FFD700'
+        });
     }
 }
 
-// Render game
-function render() {
+// Draw functions
+function drawPlayer() {
+    ctx.fillStyle = '#FF6B9D';
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+    
+    // Player outline
+    ctx.strokeStyle = '#8B0000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(player.x, player.y, player.width, player.height);
+    
+    // Simple face
+    ctx.fillStyle = '#FFE4E1';
+    ctx.fillRect(player.x + 5, player.y + 5, 20, 20);
+    
+    // Eyes
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(player.x + 8, player.y + 8, 4, 4);
+    ctx.fillRect(player.x + 18, player.y + 8, 4, 4);
+}
+
+function drawCoins() {
+    coinObjects.forEach(coin => {
+        if (!coin.collected) {
+            // Coin glow
+            ctx.shadowColor = '#FFD700';
+            ctx.shadowBlur = 10;
+            
+            // Coin body
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Coin border
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Dollar sign
+            ctx.fillStyle = '#8B4513';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', coin.x + coin.width/2, coin.y + coin.height/2);
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+    });
+}
+
+function drawObstacles() {
+    obstacles.forEach(obstacle => {
+        ctx.fillStyle = '#FF6347';
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        
+        // Obstacle outline
+        ctx.strokeStyle = '#8B0000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    });
+}
+
+function drawParticles() {
+    particles.forEach(particle => {
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.life / 30;
+        ctx.fillRect(particle.x, particle.y, 4, 4);
+    });
+    ctx.globalAlpha = 1;
+}
+
+function drawBackground() {
+    // Sky gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#87CEEB');
+    gradient.addColorStop(1, '#98FB98');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Simple clouds
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    for (let i = 0; i < 3; i++) {
+        const x = (i * 150 + score * 0.1) % (canvas.width + 100);
+        const y = 50 + Math.sin(i) * 20;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.arc(x + 15, y, 15, 0, Math.PI * 2);
+        ctx.arc(x + 30, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+// Main game loop
+function gameLoop() {
+    if (!gameRunning) return;
+    
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw background
+    // Update
+    updatePlayer();
+    spawnCoins();
+    spawnObstacles();
+    updateObjects();
+    checkCollisions();
+    
+    // Increase score and speed
+    score++;
+    if (score % 100 === 0) {
+        gameSpeed += 0.5;
+    }
+    
+    // Draw
     drawBackground();
-    
-    // Draw ground
-    drawGround();
-    
-    // Draw coins
     drawCoins();
-    
-    // Draw obstacles
     drawObstacles();
-    
-    // Draw player
     drawPlayer();
+    drawParticles();
     
-    // Draw particles
-    if (gameSettings.particlesEnabled) {
-        drawParticles();
-    }
-}
-
-// Draw simplified, cleaner background
-function drawBackground() {
-    // Clear canvas with sky blue background
-    ctx.fillStyle = '#87CEEB';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Update UI
+    updateUI();
     
-    // Draw simple clouds
-    for (let i = 0; i < 3; i++) {
-        const x = (i * 300 - cameraX * 0.2) % (canvas.width + 300);
-        const y = 80 + Math.sin(i) * 30;
-        drawSimpleCloud(x, y);
-    }
-    
-    // Draw Mario Bros-style bricks (platforms) - simplified
-    const brickSize = 50;
-    const brickRows = 2;
-    const bricksPerRow = 15;
-    
-    for (let row = 0; row < brickRows; row++) {
-        for (let col = 0; col < bricksPerRow; col++) {
-            const x = col * brickSize - cameraX * 0.5;
-            const y = canvas.height - 250 - (row * brickSize);
-            
-            // Only draw bricks that are visible
-            if (x > -brickSize && x < canvas.width + brickSize) {
-                // Brick body
-                ctx.fillStyle = '#CD853F';
-                ctx.fillRect(x, y, brickSize, brickSize);
-                
-                // Brick border
-                ctx.strokeStyle = '#8B4513';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, brickSize, brickSize);
-                
-                // Simple brick pattern
-                ctx.strokeStyle = '#A0522D';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x + brickSize/2, y);
-                ctx.lineTo(x + brickSize/2, y + brickSize);
-                ctx.stroke();
-            }
-        }
-    }
-    
-    // Draw simplified logs as platforms
-    const logSize = 80;
-    const logPositions = [
-        {x: 400, y: canvas.height - 280},
-        {x: 900, y: canvas.height - 320},
-        {x: 1400, y: canvas.height - 300},
-        {x: 1900, y: canvas.height - 340},
-        {x: 2400, y: canvas.height - 290}
-    ];
-    
-    logPositions.forEach(log => {
-        const x = log.x - cameraX;
-        const y = log.y;
-        
-        if (x > -logSize && x < canvas.width + logSize) {
-            // Log body
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(x, y, logSize, 25);
-            
-            // Log border
-            ctx.strokeStyle = '#654321';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, y, logSize, 25);
-            
-            // Log texture lines
-            ctx.strokeStyle = '#A0522D';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 3; i++) {
-                ctx.beginPath();
-                ctx.moveTo(x + (i + 1) * logSize/4, y);
-                ctx.lineTo(x + (i + 1) * logSize/4, y + 25);
-                ctx.stroke();
-            }
-        }
-    });
-}
-
-// Draw simple cloud
-function drawSimpleCloud(x, y) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.beginPath();
-    ctx.arc(x, y, 30, 0, Math.PI * 2);
-    ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
-    ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
-    ctx.arc(x + 25, y - 20, 20, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-// Draw ground
-function drawGround() {
-    const groundHeight = 80;
-    const grassHeight = 25;
-    
-    // Dirt base
-    ctx.fillStyle = '#8B4513';
-    ctx.fillRect(0, groundY, canvas.width, groundHeight);
-    
-    // Grass top
-    ctx.fillStyle = '#228B22';
-    ctx.fillRect(0, groundY, canvas.width, grassHeight);
-    
-    // Simple grass texture
-    ctx.strokeStyle = '#32CD32';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < canvas.width; i += 40) {
-        const x = (i - cameraX * 0.8) % (canvas.width + 40);
-        ctx.beginPath();
-        ctx.moveTo(x, groundY);
-        ctx.lineTo(x + 20, groundY - 8);
-        ctx.stroke();
-    }
-    
-    // Simple dirt texture
-    ctx.strokeStyle = '#654321';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 50) {
-        const x = (i - cameraX * 0.8) % (canvas.width + 50);
-        ctx.beginPath();
-        ctx.moveTo(x, groundY + grassHeight);
-        ctx.lineTo(x, groundY + groundHeight);
-        ctx.stroke();
-    }
-}
-
-// Game over
-function gameOver() {
-    gameState = 'gameOver';
-    gameRunning = false;
-    
-    // Stop background music
-    if (audio.background && !audio.background.paused) {
-        audio.background.pause();
-    }
-    
-    // Show game over screen briefly, then return to menu
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('finalCoins').textContent = coins;
-    document.getElementById('gameOverScreen').style.display = 'flex';
-    
-    // Show final distance
-    let finalDistance = document.getElementById('finalDistance');
-    if (!finalDistance) {
-        finalDistance = document.createElement('p');
-        finalDistance.id = 'finalDistance';
-        document.getElementById('gameOverScreen').querySelector('.screen-content').appendChild(finalDistance);
-    }
-    finalDistance.textContent = `Distance: ${Math.floor(distance)} m | Best: ${Math.floor(bestDistance)} m`;
-
-    // Add to leaderboard
-    const position = addToLeaderboard(score, distance, coins);
-    const leaderboardDiv = document.getElementById('leaderboard');
-    if (leaderboardDiv) {
-        leaderboardDiv.innerHTML = ''; // Clear previous entries
-        leaderboard.forEach((entry, index) => {
-            const entryDiv = document.createElement('div');
-            entryDiv.className = 'leaderboard-entry';
-            entryDiv.innerHTML = `
-                <span>${index + 1}.</span>
-                <span>${entry.score}</span>
-                <span>${entry.distance}m</span>
-                <span>${entry.coins} coins</span>
-                <span>${entry.date} ${entry.time}</span>
-            `;
-            leaderboardDiv.appendChild(entryDiv);
-        });
-    }
-
-    // Return to main menu after 3 seconds
-    setTimeout(() => {
-        document.getElementById('gameOverScreen').style.display = 'none';
-        showMainMenu();
-    }, 3000);
-}
-
-// Restart game
-function restartGame() {
-    // Reset game state
-    score = 0;
-    coins = 0;
-    lives = 999; // Infinite lives for testing
-    gameSpeed = 2; // Reduced from 5 to 2 for slower initial speed
-    obstacles = [];
-    coinObjects = [];
-    powerUps = [];
-    
-    // Reset player position and state
-    player.x = 100;
-    player.y = groundY - player.height;
-    player.velocityY = 0;
-    player.isJumping = false;
-    player.onGround = true;
-    player.isMoving = false;
-    player.direction = 1; // Face right by default
-    
-    // Hide game over screen
-    document.getElementById('gameOverScreen').style.display = 'none';
-    
-    startGame();
-}
-
-// Toggle pause
-function togglePause() {
-    if (gameState !== 'playing') return;
-    
-    if (gamePaused) {
-        // Resume game
-        gamePaused = false;
-        gameState = 'playing';
-        document.getElementById('pauseScreen').style.display = 'none';
-        
-        // Resume background music
-        if (audio.background && audio.background.paused) {
-            audio.background.play().catch(e => console.log('Background music resume failed:', e));
-        }
-        
-        gameLoop();
-    } else {
-        // Pause game
-        gamePaused = true;
-        gameState = 'paused';
-        
-        // Pause background music
-        if (audio.background && !audio.background.paused) {
-            audio.background.pause();
-        }
-        
-        document.getElementById('pauseScreen').style.display = 'flex';
-    }
-}
-
-// Resume game
-function resumeGame() {
-    gamePaused = false;
-    document.getElementById('pauseScreen').style.display = 'none';
-    gameLoop();
-}
-
-// Menu navigation functions
-function showMainMenu() {
-    gameState = 'menu';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-    document.getElementById('gameUI').classList.remove('show');
-    document.getElementById('gameCanvas').style.display = 'none';
-    // Stop background music
-    if (audio.background && !audio.background.paused) {
-        audio.background.pause();
-    }
-}
-
-function hideMainMenu() {
-    document.getElementById('mainMenuScreen').style.display = 'none';
-    document.getElementById('gameUI').classList.add('show');
-    document.getElementById('gameCanvas').style.display = 'block';
-}
-
-function showSettings() {
-    document.getElementById('settingsScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-}
-
-function hideSettings() {
-    document.getElementById('settingsScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-function showTutorial() {
-    document.getElementById('tutorialScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-}
-
-function hideTutorial() {
-    document.getElementById('tutorialScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-function showCredits() {
-    document.getElementById('creditsScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-}
-
-function hideCredits() {
-    document.getElementById('creditsScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-// Settings functions
-function updateMusicVolume() {
-    const volumeEl = document.getElementById('musicVolume');
-    const volumeValueEl = document.getElementById('musicVolumeValue');
-    
-    if (volumeEl && volumeValueEl) {
-        const volume = volumeEl.value;
-        gameSettings.musicVolume = parseInt(volume);
-        volumeValueEl.textContent = volume + '%';
-        
-        if (audio.background) {
-            audio.background.volume = volume / 100;
-        }
-    }
-}
-
-function updateSfxVolume() {
-    const volumeEl = document.getElementById('sfxVolume');
-    const volumeValueEl = document.getElementById('sfxVolumeValue');
-    
-    if (volumeEl && volumeValueEl) {
-        const volume = volumeEl.value;
-        gameSettings.sfxVolume = parseInt(volume);
-        volumeValueEl.textContent = volume + '%';
-    }
-}
-
-function updateDifficulty() {
-    const difficultyEl = document.getElementById('difficulty');
-    
-    if (difficultyEl) {
-        const difficulty = difficultyEl.value;
-        gameSettings.difficulty = difficulty;
-        
-        // Adjust game settings based on difficulty
-        switch(difficulty) {
-            case 'easy':
-                gameSpeed = 1.5;
-                break;
-            case 'normal':
-                gameSpeed = 2;
-                break;
-            case 'hard':
-                gameSpeed = 3;
-                break;
-        }
-    }
-}
-
-function toggleParticles() {
-    const enabled = document.getElementById('particlesEnabled').checked;
-    gameSettings.particlesEnabled = enabled;
-}
-
-// Check and unlock achievements
-function checkAchievements() {
-    // Update current values
-    achievements.coins.current = totalCoinsCollected;
-    achievements.distance.current = Math.floor(distance);
-    achievements.powerups.current = totalPowerupsCollected;
-    achievements.survival.current = Math.floor((Date.now() - gameStartTime) / 1000);
-    
-    // Check each achievement type
-    Object.keys(achievements).forEach(type => {
-        const achievement = achievements[type];
-        achievement.milestones.forEach(milestone => {
-            if (achievement.current >= milestone && !achievement.unlocked.includes(milestone)) {
-                achievement.unlocked.push(milestone);
-                showAchievementNotification(type, milestone);
-            }
-        });
-    });
-}
-
-// Show achievement notification
-function showAchievementNotification(type, milestone) {
-    const messages = {
-        coins: `🏆 Coin Collector: ${milestone} coins!`,
-        distance: `🏃 Distance Runner: ${milestone}m!`,
-        powerups: `⚡ Power Player: ${milestone} power-ups!`,
-        survival: `⏱️ Survivor: ${milestone} seconds!`
-    };
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(45deg, #4CAF50, #45a049);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        font-weight: bold;
-        font-size: 16px;
-        z-index: 10000;
-        animation: slideIn 0.5s ease-out;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    `;
-    notification.textContent = messages[type];
-    
-    document.body.appendChild(notification);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.5s ease-in';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, 3000);
-}
-
-// Achievement screen functions
-function showAchievements() {
-    document.getElementById('achievementsScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-    populateAchievements();
-}
-
-function hideAchievements() {
-    document.getElementById('achievementsScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-function populateAchievements() {
-    // Populate each achievement category
-    populateAchievementCategory('coinAchievements', 'coins');
-    populateAchievementCategory('distanceAchievements', 'distance');
-    populateAchievementCategory('powerupAchievements', 'powerups');
-    populateAchievementCategory('survivalAchievements', 'survival');
-}
-
-function populateAchievementCategory(elementId, type) {
-    const container = document.getElementById(elementId);
-    container.innerHTML = '';
-    
-    const achievement = achievements[type];
-    achievement.milestones.forEach(milestone => {
-        const isUnlocked = achievement.unlocked.includes(milestone);
-        const div = document.createElement('div');
-        div.className = 'achievement-item';
-        div.style.cssText = `
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 8px;
-            background: ${isUnlocked ? '#4CAF50' : '#f0f0f0'};
-            color: ${isUnlocked ? 'white' : '#666'};
-            font-weight: ${isUnlocked ? 'bold' : 'normal'};
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `;
-        div.innerHTML = `
-            <span>${milestone} ${getAchievementUnit(type)}</span>
-            <span>${isUnlocked ? '✅' : '🔒'}</span>
-        `;
-        container.appendChild(div);
-    });
-}
-
-function getAchievementUnit(type) {
-    switch(type) {
-        case 'coins': return 'coins';
-        case 'distance': return 'm';
-        case 'powerups': return 'power-ups';
-        case 'survival': return 'seconds';
-        default: return '';
-    }
-}
-
-// Leaderboard screen functions
-function showLeaderboard() {
-    document.getElementById('leaderboardScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-    populateFullLeaderboard();
-}
-
-function hideLeaderboard() {
-    document.getElementById('leaderboardScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-function populateFullLeaderboard() {
-    const container = document.getElementById('fullLeaderboard');
-    container.innerHTML = '';
-    
-    if (leaderboard.length === 0) {
-        const noScores = document.createElement('div');
-        noScores.className = 'no-scores';
-        noScores.textContent = 'No scores yet! Play a game to set a record!';
-        container.appendChild(noScores);
-        return;
-    }
-    
-    leaderboard.forEach((entry, index) => {
-        const entryDiv = document.createElement('div');
-        entryDiv.className = 'leaderboard-entry-full';
-        entryDiv.innerHTML = `
-            <span class="rank">${index + 1}</span>
-            <span class="score">${entry.score}</span>
-            <span class="distance">${entry.distance}m</span>
-            <span class="coins">${entry.coins}</span>
-            <span class="date">${entry.date} ${entry.time}</span>
-        `;
-        container.appendChild(entryDiv);
-    });
-}
-
-function clearLeaderboard() {
-    if (confirm('Are you sure you want to clear all scores? This cannot be undone.')) {
-        leaderboard = [];
-        saveLeaderboard();
-        populateFullLeaderboard();
-    }
-}
-
-// Daily challenges screen functions
-function showChallenges() {
-    document.getElementById('challengesScreen').style.display = 'flex';
-    document.getElementById('mainMenuScreen').style.display = 'none';
-    populateChallenges();
-}
-
-function hideChallenges() {
-    document.getElementById('challengesScreen').style.display = 'none';
-    document.getElementById('mainMenuScreen').style.display = 'flex';
-}
-
-function populateChallenges() {
-    const container = document.getElementById('dailyChallengesList');
-    container.innerHTML = '';
-    
-    if (dailyChallenges.length === 0) {
-        const noChallenges = document.createElement('div');
-        noChallenges.className = 'no-challenges';
-        noChallenges.textContent = 'No challenges available. Check back tomorrow!';
-        container.appendChild(noChallenges);
-        return;
-    }
-    
-    dailyChallenges.forEach(challenge => {
-        const challengeDiv = document.createElement('div');
-        challengeDiv.className = 'challenge-item';
-        const progress = Math.min(challenge.current, challenge.target);
-        const percentage = (progress / challenge.target) * 100;
-        
-        challengeDiv.innerHTML = `
-            <div class="challenge-header">
-                <h3>${challenge.name}</h3>
-                <span class="challenge-status ${challenge.completed ? 'completed' : 'in-progress'}">
-                    ${challenge.completed ? '✅' : '🎯'}
-                </span>
-            </div>
-            <p class="challenge-description">${challenge.description}</p>
-            <div class="challenge-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${percentage}%"></div>
-                </div>
-                <span class="progress-text">${Math.floor(challenge.current)}/${challenge.target}</span>
-            </div>
-            <div class="challenge-reward">Reward: +${challenge.reward} points</div>
-        `;
-        
-        container.appendChild(challengeDiv);
-    });
+    // Continue loop
+    requestAnimationFrame(gameLoop);
 }
 
 // Initialize game when page loads
-window.addEventListener('load', initGame);
-
-// Handle window resize
-window.addEventListener('resize', () => {
-    if (canvas) {
-        if (window.innerWidth < 800) {
-            canvas.width = window.innerWidth - 20;
-            canvas.height = window.innerHeight * 0.6;
-            groundY = canvas.height - 50;
-            if (player) {
-                player.y = groundY - player.height;
-            }
-        } else {
-            canvas.width = 800;
-            canvas.height = 600;
-            groundY = 550;
-            if (player) {
-                player.y = groundY - player.height;
-            }
-        }
-    }
-});
-
-// Accessibility and mobile features
-let accessibilitySettings = {
-    colorblindMode: false,
-    highContrast: false,
-    largeText: false,
-    reducedMotion: false,
-    soundCues: true
-};
-
-let difficultyScaling = {
-    autoAdjust: true,
-    currentLevel: 1,
-    maxLevel: 10,
-    adjustmentRate: 0.1
-};
-
-// Colorblind-friendly color schemes
-const COLORBLIND_COLORS = {
-    coin: '#FFD700', // Bright yellow
-    obstacle: '#FF4444', // Bright red
-    powerup: '#00AAFF', // Bright blue
-    player: '#00FF00', // Bright green
-    background: '#FFFFFF', // White
-    text: '#000000' // Black
-};
-
-// High contrast color schemes
-const HIGH_CONTRAST_COLORS = {
-    coin: '#FFFF00', // Pure yellow
-    obstacle: '#FF0000', // Pure red
-    powerup: '#00FFFF', // Cyan
-    player: '#00FF00', // Pure green
-    background: '#000000', // Black
-    text: '#FFFFFF' // White
-};
-
-// Save accessibility settings
-function saveAccessibilitySettings() {
-    localStorage.setItem('jungleDashAccessibility', JSON.stringify(accessibilitySettings));
-    localStorage.setItem('jungleDashDifficulty', JSON.stringify(difficultyScaling));
-}
-
-// Load accessibility settings
-function loadAccessibilitySettings() {
-    const saved = localStorage.getItem('jungleDashAccessibility');
-    const savedDifficulty = localStorage.getItem('jungleDashDifficulty');
-    
-    if (saved) {
-        accessibilitySettings = { ...accessibilitySettings, ...JSON.parse(saved) };
-    }
-    
-    if (savedDifficulty) {
-        difficultyScaling = { ...difficultyScaling, ...JSON.parse(savedDifficulty) };
-    }
-    
-    // Apply settings
-    document.body.classList.toggle('colorblind-mode', accessibilitySettings.colorblindMode);
-    document.body.classList.toggle('high-contrast-mode', accessibilitySettings.highContrast);
-    document.body.classList.toggle('accessibility-large-text', accessibilitySettings.largeText);
-    document.body.classList.toggle('accessibility-reduced-motion', accessibilitySettings.reducedMotion);
-    
-    // Update UI elements
-    if (document.getElementById('colorblindMode')) {
-        document.getElementById('colorblindMode').checked = accessibilitySettings.colorblindMode;
-    }
-    if (document.getElementById('highContrast')) {
-        document.getElementById('highContrast').checked = accessibilitySettings.highContrast;
-    }
-    if (document.getElementById('largeText')) {
-        document.getElementById('largeText').checked = accessibilitySettings.largeText;
-    }
-    if (document.getElementById('reducedMotion')) {
-        document.getElementById('reducedMotion').checked = accessibilitySettings.reducedMotion;
-    }
-    if (document.getElementById('soundCues')) {
-        document.getElementById('soundCues').checked = accessibilitySettings.soundCues;
-    }
-    if (document.getElementById('autoAdjust')) {
-        document.getElementById('autoAdjust').checked = difficultyScaling.autoAdjust;
-    }
-    if (document.getElementById('difficultyLevel')) {
-        document.getElementById('difficultyLevel').value = difficultyScaling.currentLevel;
-        document.getElementById('currentLevel').textContent = difficultyScaling.currentLevel;
-    }
-}
-
-// Auto-adjust difficulty based on player performance
-function adjustDifficulty() {
-    if (!difficultyScaling.autoAdjust) return;
-    
-    const survivalTime = (Date.now() - gameStartTime) / 1000;
-    const coinsPerSecond = totalCoinsCollected / survivalTime;
-    
-    // Adjust based on performance
-    if (survivalTime > 30 && coinsPerSecond > 2) {
-        difficultyScaling.currentLevel = Math.min(difficultyScaling.maxLevel, 
-            difficultyScaling.currentLevel + difficultyScaling.adjustmentRate);
-    } else if (survivalTime < 10 || coinsPerSecond < 0.5) {
-        difficultyScaling.currentLevel = Math.max(1, 
-            difficultyScaling.currentLevel - difficultyScaling.adjustmentRate);
-    }
-    
-    // Apply difficulty scaling
-    gameSpeed = 2 + (difficultyScaling.currentLevel * 0.5);
-    
-    // Update UI if element exists
-    const difficultyLevelEl = document.getElementById('difficultyLevel');
-    const currentLevelEl = document.getElementById('currentLevel');
-    
-    if (difficultyLevelEl) difficultyLevelEl.value = difficultyScaling.currentLevel;
-    if (currentLevelEl) currentLevelEl.textContent = difficultyScaling.currentLevel;
-}
-
-// Setup enhanced touch controls
-function setupTouchControls() {
-    const leftBtn = document.getElementById('leftBtn');
-    const rightBtn = document.getElementById('rightBtn');
-    const jumpBtn = document.getElementById('jumpBtn');
-    
-    // Left button
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        keys.left = true;
-    });
-    
-    leftBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        keys.left = false;
-    });
-    
-    // Right button
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        keys.right = true;
-    });
-    
-    rightBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        keys.right = false;
-    });
-    
-    // Jump button
-    jumpBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (player.onGround) {
-            jump();
-        }
-    });
-    
-    jumpBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        keys.jump = false;
-    });
-    
-    // Add swipe gestures for sprint
-    let canvas = document.getElementById('gameCanvas');
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        keys.sprint = true;
-        touchControls.touchStartX = e.touches[0].clientX;
-        touchControls.touchStartY = e.touches[0].clientY;
-    });
-    
-    canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        const deltaX = touchEndX - touchControls.touchStartX;
-        const deltaY = touchEndY - touchControls.touchStartY;
-        
-        // Swipe up for jump
-        if (deltaY < -50 && Math.abs(deltaX) < 50) {
-            if (player.onGround) {
-                jump();
-            }
-        }
-        
-        // Swipe down for sprint
-        if (deltaY > 50 && Math.abs(deltaX) < 50) {
-            if (player.onGround) {
-                keys.sprint = false;
-                setTimeout(() => { keys.sprint = true; }, 1000);
-            }
-        }
-    });
-}
-
-// Accessibility toggle functions
-function toggleColorblindMode() {
-    accessibilitySettings.colorblindMode = !accessibilitySettings.colorblindMode;
-    document.body.classList.toggle('colorblind-mode', accessibilitySettings.colorblindMode);
-    saveAccessibilitySettings();
-}
-
-function toggleHighContrast() {
-    accessibilitySettings.highContrast = !accessibilitySettings.highContrast;
-    document.body.classList.toggle('high-contrast-mode', accessibilitySettings.highContrast);
-    saveAccessibilitySettings();
-}
-
-function toggleLargeText() {
-    accessibilitySettings.largeText = !accessibilitySettings.largeText;
-    document.body.classList.toggle('accessibility-large-text', accessibilitySettings.largeText);
-    saveAccessibilitySettings();
-}
-
-function toggleReducedMotion() {
-    accessibilitySettings.reducedMotion = !accessibilitySettings.reducedMotion;
-    document.body.classList.toggle('accessibility-reduced-motion', accessibilitySettings.reducedMotion);
-    saveAccessibilitySettings();
-}
-
-function toggleSoundCues() {
-    accessibilitySettings.soundCues = !accessibilitySettings.soundCues;
-    saveAccessibilitySettings();
-}
-
-function toggleAutoAdjust() {
-    difficultyScaling.autoAdjust = !difficultyScaling.autoAdjust;
-    saveAccessibilitySettings();
-}
-
-function updateDifficultyLevel() {
-    const difficultyLevelEl = document.getElementById('difficultyLevel');
-    const currentLevelEl = document.getElementById('currentLevel');
-    
-    if (difficultyLevelEl && currentLevelEl) {
-        const level = difficultyLevelEl.value;
-        currentLevelEl.textContent = level;
-        localStorage.setItem('difficultyLevel', level);
-    }
-}
-
-// Accessibility functions
-function toggleColorblindMode() {
-    const enabled = document.getElementById('colorblindMode').checked;
-    document.body.classList.toggle('colorblind-mode', enabled);
-    localStorage.setItem('colorblindMode', enabled);
-}
-
-function toggleHighContrast() {
-    const enabled = document.getElementById('highContrast').checked;
-    document.body.classList.toggle('high-contrast-mode', enabled);
-    localStorage.setItem('highContrast', enabled);
-}
-
-function toggleLargeText() {
-    const enabled = document.getElementById('largeText').checked;
-    document.body.classList.toggle('accessibility-large-text', enabled);
-    localStorage.setItem('largeText', enabled);
-}
-
-function toggleReducedMotion() {
-    const enabled = document.getElementById('reducedMotion').checked;
-    document.body.classList.toggle('accessibility-reduced-motion', enabled);
-    localStorage.setItem('reducedMotion', enabled);
-}
-
-// Load accessibility settings on page load
-function loadAccessibilitySettings() {
-    const colorblindMode = localStorage.getItem('colorblindMode') === 'true';
-    const highContrast = localStorage.getItem('highContrast') === 'true';
-    const largeText = localStorage.getItem('largeText') === 'true';
-    const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
-    
-    document.body.classList.toggle('colorblind-mode', colorblindMode);
-    document.body.classList.toggle('high-contrast-mode', highContrast);
-    document.body.classList.toggle('accessibility-large-text', largeText);
-    document.body.classList.toggle('accessibility-reduced-motion', reducedMotion);
-    
-    // Update UI elements with null checks
-    const colorblindEl = document.getElementById('colorblindMode');
-    const highContrastEl = document.getElementById('highContrast');
-    const largeTextEl = document.getElementById('largeText');
-    const reducedMotionEl = document.getElementById('reducedMotion');
-    
-    if (colorblindEl) colorblindEl.checked = colorblindMode;
-    if (highContrastEl) highContrastEl.checked = highContrast;
-    if (largeTextEl) largeTextEl.checked = largeText;
-    if (reducedMotionEl) reducedMotionEl.checked = reducedMotion;
-}
-
-// Additional accessibility functions
-function toggleSoundCues() {
-    const enabled = document.getElementById('soundCues').checked;
-    localStorage.setItem('soundCues', enabled);
-}
-
-function toggleAutoAdjust() {
-    const enabled = document.getElementById('autoAdjust').checked;
-    localStorage.setItem('autoAdjust', enabled);
-}
-
-function updateDifficultyLevel() {
-    const level = document.getElementById('difficultyLevel').value;
-    document.getElementById('currentLevel').textContent = level;
-    localStorage.setItem('difficultyLevel', level);
-}
-
-// Play Mario Bros-style background music
-function playBackgroundMusic() {
-    if (!audioContext || !gameSettings.musicVolume) return;
-    
-    try {
-        // Create a simple Mario Bros-style melody
-        const notes = [
-            { freq: 523, duration: 0.2 }, // C
-            { freq: 659, duration: 0.2 }, // E
-            { freq: 784, duration: 0.2 }, // G
-            { freq: 1047, duration: 0.4 }, // C high
-            { freq: 784, duration: 0.2 }, // G
-            { freq: 659, duration: 0.2 }, // E
-            { freq: 523, duration: 0.4 }, // C
-        ];
-        
-        let currentTime = audioContext.currentTime;
-        
-        notes.forEach((note, index) => {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.setValueAtTime(note.freq, currentTime);
-            oscillator.type = 'square';
-            
-            gainNode.gain.setValueAtTime(0.1 * (gameSettings.musicVolume / 100), currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + note.duration);
-            
-            oscillator.start(currentTime);
-            oscillator.stop(currentTime + note.duration);
-            
-            currentTime += note.duration;
-        });
-        
-        // Loop the music
-        setTimeout(() => {
-            if (gameRunning && !gamePaused) {
-                playBackgroundMusic();
-            }
-        }, currentTime * 1000);
-        
-    } catch (error) {
-        console.log('Failed to play background music:', error);
-    }
-}
-
-// Draw improved, more visible coins
-function drawCoins() {
-    coinObjects.forEach(coin => {
-        const x = coin.x - cameraX;
-        const y = coin.y;
-        
-        if (x > -coin.width && x < canvas.width + coin.width) {
-            // Coin glow effect
-            ctx.shadowColor = '#FFD700';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            
-            // Coin body (bright gold)
-            ctx.fillStyle = '#FFD700';
-            ctx.beginPath();
-            ctx.arc(x + coin.width/2, y + coin.height/2, coin.width/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Coin border (thicker)
-            ctx.strokeStyle = '#FFA500';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            
-            // Coin shine (more prominent)
-            ctx.fillStyle = '#FFFFFF';
-            ctx.globalAlpha = 0.8;
-            ctx.beginPath();
-            ctx.arc(x + coin.width/3, y + coin.height/3, coin.width/5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-            
-            // Dollar sign (larger and bolder)
-            ctx.fillStyle = '#8B4513';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('$', x + coin.width/2, y + coin.height/2);
-            
-            // Reset shadow
-            ctx.shadowBlur = 0;
-            
-            // Coin rotation animation
-            ctx.save();
-            ctx.translate(x + coin.width/2, y + coin.height/2);
-            ctx.rotate(coin.rotation);
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(-coin.width/4, -coin.height/4, coin.width/2, coin.height/2);
-            ctx.restore();
-        }
-    });
-}
-
-// Draw improved, more visible enemies
-function drawObstacles() {
-    obstacles.forEach(obstacle => {
-        const x = obstacle.x - cameraX;
-        const y = obstacle.y;
-        
-        if (x > -obstacle.width && x < canvas.width + obstacle.width) {
-            // Add shadow for better visibility
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 3;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            
-            switch(obstacle.type) {
-                case 'goomba':
-                    // Draw Goomba (larger and more colorful)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Goomba face (more prominent)
-                    ctx.fillStyle = '#D2691E';
-                    ctx.fillRect(x + 8, y + 8, 24, 24);
-                    
-                    // Eyes (larger)
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(x + 10, y + 10, 8, 8);
-                    ctx.fillRect(x + 22, y + 10, 8, 8);
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(x + 12, y + 12, 4, 4);
-                    ctx.fillRect(x + 24, y + 12, 4, 4);
-                    
-                    // Angry eyebrows (thicker)
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(x + 8, y + 6);
-                    ctx.lineTo(x + 16, y + 10);
-                    ctx.moveTo(x + 32, y + 10);
-                    ctx.lineTo(x + 24, y + 6);
-                    ctx.stroke();
-                    break;
-                    
-                case 'koopa':
-                    // Draw Koopa (larger and more colorful)
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Shell pattern (more prominent)
-                    ctx.fillStyle = '#32CD32';
-                    ctx.fillRect(x + 6, y + 6, 28, 28);
-                    
-                    // Shell spots (larger)
-                    ctx.fillStyle = '#006400';
-                    ctx.fillRect(x + 12, y + 12, 6, 6);
-                    ctx.fillRect(x + 22, y + 12, 6, 6);
-                    ctx.fillRect(x + 12, y + 22, 6, 6);
-                    ctx.fillRect(x + 22, y + 22, 6, 6);
-                    
-                    // Head (more visible)
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x + 14, y + 34, 12, 6);
-                    break;
-                    
-                case 'monkey':
-                    // Draw Monkey (larger and more colorful)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Monkey face (more prominent)
-                    ctx.fillStyle = '#D2691E';
-                    ctx.fillRect(x + 6, y + 6, 28, 28);
-                    
-                    // Eyes (larger)
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(x + 12, y + 12, 6, 6);
-                    ctx.fillRect(x + 22, y + 12, 6, 6);
-                    
-                    // Nose (more visible)
-                    ctx.fillStyle = '#8B4513';
-                    ctx.fillRect(x + 18, y + 18, 6, 6);
-                    
-                    // Ears (larger)
-                    ctx.fillStyle = '#D2691E';
-                    ctx.fillRect(x + 4, y + 4, 10, 10);
-                    ctx.fillRect(x + 26, y + 4, 10, 10);
-                    break;
-                    
-                case 'snake':
-                    // Draw Snake (larger and more colorful)
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-                    
-                    // Snake pattern (more prominent)
-                    ctx.fillStyle = '#32CD32';
-                    ctx.fillRect(x + 6, y + 6, 28, 28);
-                    
-                    // Snake spots (larger)
-                    ctx.fillStyle = '#006400';
-                    ctx.fillRect(x + 10, y + 10, 8, 8);
-                    ctx.fillRect(x + 22, y + 10, 8, 8);
-                    ctx.fillRect(x + 10, y + 22, 8, 8);
-                    ctx.fillRect(x + 22, y + 22, 8, 8);
-                    
-                    // Snake tongue (more visible)
-                    ctx.fillStyle = 'red';
-                    ctx.fillRect(x + 18, y + 34, 4, 10);
-                    break;
-                    
-                default:
-                    // Default obstacle (more visible)
-                    ctx.fillStyle = '#FF6347';
-                    ctx.fillRect(x, y, obstacle.width, obstacle.height);
-            }
-            
-            // Reset shadow
-            ctx.shadowBlur = 0;
-        }
-    });
-}
-
-// Draw player with improved visibility and Mario Bros style
-function drawPlayer() {
-    ctx.save();
-    
-    // Move to player position
-    ctx.translate(player.x + player.width/2, player.y + player.height/2);
-    
-    // Apply rotation
-    ctx.rotate(player.angle);
-    
-    // Draw character with better visibility
-    const sprite = playerSprites[currentAnimation] && playerSprites[currentAnimation][animationFrame];
-    
-    if (sprite) {
-        // Draw character with bright colors and outline
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-        
-        // Brighten the character
-        ctx.filter = 'brightness(1.3) contrast(1.2) saturate(1.4)';
-        
-        ctx.drawImage(sprite, -player.width/2, -player.height/2, player.width, player.height);
-        
-        // Reset filter
-        ctx.filter = 'none';
-    } else {
-        // Fallback character if sprite not loaded - much larger and more visible
-        ctx.fillStyle = '#FF1493'; // Deep pink for maximum visibility
-        ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
-        
-        // Character outline - thicker
-        ctx.strokeStyle = '#8B0000';
-        ctx.lineWidth = 5;
-        ctx.strokeRect(-player.width/2, -player.height/2, player.width, player.height);
-        
-        // Simple face - larger
-        ctx.fillStyle = '#FFE4E1';
-        ctx.fillRect(-player.width/3, -player.height/3, player.width/1.5, player.height/1.5);
-        
-        // Eyes - larger and more prominent
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(-player.width/4, -player.height/4, 8, 8);
-        ctx.fillRect(player.width/8, -player.height/4, 8, 8);
-        
-        // Smile - larger
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, 0, player.width/4, 0, Math.PI);
-        ctx.stroke();
-        
-        // Add some details for better visibility
-        ctx.fillStyle = '#FF69B4';
-        ctx.fillRect(-player.width/6, -player.height/6, 4, 4);
-        ctx.fillRect(player.width/12, -player.height/6, 4, 4);
-    }
-    
-    // Sprint glow effect
-    if (keys['ShiftLeft'] || keys['ShiftRight'] || playerPowerup.speed) {
-        ctx.shadowColor = '#FFD700';
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-        ctx.fillRect(-player.width/2 - 5, -player.height/2 - 5, player.width + 10, player.height + 10);
-    }
-    
-    ctx.restore();
-}
-
-// Trigger special events (reduced frequency)
-if (Math.random() < 0.0001) { // Reduced from 0.001 to 0.0001
-    triggerSpecialEvents();
-}
+window.addEventListener('load', initGame); 

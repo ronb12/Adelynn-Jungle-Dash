@@ -1,131 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Adelynn's Jungle Dash - Adventure Game</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#388e3c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Adelynn's Jungle Dash">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="favicon.png">
-  <link rel="icon" type="image/png" href="favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Collector - Endless Runner</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="jungle-bg">
-  <div id="gameContainer">
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    
-    <!-- Game UI - Simplified for Kids -->
-    <div id="gameUI">
-      <div id="score">Score: <span id="scoreValue">0</span></div>
-      <div id="coins">Coins: <span id="coinsValue">0</span></div>
-      <div id="lives">Lives: <span id="livesValue">3</span></div>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <!-- Simple UI -->
+        <div id="gameUI">
+            <div id="score">Score: <span id="scoreValue">0</span></div>
+            <div id="coins">Coins: <span id="coinsValue">0</span></div>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" style="display: none;">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Coins Collected: <span id="finalCoins">0</span></p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+        
+        <!-- Start Screen -->
+        <div id="startScreen">
+            <h1>Coin Collector</h1>
+            <p>Collect coins and avoid obstacles!</p>
+            <p>Use arrow keys or tap to move</p>
+            <button onclick="startGame()">Start Game</button>
+        </div>
     </div>
     
-    <!-- Game Over Screen - Simplified for Kids -->
-    <div id="gameOverScreen" class="game-screen" style="display: none;">
-      <div class="screen-content">
-        <h2>Game Over!</h2>
-        <p>Final Score: <span id="finalScore">0</span></p>
-        <p>Coins Collected: <span id="finalCoins">0</span></p>
-        <div class="menu-buttons">
-          <button class="menu-btn" onclick="restartGame()">Play Again!</button>
-          <button class="menu-btn" onclick="showMainMenu()">Main Menu</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Pause Screen -->
-    <div id="pauseScreen" class="game-screen" style="display: none;">
-      <div class="screen-content">
-        <h2>Game Paused</h2>
-        <button class="menu-btn" onclick="resumeGame()">Resume</button>
-        <button class="menu-btn" onclick="window.location.href='mainmenu.html'">Main Menu</button>
-      </div>
-    </div>
-    
-    <!-- Main Menu Screen - Simplified for Kids -->
-    <div id="mainMenuScreen" class="game-screen">
-      <div class="screen-content">
-        <h1 class="game-title">Adelynn's Jungle Dash</h1>
-        <div class="menu-buttons">
-          <button class="menu-btn primary" onclick="startGame()">Start Game</button>
-          <button class="menu-btn" onclick="showTutorial()">How to Play</button>
-          <button class="menu-btn" onclick="showSettings()">Settings</button>
-        </div>
-        <div class="menu-footer">
-          <p>Use Arrow Keys to move and Space to jump!</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Settings Screen - Simplified for Kids -->
-    <div id="settingsScreen" class="game-screen" style="display: none;">
-      <div class="screen-content">
-        <h2>Settings</h2>
-        <div class="settings-group">
-          <label>Music Volume:</label>
-          <input type="range" id="musicVolume" min="0" max="100" value="30" onchange="updateMusicVolume()">
-          <span id="musicVolumeValue">30%</span>
-        </div>
-        <div class="settings-group">
-          <label>Sound Effects Volume:</label>
-          <input type="range" id="sfxVolume" min="0" max="100" value="50" onchange="updateSfxVolume()">
-          <span id="sfxVolumeValue">50%</span>
-        </div>
-        <div class="settings-group">
-          <label>Particle Effects:</label>
-          <input type="checkbox" id="particlesEnabled" checked onchange="toggleParticles()">
-        </div>
-        <div class="menu-buttons">
-          <button class="menu-btn" onclick="hideSettings()">Back to Menu</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Tutorial Screen - Simplified for Kids -->
-    <div id="tutorialScreen" class="game-screen" style="display: none;">
-      <div class="screen-content">
-        <h2>How to Play</h2>
-        <div class="tutorial-content">
-          <div class="tutorial-section">
-            <h3>🎮 Controls</h3>
-            <p>• <strong>Arrow Keys</strong>: Move your character</p>
-            <p>• <strong>Space</strong>: Jump</p>
-          </div>
-          <div class="tutorial-section">
-            <h3>🎯 Goal</h3>
-            <p>• Collect <strong>coins</strong> for points</p>
-            <p>• Avoid <strong>obstacles</strong></p>
-            <p>• Run as far as you can!</p>
-          </div>
-        </div>
-        <div class="menu-buttons">
-          <button class="menu-btn" onclick="hideTutorial()">Got it!</button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Mobile Controls -->
-    <div id="mobileControls">
-      <button id="leftBtn" class="control-btn">←</button>
-      <button id="rightBtn" class="control-btn">→</button>
-      <button id="jumpBtn" class="control-btn">Jump</button>
-    </div>
-  </div>
-
-  <script src="game.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').then(function(reg) {
-        console.log('Service worker registered!', reg);
-      }).catch(function(err) {
-        console.log('Service worker registration failed:', err);
-      });
-    }
-  </script>
+    <script src="game.js"></script>
 </body>
 </html> 

@@ -1425,19 +1425,19 @@ function render() {
     // Draw ground
     drawGround();
     
-    // Draw objects
+    // Draw coins
     drawCoins();
+    
+    // Draw obstacles
     drawObstacles();
-    drawPowerUps(); // Add this line to draw power-ups
     
     // Draw player
     drawPlayer();
     
-    // Draw particles (on top of everything)
-    drawParticles();
-    
-    // Update UI
-    updateUI();
+    // Draw particles
+    if (gameSettings.particlesEnabled) {
+        drawParticles();
+    }
 }
 
 // Draw simplified, cleaner background

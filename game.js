@@ -8,6 +8,7 @@ let lives = 999; // Infinite lives for testing
 let gameSpeed = 5;
 let gravity = 0.8;
 let groundY = 550;
+let cameraX = 0; // Camera position for side-scrolling
 
 // Player object
 let player = {
@@ -284,7 +285,7 @@ function startGame() {
     
     // Reset player
     player.x = 100;
-    player.y = groundY;
+    player.y = groundY - player.height;
     player.velocityY = 0;
     player.isJumping = false;
     player.onGround = true;
@@ -341,7 +342,6 @@ function handlePlayerMovement() {
     const baseMoveSpeed = 3; // Reduced for smoother movement
     const sprintMultiplier = 1.5; // Sprint speed multiplier
     let moveSpeed = baseMoveSpeed;
-    let wasMoving = player.isMoving;
     player.isMoving = false;
     
     // Check for sprint (Shift key or double tap)
@@ -353,38 +353,48 @@ function handlePlayerMovement() {
         player.animationSpeed = 6; // Normal animation speed
     }
     
-    // Allow full left/right movement across the screen
-    if ((keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) && player.x > 0) {
+    // Arrow key movement - character moves in the direction pressed
+    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) {
+        // Move left and face left
         player.x -= moveSpeed;
         player.isMoving = true;
-        player.direction = -1; // Moving left
+        player.direction = -1; // Face left
+        
+        // Move camera left (world scrolls right)
+        cameraX -= moveSpeed;
     }
     
-    if ((keys['ArrowRight'] || keys['KeyD'] || touchControls.right) && player.x < canvas.width - player.width) {
+    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) {
+        // Move right and face right
         player.x += moveSpeed;
         player.isMoving = true;
-        player.direction = 1; // Moving right
+        player.direction = 1; // Face right
+        
+        // Move camera right (world scrolls left)
+        cameraX += moveSpeed;
     }
     
-    // Allow arrow keys to control facing direction independently
-    // Up arrow: face up (direction = 2)
+    // Up and down arrows for vertical movement (if needed)
     if (keys['ArrowUp']) {
+        // Face up when pressing up arrow
         player.direction = 2; // Face up
-    }
-    // Down arrow: face down (direction = -2)
-    else if (keys['ArrowDown']) {
+    } else if (keys['ArrowDown']) {
+        // Face down when pressing down arrow
         player.direction = -2; // Face down
     }
-    // Left arrow (when not moving): face left
-    else if (keys['ArrowLeft'] && !player.isMoving) {
-        player.direction = -1; // Face left
+    
+    // Keep player within screen bounds (relative to camera)
+    if (player.x < 50) {
+        player.x = 50;
+        cameraX += moveSpeed; // Keep camera moving
     }
-    // Right arrow (when not moving): face right
-    else if (keys['ArrowRight'] && !player.isMoving) {
-        player.direction = 1; // Face right
+    if (player.x > canvas.width - player.width - 50) {
+        player.x = canvas.width - player.width - 50;
+        cameraX -= moveSpeed; // Keep camera moving
     }
-    // If no direction keys pressed and not moving, face right by default
-    else if (!player.isMoving) {
+    
+    // If not moving, face right by default
+    if (!player.isMoving) {
         player.direction = 1; // Face right when idle
     }
     
@@ -454,7 +464,7 @@ function spawnObjects() {
     if (Math.random() < 0.03) { // Increased spawn rate
         const coinY = Math.random() * (groundY - 150) + 50;
         coinObjects.push({
-            x: canvas.width,
+            x: cameraX + canvas.width + Math.random() * 200, // Spawn ahead of camera
             y: coinY,
             width: 40,
             height: 40,
@@ -474,7 +484,7 @@ function spawnObjects() {
         const obstacleY = groundY - obstacleHeight;
         
         obstacles.push({
-            x: canvas.width,
+            x: cameraX + canvas.width + Math.random() * 300, // Spawn ahead of camera
             y: obstacleY,
             width: obstacleWidth,
             height: obstacleHeight,
@@ -486,7 +496,7 @@ function spawnObjects() {
     // Spawn floating obstacles (like birds or flying enemies)
     if (Math.random() < 0.008) {
         obstacles.push({
-            x: canvas.width,
+            x: cameraX + canvas.width + Math.random() * 400, // Spawn ahead of camera
             y: Math.random() * (groundY - 200) + 50,
             width: 35,
             height: 25,
@@ -503,16 +513,16 @@ function updateObjects() {
         coin.x -= gameSpeed;
     });
     
-    // Remove off-screen coins
-    coinObjects = coinObjects.filter(coin => coin.x > -coin.width);
+    // Remove off-screen coins (behind camera)
+    coinObjects = coinObjects.filter(coin => coin.x > cameraX - 100);
     
     // Update obstacles
     obstacles.forEach(obstacle => {
         obstacle.x -= obstacle.speed; // Use obstacle.speed for movement
     });
     
-    // Remove off-screen obstacles
-    obstacles = obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+    // Remove off-screen obstacles (behind camera)
+    obstacles = obstacles.filter(obstacle => obstacle.x > cameraX - 100);
 }
 
 // Check collisions
@@ -520,8 +530,8 @@ function checkCollisions() {
     // Check coin collisions
     coinObjects.forEach(coin => {
         if (!coin.collected && 
-            player.x < coin.x + coin.width &&
-            player.x + player.width > coin.x &&
+            player.x < coin.x - cameraX + coin.width &&
+            player.x + player.width > coin.x - cameraX &&
             player.y < coin.y + coin.height &&
             player.y + player.height > coin.y) {
             
@@ -546,8 +556,8 @@ function checkCollisions() {
     
     // Check obstacle collisions
     obstacles.forEach(obstacle => {
-        if (player.x < obstacle.x + obstacle.width &&
-            player.x + player.width > obstacle.x &&
+        if (player.x < obstacle.x - cameraX + obstacle.width &&
+            player.x + player.width > obstacle.x - cameraX &&
             player.y < obstacle.y + obstacle.height &&
             player.y + player.height > obstacle.y) {
             
@@ -717,36 +727,42 @@ function drawCoins() {
     const coinSprite = sprites.banana_coin;
     coinObjects.forEach(coin => {
         if (!coin.collected) {
-            if (coinSprite && coinSprite.complete) {
-                // Draw coin sprite with rotation effect
-                ctx.save();
-                ctx.translate(coin.x + coin.width/2, coin.y + coin.height/2);
-                ctx.rotate(Date.now() * 0.003); // Rotate coins
-                ctx.drawImage(coinSprite, -coin.width/2, -coin.height/2, coin.width, coin.height);
-                ctx.restore();
-            } else {
-                // Enhanced fallback coin graphics
-                const isGold = coin.type === 'gold';
-                ctx.fillStyle = isGold ? '#FFD700' : '#C0C0C0';
-                ctx.beginPath();
-                ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Coin shine effect
-                ctx.fillStyle = isGold ? '#FFF8DC' : '#FFFFFF';
-                ctx.beginPath();
-                ctx.arc(coin.x + coin.width/2 - 3, coin.y + coin.height/2 - 3, 4, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Coin symbol
-                ctx.fillStyle = isGold ? '#B8860B' : '#696969';
-                ctx.font = 'bold 14px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(isGold ? '$' : '¢', coin.x + coin.width/2, coin.y + coin.height/2 + 5);
-                
-                // Pulsing effect
-                const pulse = Math.sin(Date.now() * 0.005) * 0.1 + 1;
-                ctx.globalAlpha = 0.7 + pulse * 0.3;
+            // Apply camera offset for side-scrolling
+            const drawX = coin.x - cameraX;
+            
+            // Only draw if coin is visible on screen
+            if (drawX + coin.width > 0 && drawX < canvas.width) {
+                if (coinSprite && coinSprite.complete) {
+                    // Draw coin sprite with rotation effect
+                    ctx.save();
+                    ctx.translate(drawX + coin.width/2, coin.y + coin.height/2);
+                    ctx.rotate(Date.now() * 0.003); // Rotate coins
+                    ctx.drawImage(coinSprite, -coin.width/2, -coin.height/2, coin.width, coin.height);
+                    ctx.restore();
+                } else {
+                    // Enhanced fallback coin graphics
+                    const isGold = coin.type === 'gold';
+                    ctx.fillStyle = isGold ? '#FFD700' : '#C0C0C0';
+                    ctx.beginPath();
+                    ctx.arc(drawX + coin.width/2, coin.y + coin.height/2, coin.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Coin shine effect
+                    ctx.fillStyle = isGold ? '#FFF8DC' : '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(drawX + coin.width/2 - 3, coin.y + coin.height/2 - 3, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Coin symbol
+                    ctx.fillStyle = isGold ? '#B8860B' : '#696969';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(isGold ? '$' : '¢', drawX + coin.width/2, coin.y + coin.height/2 + 5);
+                    
+                    // Pulsing effect
+                    const pulse = Math.sin(Date.now() * 0.005) * 0.1 + 1;
+                    ctx.globalAlpha = 0.7 + pulse * 0.3;
+                }
             }
         }
     });
@@ -756,52 +772,41 @@ function drawCoins() {
 // Draw obstacles
 function drawObstacles() {
     obstacles.forEach(obstacle => {
-        const obstacleSprite = sprites[obstacle.type];
-        if (obstacleSprite && obstacleSprite.complete) {
-            // Draw obstacle sprite
-            ctx.drawImage(obstacleSprite, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-        } else {
-            // Enhanced fallback graphics based on obstacle type
-            if (obstacle.type === 'flying_enemy') {
-                // Draw flying enemy (bird-like)
-                ctx.fillStyle = '#8B0000';
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                
-                // Wings
-                ctx.fillStyle = '#DC143C';
-                ctx.fillRect(obstacle.x - 5, obstacle.y + 5, 8, 8);
-                ctx.fillRect(obstacle.x + obstacle.width - 3, obstacle.y + 5, 8, 8);
-                
-                // Eye
-                ctx.fillStyle = '#FFFF00';
-                ctx.fillRect(obstacle.x + 5, obstacle.y + 5, 4, 4);
+        // Apply camera offset for side-scrolling
+        const drawX = obstacle.x - cameraX;
+        
+        // Only draw if obstacle is visible on screen
+        if (drawX + obstacle.width > 0 && drawX < canvas.width) {
+            const obstacleSprite = sprites[obstacle.type];
+            if (obstacleSprite && obstacleSprite.complete) {
+                ctx.drawImage(obstacleSprite, drawX, obstacle.y, obstacle.width, obstacle.height);
             } else {
-                // Ground obstacles
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-                
-                // Obstacle details based on type
+                // Fallback to custom shapes if sprite not loaded
                 if (obstacle.type === 'frog_obstacle') {
-                    // Frog details
-                    ctx.fillStyle = '#228B22';
-                    ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
-                    // Eyes
-                    ctx.fillStyle = '#FFD700';
-                    ctx.fillRect(obstacle.x + 8, obstacle.y + 8, 3, 3);
-                    ctx.fillRect(obstacle.x + obstacle.width - 11, obstacle.y + 8, 3, 3);
+                    // Frog-like obstacle
+                    ctx.fillStyle = '#228B22'; // Green
+                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
+                    ctx.fillStyle = '#32CD32'; // Light green for details
+                    ctx.fillRect(drawX + 5, obstacle.y + 5, obstacle.width - 10, 10);
+                    ctx.fillRect(drawX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
                 } else if (obstacle.type === 'crab_enemy') {
-                    // Crab details
-                    ctx.fillStyle = '#DC143C';
-                    ctx.fillRect(obstacle.x + 3, obstacle.y + 3, obstacle.width - 6, obstacle.height - 6);
-                    // Claws
-                    ctx.fillStyle = '#8B0000';
-                    ctx.fillRect(obstacle.x - 3, obstacle.y + 5, 6, 8);
-                    ctx.fillRect(obstacle.x + obstacle.width - 3, obstacle.y + 5, 6, 8);
+                    // Crab-like obstacle
+                    ctx.fillStyle = '#DC143C'; // Crimson
+                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
+                    ctx.fillStyle = '#FF6347'; // Tomato for details
+                    ctx.fillRect(drawX + 3, obstacle.y + 3, obstacle.width - 6, 6);
+                    ctx.fillRect(drawX + 3, obstacle.y + obstacle.height - 9, obstacle.width - 6, 6);
+                } else if (obstacle.type === 'coconut_enemy') {
+                    // Coconut-like obstacle
+                    ctx.fillStyle = '#8B4513'; // Brown
+                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
+                    ctx.fillStyle = '#654321'; // Darker brown for details
+                    ctx.fillRect(drawX + 5, obstacle.y + 5, obstacle.width - 10, 10);
+                    ctx.fillRect(drawX + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
                 } else {
-                    // Coconut details
-                    ctx.fillStyle = '#654321';
-                    ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
-                    ctx.fillRect(obstacle.x + 5, obstacle.y + obstacle.height - 15, obstacle.width - 10, 10);
+                    // Generic obstacle
+                    ctx.fillStyle = '#A9A9A9';
+                    ctx.fillRect(drawX, obstacle.y, obstacle.width, obstacle.height);
                 }
             }
         }
@@ -810,12 +815,16 @@ function drawObstacles() {
 
 // Draw ground
 function drawGround() {
+    // Apply camera offset for side-scrolling
+    const groundStartX = -cameraX;
+    const groundEndX = canvas.width - cameraX;
+    
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    ctx.fillRect(groundStartX, groundY, groundEndX - groundStartX, canvas.height - groundY);
     
     // Draw grass on top
     ctx.fillStyle = '#228B22';
-    ctx.fillRect(0, groundY, canvas.width, 10);
+    ctx.fillRect(groundStartX, groundY, groundEndX - groundStartX, 10);
 }
 
 // Game over

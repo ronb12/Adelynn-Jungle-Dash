@@ -17,17 +17,15 @@ let bestDistance = 0;
 // Player object
 let player = {
     x: 100,
-    y: groundY,
-    width: 120,
-    height: 120,
+    y: groundY - 150, // Much larger height
+    width: 80, // Increased from 50
+    height: 120, // Increased from 50
+    velocityX: 0,
     velocityY: 0,
-    isJumping: false,
-    onGround: true,
-    // Movement variables
-    isMoving: false,
-    direction: 1, // 1 for right (default facing right), -1 for left
-    animationSpeed: 6, // kept for potential future use
-    angle: 0 // Angle in radians, 0 = facing right
+    onGround: false,
+    direction: 1,
+    angle: 0,
+    isJumping: false
 };
 
 // Sprite animation variables
@@ -407,18 +405,27 @@ let specialEvents = {
 
 // Trigger special events
 function triggerSpecialEvents() {
-    // Coin rain event (rare)
-    if (Math.random() < 0.001 && !specialEvents.coinRain) {
-        specialEvents.coinRain = true;
-        specialEvents.coinRainTimer = 180; // 3 seconds
+    if (Math.random() < 0.5) {
+        // Coin rain - reduced amount
         console.log('Coin rain started!');
-    }
-    
-    // Bonus round event (very rare)
-    if (Math.random() < 0.0005 && !specialEvents.bonusRound) {
-        specialEvents.bonusRound = true;
-        specialEvents.bonusRoundTimer = 300; // 5 seconds
+        for (let i = 0; i < 5; i++) { // Reduced from 15 to 5
+            coinObjects.push({
+                x: Math.random() * canvas.width,
+                y: -50 - Math.random() * 100,
+                width: 30,
+                height: 30,
+                rotation: 0,
+                collected: false
+            });
+        }
+    } else {
+        // Bonus round - reduced duration
         console.log('Bonus round started!');
+        gameSpeed *= 0.5;
+        setTimeout(() => {
+            gameSpeed *= 2;
+            console.log('Bonus round ended!');
+        }, 3000); // Reduced from 5000 to 3000
     }
 }
 
@@ -1239,6 +1246,18 @@ function spawnObjects() {
             speed: 1 + Math.random() * 2,
             direction: -1, // Move left
             avoided: false
+        });
+    }
+
+    // Spawn coins with much lower rate
+    if (Math.random() < 0.002) { // Reduced from 0.01 to 0.002
+        coinObjects.push({
+            x: canvas.width + Math.random() * 200,
+            y: groundY - 60 + Math.random() * 100,
+            width: 30,
+            height: 30,
+            rotation: 0,
+            collected: false
         });
     }
 }
@@ -2572,30 +2591,35 @@ function drawPlayer() {
         // Reset filter
         ctx.filter = 'none';
     } else {
-        // Fallback character if sprite not loaded
-        ctx.fillStyle = '#FF6B9D'; // Bright pink for visibility
+        // Fallback character if sprite not loaded - much larger and more visible
+        ctx.fillStyle = '#FF1493'; // Deep pink for maximum visibility
         ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
         
-        // Character outline
+        // Character outline - thicker
         ctx.strokeStyle = '#8B0000';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 5;
         ctx.strokeRect(-player.width/2, -player.height/2, player.width, player.height);
         
-        // Simple face
+        // Simple face - larger
         ctx.fillStyle = '#FFE4E1';
-        ctx.fillRect(-player.width/4, -player.height/4, player.width/2, player.height/2);
+        ctx.fillRect(-player.width/3, -player.height/3, player.width/1.5, player.height/1.5);
         
-        // Eyes
+        // Eyes - larger and more prominent
         ctx.fillStyle = '#000000';
+        ctx.fillRect(-player.width/4, -player.height/4, 8, 8);
+        ctx.fillRect(player.width/8, -player.height/4, 8, 8);
+        
+        // Smile - larger
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.width/4, 0, Math.PI);
+        ctx.stroke();
+        
+        // Add some details for better visibility
+        ctx.fillStyle = '#FF69B4';
         ctx.fillRect(-player.width/6, -player.height/6, 4, 4);
         ctx.fillRect(player.width/12, -player.height/6, 4, 4);
-        
-        // Smile
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, player.width/6, 0, Math.PI);
-        ctx.stroke();
     }
     
     // Sprint glow effect
@@ -2610,4 +2634,9 @@ function drawPlayer() {
     }
     
     ctx.restore();
+}
+
+// Trigger special events (reduced frequency)
+if (Math.random() < 0.0001) { // Reduced from 0.001 to 0.0001
+    triggerSpecialEvents();
 }

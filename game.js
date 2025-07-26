@@ -410,6 +410,18 @@ function triggerSpecialEvents() {
     }
 }
 
+// Achievements system
+let achievements = {
+    coins: { current: 0, milestones: [10, 50, 100, 250, 500, 1000], unlocked: [] },
+    distance: { current: 0, milestones: [100, 500, 1000, 2500, 5000, 10000], unlocked: [] },
+    powerups: { current: 0, milestones: [5, 15, 30, 50, 100], unlocked: [] },
+    survival: { current: 0, milestones: [30, 60, 120, 300, 600], unlocked: [] } // seconds
+};
+
+let totalCoinsCollected = 0;
+let totalPowerupsCollected = 0;
+let gameStartTime = 0;
+
 // Initialize game
 function initGame() {
     // Initialize audio context
@@ -651,6 +663,7 @@ function startGame() {
     // Start game loop
     gameLoop();
     distance = 0; // Reset distance on game start
+    gameStartTime = Date.now(); // Set game start time
 }
 
 // Game loop
@@ -716,6 +729,9 @@ function update() {
         distance += gameSpeed * 0.1; // Adjust multiplier for tuning
         if (distance > bestDistance) bestDistance = distance;
     }
+
+    // Check and unlock achievements
+    checkAchievements();
 }
 
 // Handle player movement
@@ -1020,6 +1036,7 @@ function checkCollisions() {
             
             coin.collected = true;
             coins++;
+            totalCoinsCollected++; // Track total coins for achievements
             score += 10;
             
             // Create coin particles
@@ -1068,6 +1085,7 @@ function checkCollisions() {
             player.y < powerup.y + powerup.height &&
             player.y + player.height > powerup.y) {
             powerup.collected = true;
+            totalPowerupsCollected++; // Track total power-ups for achievements
             switch(powerup.type) {
                 case 'speed':
                     playerPowerup.speed = true;
@@ -1684,6 +1702,124 @@ function updateDifficulty() {
 function toggleParticles() {
     const enabled = document.getElementById('particlesEnabled').checked;
     gameSettings.particlesEnabled = enabled;
+}
+
+// Check and unlock achievements
+function checkAchievements() {
+    // Update current values
+    achievements.coins.current = totalCoinsCollected;
+    achievements.distance.current = Math.floor(distance);
+    achievements.powerups.current = totalPowerupsCollected;
+    achievements.survival.current = Math.floor((Date.now() - gameStartTime) / 1000);
+    
+    // Check each achievement type
+    Object.keys(achievements).forEach(type => {
+        const achievement = achievements[type];
+        achievement.milestones.forEach(milestone => {
+            if (achievement.current >= milestone && !achievement.unlocked.includes(milestone)) {
+                achievement.unlocked.push(milestone);
+                showAchievementNotification(type, milestone);
+            }
+        });
+    });
+}
+
+// Show achievement notification
+function showAchievementNotification(type, milestone) {
+    const messages = {
+        coins: `🏆 Coin Collector: ${milestone} coins!`,
+        distance: `🏃 Distance Runner: ${milestone}m!`,
+        powerups: `⚡ Power Player: ${milestone} power-ups!`,
+        survival: `⏱️ Survivor: ${milestone} seconds!`
+    };
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 16px;
+        z-index: 10000;
+        animation: slideIn 0.5s ease-out;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    `;
+    notification.textContent = messages[type];
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+
+// Achievement screen functions
+function showAchievements() {
+    document.getElementById('achievementsScreen').style.display = 'flex';
+    document.getElementById('mainMenuScreen').style.display = 'none';
+    populateAchievements();
+}
+
+function hideAchievements() {
+    document.getElementById('achievementsScreen').style.display = 'none';
+    document.getElementById('mainMenuScreen').style.display = 'flex';
+}
+
+function populateAchievements() {
+    // Populate each achievement category
+    populateAchievementCategory('coinAchievements', 'coins');
+    populateAchievementCategory('distanceAchievements', 'distance');
+    populateAchievementCategory('powerupAchievements', 'powerups');
+    populateAchievementCategory('survivalAchievements', 'survival');
+}
+
+function populateAchievementCategory(elementId, type) {
+    const container = document.getElementById(elementId);
+    container.innerHTML = '';
+    
+    const achievement = achievements[type];
+    achievement.milestones.forEach(milestone => {
+        const isUnlocked = achievement.unlocked.includes(milestone);
+        const div = document.createElement('div');
+        div.className = 'achievement-item';
+        div.style.cssText = `
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: ${isUnlocked ? '#4CAF50' : '#f0f0f0'};
+            color: ${isUnlocked ? 'white' : '#666'};
+            font-weight: ${isUnlocked ? 'bold' : 'normal'};
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        `;
+        div.innerHTML = `
+            <span>${milestone} ${getAchievementUnit(type)}</span>
+            <span>${isUnlocked ? '✅' : '🔒'}</span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function getAchievementUnit(type) {
+    switch(type) {
+        case 'coins': return 'coins';
+        case 'distance': return 'm';
+        case 'powerups': return 'power-ups';
+        case 'survival': return 'seconds';
+        default: return '';
+    }
 }
 
 // Initialize game when page loads

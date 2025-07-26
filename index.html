@@ -59,6 +59,7 @@
           <button class="menu-btn primary" onclick="startGame()">Start Game</button>
           <button class="menu-btn" onclick="showSettings()">Settings</button>
           <button class="menu-btn" onclick="showTutorial()">Tutorial</button>
+          <button class="menu-btn" onclick="showAchievements()">Achievements</button>
           <button class="menu-btn" onclick="showCredits()">Credits</button>
         </div>
         <div class="menu-footer">
@@ -144,6 +145,42 @@
         </div>
         <div class="menu-buttons">
           <button class="menu-btn" onclick="hideCredits()">Back to Menu</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Achievements Screen -->
+    <div id="achievementsScreen" class="game-screen" style="display: none;">
+      <div class="screen-content">
+        <h2>Achievements</h2>
+        <div class="achievements-content">
+          <div class="achievement-category">
+            <h3>🏆 Coin Collector</h3>
+            <div class="achievement-list" id="coinAchievements">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+          <div class="achievement-category">
+            <h3>🏃 Distance Runner</h3>
+            <div class="achievement-list" id="distanceAchievements">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+          <div class="achievement-category">
+            <h3>⚡ Power Player</h3>
+            <div class="achievement-list" id="powerupAchievements">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+          <div class="achievement-category">
+            <h3>⏱️ Survivor</h3>
+            <div class="achievement-list" id="survivalAchievements">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+        <div class="menu-buttons">
+          <button class="menu-btn" onclick="hideAchievements()">Back to Menu</button>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ let gameRunning = false;
 let gamePaused = false;
 let score = 0;
 let coins = 0;
-let lives = 3;
+let lives = 999; // Infinite lives for testing
 let gameSpeed = 5;
 let gravity = 0.8;
 let groundY = 550;
@@ -13,8 +13,8 @@ let groundY = 550;
 let player = {
     x: 100,
     y: groundY,
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     velocityY: 0,
     isJumping: false,
     onGround: true,
@@ -445,9 +445,9 @@ function spawnObjects() {
         
         obstacles.push({
             x: canvas.width,
-            y: groundY - 70,
-            width: 50,
-            height: 70,
+            y: groundY - 40,
+            width: 30,
+            height: 40,
             type: randomType
         });
     }
@@ -728,7 +728,7 @@ function restartGame() {
     // Reset game state
     score = 0;
     coins = 0;
-    lives = 3;
+    lives = 999; // Infinite lives for testing
     gameSpeed = 5;
     obstacles = [];
     coinObjects = [];

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jungle-dash-v3';
+const CACHE_NAME = 'jungle-dash-v4';
 
 // Install event - simplified caching
 self.addEventListener('install', event => {

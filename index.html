@@ -99,6 +99,15 @@
       lives: Infinity // Infinite lives for testing
     };
 
+    // Jungle animals for enemies
+    const jungleAnimals = [
+      {name: '🐯', color: '#ff9800', secondaryColor: '#ffb74d', speed: -3},
+      {name: '🐻', color: '#8d6e63', secondaryColor: '#a1887f', speed: -2.5},
+      {name: '🐸', color: '#4caf50', secondaryColor: '#81c784', speed: -3.5},
+      {name: '🐍', color: '#2e7d32', secondaryColor: '#66bb6a', speed: -4},
+      {name: '🦁', color: '#ff8f00', secondaryColor: '#ffb74d', speed: -3.2}
+    ];
+
     // Collectibles (coins), enemies, and goal
     let collectibles = [];
     let enemies = [];
@@ -143,33 +152,36 @@
       scoreBoard.textContent = `Score: ${score} | Character: ${characters[characterIndex].name} | Lives: ∞`;
     }
 
-    // Spawn a coin at random
+    // Spawn a coin emoji with gravity
     function spawnCollectible() {
-      const size = 25;
+      const size = 30;
       const collectible = {
         x: Math.random() * (canvas.width - size - 100) + 50,
-        y: Math.random() * (groundY - 150) + 50,
+        y: Math.random() * (groundY - 200) + 50,
         width: size,
         height: size,
+        vy: 0, // Vertical velocity for gravity
         value: 1,
-        color: '#ffd700',
-        glow: 0,
-        glowDirection: 1
+        emoji: '🪙',
+        collected: false
       };
       collectibles.push(collectible);
     }
 
-    // Spawn an enemy running left along the ground
+    // Spawn a random jungle animal
     function spawnEnemy() {
+      const animal = jungleAnimals[Math.floor(Math.random() * jungleAnimals.length)];
       const size = 35;
       const enemy = {
         x: canvas.width,
         y: groundY - size,
         width: size,
         height: size,
-        vx: -3,
-        color: '#d32f2f',
-        secondaryColor: '#f44336'
+        vx: animal.speed,
+        color: animal.color,
+        secondaryColor: animal.secondaryColor,
+        emoji: animal.name,
+        name: animal.name
       };
       enemies.push(enemy);
     }
@@ -209,20 +221,28 @@
         enemySpawnTimer = 0;
       }
 
+      // Update coins with gravity
+      collectibles.forEach(coin => {
+        if (!coin.collected) {
+          coin.vy += 0.3; // Gravity for coins
+          coin.y += coin.vy;
+          
+          // Stop coins when they hit the ground
+          if (coin.y + coin.height >= groundY) {
+            coin.y = groundY - coin.height;
+            coin.vy = 0;
+          }
+        }
+      });
+
       // Move enemies and remove off-screen
       enemies.forEach(enemy => enemy.x += enemy.vx);
       enemies = enemies.filter(enemy => enemy.x + enemy.width > 0);
 
-      // Update collectible glow effect
-      collectibles.forEach(item => {
-        item.glow += item.glowDirection * 0.1;
-        if (item.glow > 1 || item.glow < 0) {
-          item.glowDirection *= -1;
-        }
-      });
-
       // Check collectible collisions
       collectibles = collectibles.filter(item => {
+        if (item.collected) return false;
+        
         const isColliding =
           player.x < item.x + item.width &&
           player.x + player.width > item.x &&
@@ -231,6 +251,7 @@
         if (isColliding) {
           score += item.value;
           updateScoreBoard();
+          item.collected = true;
           return false;
         }
         return true;
@@ -327,25 +348,26 @@
     }
 
     function drawCollectibles() {
-      collectibles.forEach(item => {
-        // Glow effect
-        const glow = item.glow * 0.3 + 0.7;
-        ctx.fillStyle = `rgba(255, 215, 0, ${glow})`;
-        ctx.beginPath();
-        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2 + 3, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Coin
-        ctx.fillStyle = item.color;
-        ctx.beginPath();
-        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Coin shine
-        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.beginPath();
-        ctx.arc(item.x + item.width/2 - 3, item.y + item.height/2 - 3, 4, 0, Math.PI * 2);
-        ctx.fill();
+      collectibles.forEach(coin => {
+        if (!coin.collected) {
+          // Coin shadow
+          ctx.fillStyle = 'rgba(0,0,0,0.3)';
+          ctx.fillRect(coin.x + 2, coin.y + coin.height - 3, coin.width, 6);
+          
+          // Coin emoji
+          ctx.font = `${coin.width}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(coin.emoji, coin.x + coin.width/2, coin.y + coin.height/2);
+          
+          // Sparkle effect
+          const time = Date.now() * 0.005;
+          const sparkle = Math.sin(time + coin.x) * 0.3 + 0.7;
+          ctx.fillStyle = `rgba(255, 215, 0, ${sparkle})`;
+          ctx.beginPath();
+          ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2 + 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
     }
 
@@ -363,20 +385,18 @@
         ctx.fillStyle = enemy.secondaryColor;
         ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, 15);
         
-        // Eyes
-        ctx.fillStyle = '#000';
-        ctx.fillRect(enemy.x + 8, enemy.y + 8, 4, 4);
-        ctx.fillRect(enemy.x + 18, enemy.y + 8, 4, 4);
+        // Animal emoji
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(enemy.emoji, enemy.x + enemy.width/2, enemy.y + enemy.height/2);
         
-        // Angry eyebrows
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(enemy.x + 6, enemy.y + 6);
-        ctx.lineTo(enemy.x + 12, enemy.y + 4);
-        ctx.moveTo(enemy.x + 18, enemy.y + 4);
-        ctx.lineTo(enemy.x + 24, enemy.y + 6);
-        ctx.stroke();
+        // Eyes for some animals
+        if (enemy.emoji === '🐯' || enemy.emoji === '🦁') {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(enemy.x + 8, enemy.y + 8, 3, 3);
+          ctx.fillRect(enemy.x + 18, enemy.y + 8, 3, 3);
+        }
       });
     }
 

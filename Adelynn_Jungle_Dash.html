@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Adelynn's Jungle Dash – Flag Edition</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #91c788; /* green jungle backdrop */
+      font-family: sans-serif;
+    }
+    #gameCanvas {
+      display: block;
+      margin: 0 auto;
+      background: #74bdcb;
+      border: 2px solid #333;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.8);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 18px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreBoard">Score: 0 | Character: Adelynn</div>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreBoard = document.getElementById('scoreBoard');
+    
+    // Characters: cycle with 'C'
+    const characters = [
+      {name: 'Adelynn', color: '#ff6f61'}, // coral
+      {name: 'Zuri',    color: '#a266ac'}  // purple
+    ];
+    let characterIndex = 0;
+
+    // Ground line
+    const groundHeight = 50;
+    const groundY = canvas.height - groundHeight;
+
+    // Player setup
+    const player = {
+      x: 50,
+      y: groundY - 40,    // start on ground
+      width: 30,
+      height: 40,
+      vx: 0,
+      vy: 0,
+      isOnGround: true,
+      color: characters[characterIndex].color
+    };
+
+    // Collectibles (coins), enemies, and goal
+    let collectibles = [];
+    let enemies = [];
+    let score = 0;
+    let collectSpawnTimer = 0;
+    let enemySpawnTimer = 0;
+    let gameOver = false;
+    let gameWon = false;
+
+    // Goal flag at the right end
+    const goal = {
+      x: canvas.width - 40,     // near right edge
+      y: groundY - 80,          // base on the ground
+      width: 10,
+      height: 80
+    };
+
+    // Input handling
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      keys[e.code] = true;
+      // Jump on Space or ArrowUp if on ground
+      if ((e.code === 'Space' || e.code === 'ArrowUp') && player.isOnGround && !gameOver) {
+        player.vy = -9;
+        player.isOnGround = false;
+      }
+      // Cycle characters on 'C' key
+      if (e.code === 'KeyC' && !gameOver) {
+        characterIndex = (characterIndex + 1) % characters.length;
+        player.color = characters[characterIndex].color;
+        updateScoreBoard();
+      }
+      // Restart on 'R'
+      if (e.code === 'KeyR' && (gameOver || gameWon)) {
+        window.location.reload();
+      }
+    });
+    window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function updateScoreBoard() {
+      scoreBoard.textContent = 'Score: ' + score + ' | Character: ' + characters[characterIndex].name;
+    }
+
+    // Spawn a coin at random
+    function spawnCollectible() {
+      const size = 20;
+      const collectible = {
+        x: Math.random() * (canvas.width - size - 60) + 30, // avoid overlap with goal and edges
+        y: Math.random() * (groundY - 100),                 // above ground
+        width: size,
+        height: size,
+        value: 1,
+        color: '#ffd700' // gold coin
+      };
+      collectibles.push(collectible);
+    }
+
+    // Spawn an enemy running left along the ground
+    function spawnEnemy() {
+      const size = 30;
+      const enemy = {
+        x: canvas.width,
+        y: groundY - size,
+        width: size,
+        height: size,
+        vx: -2.5,
+        color: '#d9534f'
+      };
+      enemies.push(enemy);
+    }
+
+    function update() {
+      // Horizontal movement
+      const moveSpeed = 3;
+      player.vx = 0;
+      if (keys['ArrowLeft'])  player.vx = -moveSpeed;
+      if (keys['ArrowRight']) player.vx = moveSpeed;
+
+      player.x += player.vx;
+
+      // Apply gravity and vertical movement
+      player.vy += 0.5; // gravity
+      player.y += player.vy;
+
+      // Floor collision
+      if (player.y + player.height >= groundY) {
+        player.y = groundY - player.height;
+        player.vy = 0;
+        player.isOnGround = true;
+      }
+
+      // Keep player in bounds
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
+      // Spawn collectibles and enemies
+      collectSpawnTimer++;
+      enemySpawnTimer++;
+      if (collectSpawnTimer > 150) { // every ~2.5 seconds
+        spawnCollectible();
+        collectSpawnTimer = 0;
+      }
+      if (enemySpawnTimer > 300) { // every ~5 seconds
+        spawnEnemy();
+        enemySpawnTimer = 0;
+      }
+
+      // Move enemies and remove off-screen
+      enemies.forEach(enemy => enemy.x += enemy.vx);
+      enemies = enemies.filter(enemy => enemy.x + enemy.width > 0);
+
+      // Check collectible collisions
+      collectibles = collectibles.filter(item => {
+        const isColliding =
+          player.x < item.x + item.width &&
+          player.x + player.width > item.x &&
+          player.y < item.y + item.height &&
+          player.y + player.height > item.y;
+        if (isColliding) {
+          score += item.value;
+          updateScoreBoard();
+          return false;
+        }
+        return true;
+      });
+
+      // Check enemy collisions
+      enemies.forEach(enemy => {
+        const isColliding =
+          player.x < enemy.x + enemy.width &&
+          player.x + player.width > enemy.x &&
+          player.y < enemy.y + enemy.height &&
+          player.y + player.height > enemy.y;
+        if (isColliding) {
+          gameOver = true;
+        }
+      });
+
+      // Check if player reaches the goal
+      if (!gameOver && player.x + player.width >= goal.x) {
+        gameWon = true;
+        gameOver = true;
+      }
+    }
+
+    function drawGround() {
+      ctx.fillStyle = '#5cdb95'; // green ground color
+      ctx.fillRect(0, groundY, canvas.width, groundHeight);
+    }
+
+    function drawGoal() {
+      // Pole
+      ctx.fillStyle = '#8c8c8c';
+      ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+      // Flag (small rectangle)
+      ctx.fillStyle = '#f4d35e';
+      ctx.fillRect(goal.x + goal.width, goal.y, 20, 20);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw ground and goal
+      drawGround();
+      drawGoal();
+
+      // Draw player
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Draw collectibles (coins)
+      collectibles.forEach(item => {
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        ctx.arc(item.x + item.width/2, item.y + item.height/2, item.width/2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw enemies
+      enemies.forEach(enemy => {
+        ctx.fillStyle = enemy.color;
+        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+      });
+
+      // Overlay messages if win or game over
+      if (gameWon) {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('You reached the flag!', canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = '20px Arial';
+        ctx.fillText('Press R to play again', canvas.width / 2, canvas.height / 2 + 25);
+      } else if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '36px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = '20px Arial';
+        ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 25);
+      }
+    }
+
+    function gameLoop() {
+      if (!gameOver) {
+        update();
+      }
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    updateScoreBoard();
+    gameLoop();
+  </script>
+</body>
+</html> 

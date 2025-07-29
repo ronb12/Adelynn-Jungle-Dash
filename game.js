@@ -197,7 +197,8 @@ function updateScoreBoard() {
   const char = characters[characterIndex];
   const powerUpText = player.powerUpState !== 'normal' ? ` | Power: ${player.powerUpState}` : '';
   const livesText = player.lives === Infinity ? '∞' : player.lives;
-  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Coins: ${coins} | Progress: ${progress}% | ${char.name}: ${char.description} | Lives: ${livesText}${powerUpText}`;
+  const musicIcon = musicEnabled ? '🎵' : '🔇';
+  scoreBoard.textContent = `Level: ${currentLevel}/${totalLevels} | Score: ${score} | Coins: ${coins} | Progress: ${progress}% | ${char.name}: ${char.description} | Lives: ${livesText} | Music: ${musicIcon}${powerUpText}`;
 }
 
 // Spawn a coin emoji with gravity
@@ -666,8 +667,24 @@ function update() {
 
   // Check if player reaches the goal
   if (!gameOver && player.x + player.width >= goal.x) {
-    gameWon = true;
-    gameOver = true;
+    if (!gameWon) {
+      gameWon = true;
+      playVictoryMusic();
+      
+      // Check if there are more levels
+      if (currentLevel < totalLevels) {
+        // Show level completion message
+        setTimeout(() => {
+          loadLevel(currentLevel + 1);
+        }, 3000);
+      } else {
+        // Game completed!
+        setTimeout(() => {
+          // Show final victory message
+          alert('🎉 Congratulations! You completed all levels! 🎉');
+        }, 3000);
+      }
+    }
   }
 }
 
@@ -787,7 +804,7 @@ function drawGoal() {
   }
 }
 
-// Draw player with camera offset - Human-like character design with animations
+// Draw player with camera offset - Human-like character design with rounded shapes
 function drawPlayer() {
   const screenX = player.x - cameraX;
   const char = characters[characterIndex];
@@ -801,7 +818,7 @@ function drawPlayer() {
     // Calculate body part positions with animation
     const headX = screenX + 8;
     const headY = player.y - 8;
-    const headSize = 20;
+    const headRadius = 10;
     
     const bodyX = screenX + 5;
     const bodyY = player.y + 12;
@@ -833,134 +850,223 @@ function drawPlayer() {
     const leftArmY = armY + jumpOffset;
     const rightArmY = armY + jumpOffset;
     
-    // Draw legs (pants) with walking animation
+    // Draw legs (pants) with walking animation - ROUNDED
     ctx.fillStyle = '#4169E1'; // Blue pants like Mario
-    ctx.fillRect(legX, leftLegY, legWidth, legHeight);
-    ctx.fillRect(legX + 10, rightLegY, legWidth, legHeight);
+    // Left leg - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(legX, leftLegY, legWidth, legHeight, 3);
+    ctx.fill();
+    // Right leg - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(legX + 10, rightLegY, legWidth, legHeight, 3);
+    ctx.fill();
     
-    // Draw shoes with walking animation
+    // Draw shoes with walking animation - ROUNDED
     ctx.fillStyle = char.shoeColor;
-    ctx.fillRect(shoeX, leftLegY + legHeight, shoeWidth, shoeHeight);
-    ctx.fillRect(shoeX + 10, rightLegY + legHeight, shoeWidth, shoeHeight);
+    // Left shoe - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(shoeX, leftLegY + legHeight, shoeWidth, shoeHeight, 2);
+    ctx.fill();
+    // Right shoe - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(shoeX + 10, rightLegY + legHeight, shoeWidth, shoeHeight, 2);
+    ctx.fill();
     
-    // Draw body (shirt/dress)
+    // Draw body (shirt/dress) - ROUNDED
     ctx.fillStyle = char.outfitColor;
-    ctx.fillRect(bodyX, bodyY, bodyWidth, bodyHeight);
+    ctx.beginPath();
+    ctx.roundRect(bodyX, bodyY, bodyWidth, bodyHeight, 5);
+    ctx.fill();
     
-    // Draw arms (shirt sleeves) with jumping animation
+    // Draw arms (shirt sleeves) with jumping animation - ROUNDED
     ctx.fillStyle = char.outfitColor;
-    ctx.fillRect(armX, leftArmY, armWidth, armHeight);
-    ctx.fillRect(armX + player.width - 8, rightArmY, armWidth, armHeight);
+    // Left arm - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(armX, leftArmY, armWidth, armHeight, 3);
+    ctx.fill();
+    // Right arm - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(armX + player.width - 8, rightArmY, armWidth, armHeight, 3);
+    ctx.fill();
     
-    // Draw gloves with jumping animation
+    // Draw gloves with jumping animation - ROUNDED
     ctx.fillStyle = char.gloveColor;
-    ctx.fillRect(armX - 1, leftArmY + 15, armWidth + 2, 5);
-    ctx.fillRect(armX + player.width - 9, rightArmY + 15, armWidth + 2, 5);
+    // Left glove - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(armX - 1, leftArmY + 15, armWidth + 2, 5, 2);
+    ctx.fill();
+    // Right glove - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(armX + player.width - 9, rightArmY + 15, armWidth + 2, 5, 2);
+    ctx.fill();
     
-    // Draw head with slight bobbing when walking
+    // Draw head with slight bobbing when walking - CIRCULAR
     const headBob = player.isMoving ? Math.sin(player.walkCycle * 0.3) * 1 : 0;
     ctx.fillStyle = char.color; // Skin tone
-    ctx.fillRect(headX, headY + headBob, headSize, headSize);
+    ctx.beginPath();
+    ctx.arc(headX + headRadius, headY + headRadius + headBob, headRadius, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Draw hair with head bob
+    // Draw hair with head bob - ROUNDED
     ctx.fillStyle = char.hairColor;
-    ctx.fillRect(headX - 2, headY - 3 + headBob, headSize + 4, 8);
+    // Hair base - rounded rectangle
+    ctx.beginPath();
+    ctx.roundRect(headX - 2, headY - 3 + headBob, headRadius * 2 + 4, 8, 4);
+    ctx.fill();
     
-    // Draw hair details (bangs) with head bob
-    ctx.fillRect(headX + 2, headY - 1 + headBob, 6, 4);
-    ctx.fillRect(headX + 12, headY - 1 + headBob, 6, 4);
+    // Draw hair details (bangs) with head bob - ROUNDED
+    ctx.beginPath();
+    ctx.roundRect(headX + 2, headY - 1 + headBob, 6, 4, 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(headX + 12, headY - 1 + headBob, 6, 4, 2);
+    ctx.fill();
     
-    // Character-specific headgear with head bob
+    // Character-specific headgear with head bob - ROUNDED
     if (char.name === 'Adelynn') {
-      // Explorer hat
+      // Explorer hat - rounded
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(headX - 3, headY - 8 + headBob, headSize + 6, 6);
-      ctx.fillRect(headX + 2, headY - 12 + headBob, 12, 8);
+      ctx.beginPath();
+      ctx.roundRect(headX - 3, headY - 8 + headBob, headRadius * 2 + 6, 6, 3);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.roundRect(headX + 2, headY - 12 + headBob, 12, 8, 4);
+      ctx.fill();
     } else if (char.name === 'Zuri') {
-      // Magical hood
+      // Magical hood - rounded
       ctx.fillStyle = '#4B0082';
-      ctx.fillRect(headX - 2, headY - 10 + headBob, headSize + 4, 10);
-      // Hood point
-      ctx.fillRect(headX + 8, headY - 15 + headBob, 4, 8);
+      ctx.beginPath();
+      ctx.roundRect(headX - 2, headY - 10 + headBob, headRadius * 2 + 4, 10, 5);
+      ctx.fill();
+      // Hood point - rounded
+      ctx.beginPath();
+      ctx.roundRect(headX + 8, headY - 15 + headBob, 4, 8, 2);
+      ctx.fill();
     } else if (char.name === 'Kai') {
-      // Warrior helmet
+      // Warrior helmet - rounded
       ctx.fillStyle = '#C0C0C0';
-      ctx.fillRect(headX - 2, headY - 6 + headBob, headSize + 4, 6);
-      // Helmet visor
+      ctx.beginPath();
+      ctx.roundRect(headX - 2, headY - 6 + headBob, headRadius * 2 + 4, 6, 3);
+      ctx.fill();
+      // Helmet visor - rounded
       ctx.fillStyle = '#2F4F4F';
-      ctx.fillRect(headX + 4, headY - 2 + headBob, 12, 2);
+      ctx.beginPath();
+      ctx.roundRect(headX + 4, headY - 2 + headBob, 12, 2, 1);
+      ctx.fill();
     }
     
-    // Draw eyes with head bob
+    // Draw eyes with head bob - ROUNDED
     ctx.fillStyle = char.eyeColor;
     const eyeX = player.direction === 1 ? headX + 4 : headX + 2;
-    ctx.fillRect(eyeX, headY + 6 + headBob, 4, 4);
-    ctx.fillRect(eyeX + 8, headY + 6 + headBob, 4, 4);
+    // Left eye - circle
+    ctx.beginPath();
+    ctx.arc(eyeX + 2, headY + 6 + headBob + 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    // Right eye - circle
+    ctx.beginPath();
+    ctx.arc(eyeX + 10, headY + 6 + headBob + 2, 2, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Draw eye pupils with head bob
+    // Draw eye pupils with head bob - CIRCULAR
     ctx.fillStyle = '#000';
     const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 2;
-    ctx.fillRect(pupilX, headY + 7 + headBob, 2, 2);
-    ctx.fillRect(pupilX + 8, headY + 7 + headBob, 2, 2);
+    // Left pupil - circle
+    ctx.beginPath();
+    ctx.arc(pupilX + 2, headY + 7 + headBob + 2, 1, 0, Math.PI * 2);
+    ctx.fill();
+    // Right pupil - circle
+    ctx.beginPath();
+    ctx.arc(pupilX + 10, headY + 7 + headBob + 2, 1, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Draw nose with head bob
+    // Draw nose with head bob - ROUNDED
     ctx.fillStyle = '#FFB6C1';
-    ctx.fillRect(headX + 8, headY + 10 + headBob, 2, 2);
+    ctx.beginPath();
+    ctx.roundRect(headX + 8, headY + 10 + headBob, 2, 2, 1);
+    ctx.fill();
     
-    // Draw mouth with head bob
+    // Draw mouth with head bob - ROUNDED
     ctx.fillStyle = '#FF69B4';
-    ctx.fillRect(headX + 6, headY + 14 + headBob, 6, 2);
+    ctx.beginPath();
+    ctx.roundRect(headX + 6, headY + 14 + headBob, 6, 2, 1);
+    ctx.fill();
     
-    // Character-specific outfit details
+    // Character-specific outfit details - ROUNDED
     if (char.name === 'Adelynn') {
-      // Explorer vest
+      // Explorer vest - rounded
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8);
-      // Vest buttons
+      ctx.beginPath();
+      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8, 3);
+      ctx.fill();
+      // Vest buttons - circles
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(bodyX + 8, bodyY + 4, 3, 3);
-      ctx.fillRect(bodyX + 8, bodyY + 8, 3, 3);
+      ctx.beginPath();
+      ctx.arc(bodyX + 8 + 1.5, bodyY + 4 + 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bodyX + 8 + 1.5, bodyY + 8 + 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
     } else if (char.name === 'Zuri') {
-      // Magical robe details
+      // Magical robe details - rounded
       ctx.fillStyle = '#4B0082';
-      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 6);
-      // Magical symbols
+      ctx.beginPath();
+      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 6, 3);
+      ctx.fill();
+      // Magical symbols - rounded
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(bodyX + 8, bodyY + 4, 4, 4);
+      ctx.beginPath();
+      ctx.roundRect(bodyX + 8, bodyY + 4, 4, 4, 2);
+      ctx.fill();
     } else if (char.name === 'Kai') {
-      // Warrior armor details
+      // Warrior armor details - rounded
       ctx.fillStyle = '#C0C0C0';
-      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8);
-      // Armor plates
+      ctx.beginPath();
+      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8, 3);
+      ctx.fill();
+      // Armor plates - rounded
       ctx.fillStyle = '#2F4F4F';
-      ctx.fillRect(bodyX + 6, bodyY + 4, 8, 4);
+      ctx.beginPath();
+      ctx.roundRect(bodyX + 6, bodyY + 4, 8, 4, 2);
+      ctx.fill();
     }
     
-    // Draw belt
+    // Draw belt - ROUNDED
     ctx.fillStyle = '#654321';
-    ctx.fillRect(bodyX, bodyY + 22, bodyWidth, 3);
+    ctx.beginPath();
+    ctx.roundRect(bodyX, bodyY + 22, bodyWidth, 3, 1);
+    ctx.fill();
     
-    // Character-specific accessories
+    // Character-specific accessories - ROUNDED
     if (char.name === 'Zuri') {
-      // Magical staff
+      // Magical staff - rounded
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(screenX + player.width - 2, player.y + 10, 3, 30);
-      // Staff orb
+      ctx.beginPath();
+      ctx.roundRect(screenX + player.width - 2, player.y + 10, 3, 30, 1);
+      ctx.fill();
+      // Staff orb - circle
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(screenX + player.width - 4, player.y + 8, 7, 7);
+      ctx.beginPath();
+      ctx.arc(screenX + player.width - 4 + 3.5, player.y + 8 + 3.5, 3.5, 0, Math.PI * 2);
+      ctx.fill();
     } else if (char.name === 'Kai') {
-      // Warrior sword
+      // Warrior sword - rounded
       ctx.fillStyle = '#C0C0C0';
-      ctx.fillRect(screenX - 8, player.y + 15, 3, 25);
-      // Sword handle
+      ctx.beginPath();
+      ctx.roundRect(screenX - 8, player.y + 15, 3, 25, 1);
+      ctx.fill();
+      // Sword handle - rounded
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(screenX - 10, player.y + 35, 7, 5);
+      ctx.beginPath();
+      ctx.roundRect(screenX - 10, player.y + 35, 7, 5, 2);
+      ctx.fill();
     }
     
-    // Draw power-up indicator
+    // Draw power-up indicator - ROUNDED
     if (player.powerUpState !== 'normal') {
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(screenX - 5, headY - 10, player.width + 10, 5);
+      ctx.beginPath();
+      ctx.roundRect(screenX - 5, headY - 10, player.width + 10, 5, 2);
+      ctx.fill();
       
       // Draw power-up emoji
       let powerEmoji = '⭐';
@@ -971,25 +1077,37 @@ function drawPlayer() {
       ctx.fillText(powerEmoji, screenX + 10, headY - 20);
     }
     
-    // Draw invincibility effect
+    // Draw invincibility effect - ROUNDED
     if (player.isInvincible && Math.floor(Date.now() / 100) % 2) {
       ctx.strokeStyle = '#FFD700';
       ctx.lineWidth = 3;
-      ctx.strokeRect(screenX, player.y, player.width, player.height);
+      ctx.beginPath();
+      ctx.roundRect(screenX, player.y, player.width, player.height, 5);
+      ctx.stroke();
       
-      // Draw sparkle effect
+      // Draw sparkle effect - circles
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(screenX - 3, headY - 3, 3, 3);
-      ctx.fillRect(screenX + player.width, headY - 3, 3, 3);
-      ctx.fillRect(screenX - 3, player.y + player.height, 3, 3);
-      ctx.fillRect(screenX + player.width, player.y + player.height, 3, 3);
+      ctx.beginPath();
+      ctx.arc(screenX - 1.5, headY - 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(screenX + player.width + 1.5, headY - 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(screenX - 1.5, player.y + player.height + 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(screenX + player.width + 1.5, player.y + player.height + 1.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
     }
     
-    // Draw running dust effect
+    // Draw running dust effect - ROUNDED
     if (player.isRunning && player.isOnGround) {
       ctx.fillStyle = 'rgba(139, 69, 19, 0.6)';
       for (let i = 0; i < 3; i++) {
-        ctx.fillRect(screenX - 5 - (i * 3), player.y + player.height + 2, 2, 2);
+        ctx.beginPath();
+        ctx.arc(screenX - 5 - (i * 3) + 1, player.y + player.height + 2 + 1, 1, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }
@@ -1164,8 +1282,262 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// Audio system
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+// Audio system with background music
+let audioContext;
+let backgroundMusic = null;
+let musicEnabled = true;
+
+// Initialize audio context
+function initAudio() {
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+// Background music system
+function createBackgroundMusic() {
+  if (!audioContext) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Create a simple melody
+  const melody = [
+    { freq: 523, duration: 0.5 }, // C
+    { freq: 587, duration: 0.5 }, // D
+    { freq: 659, duration: 0.5 }, // E
+    { freq: 698, duration: 0.5 }, // F
+    { freq: 784, duration: 0.5 }, // G
+    { freq: 880, duration: 0.5 }, // A
+    { freq: 988, duration: 0.5 }, // B
+    { freq: 1047, duration: 0.5 } // C
+  ];
+  
+  let time = audioContext.currentTime;
+  melody.forEach((note, index) => {
+    oscillator.frequency.setValueAtTime(note.freq, time);
+    gainNode.gain.setValueAtTime(0.1, time);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, time + note.duration);
+    time += note.duration;
+  });
+  
+  oscillator.start();
+  oscillator.stop(time);
+  
+  return oscillator;
+}
+
+// Victory music when reaching the flag
+function playVictoryMusic() {
+  if (!audioContext || !musicEnabled) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Victory fanfare
+  const victoryNotes = [
+    { freq: 659, duration: 0.3 }, // E
+    { freq: 784, duration: 0.3 }, // G
+    { freq: 988, duration: 0.3 }, // B
+    { freq: 1319, duration: 0.6 }, // E (high)
+    { freq: 988, duration: 0.3 }, // B
+    { freq: 1319, duration: 0.6 } // E (high)
+  ];
+  
+  let time = audioContext.currentTime;
+  victoryNotes.forEach((note, index) => {
+    oscillator.frequency.setValueAtTime(note.freq, time);
+    gainNode.gain.setValueAtTime(0.2, time);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, time + note.duration);
+    time += note.duration;
+  });
+  
+  oscillator.start();
+  oscillator.stop(time);
+}
+
+// Level system
+let currentLevel = 1;
+const totalLevels = 3;
+
+// Level configurations
+const levelConfigs = {
+  1: {
+    goalX: 2000,
+    platforms: [
+      {x: 200, y: groundY - 120, width: 150, height: 20, type: 'normal'},
+      {x: 400, y: groundY - 180, width: 120, height: 20, type: 'moving', moveSpeed: 1, moveRange: 100, startX: 400},
+      {x: 600, y: groundY - 140, width: 100, height: 20, type: 'breakable'},
+      {x: 300, y: groundY - 220, width: 80, height: 20, type: 'question', hasPowerUp: true},
+      {x: 800, y: groundY - 160, width: 120, height: 20, type: 'normal'},
+      {x: 1000, y: groundY - 200, width: 100, height: 20, type: 'moving', moveSpeed: -1, moveRange: 80, startX: 1000},
+      {x: 1200, y: groundY - 140, width: 150, height: 20, type: 'normal'},
+      {x: 1400, y: groundY - 180, width: 100, height: 20, type: 'question', hasPowerUp: true},
+      {x: 1600, y: groundY - 120, width: 120, height: 20, type: 'breakable'},
+      {x: 1800, y: groundY - 160, width: 100, height: 20, type: 'normal'},
+      {x: 500, y: groundY - 280, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 3},
+      {x: 1100, y: groundY - 240, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 5},
+      {x: 1500, y: groundY - 200, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 4}
+    ],
+    powerUps: [
+      {x: 300, y: groundY - 240, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 500, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 700, y: groundY - 160, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+      {x: 1000, y: groundY - 220, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 1400, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0}
+    ],
+    enemies: [
+      {x: 300, y: groundY - 60, width: 30, height: 30, vx: -1, type: 'goomba', emoji: '🍄'},
+      {x: 700, y: groundY - 60, width: 30, height: 30, vx: 1, type: 'koopa', emoji: '🐢'},
+      {x: 1200, y: groundY - 60, width: 30, height: 30, vx: -1, type: 'goomba', emoji: '🍄'},
+      {x: 1600, y: groundY - 60, width: 30, height: 30, vx: 1, type: 'koopa', emoji: '🐢'}
+    ]
+  },
+  2: {
+    goalX: 3000,
+    platforms: [
+      {x: 250, y: groundY - 150, width: 120, height: 20, type: 'normal'},
+      {x: 450, y: groundY - 200, width: 100, height: 20, type: 'moving', moveSpeed: 1.5, moveRange: 120, startX: 450},
+      {x: 650, y: groundY - 180, width: 80, height: 20, type: 'breakable'},
+      {x: 350, y: groundY - 250, width: 60, height: 20, type: 'question', hasPowerUp: true},
+      {x: 850, y: groundY - 200, width: 100, height: 20, type: 'normal'},
+      {x: 1050, y: groundY - 240, width: 80, height: 20, type: 'moving', moveSpeed: -1.5, moveRange: 100, startX: 1050},
+      {x: 1250, y: groundY - 180, width: 120, height: 20, type: 'normal'},
+      {x: 1450, y: groundY - 220, width: 80, height: 20, type: 'question', hasPowerUp: true},
+      {x: 1650, y: groundY - 160, width: 100, height: 20, type: 'breakable'},
+      {x: 1850, y: groundY - 200, width: 80, height: 20, type: 'normal'},
+      {x: 2050, y: groundY - 240, width: 100, height: 20, type: 'moving', moveSpeed: 1, moveRange: 80, startX: 2050},
+      {x: 2250, y: groundY - 180, width: 120, height: 20, type: 'normal'},
+      {x: 2450, y: groundY - 220, width: 100, height: 20, type: 'question', hasPowerUp: true},
+      {x: 2650, y: groundY - 160, width: 80, height: 20, type: 'breakable'},
+      {x: 2850, y: groundY - 200, width: 100, height: 20, type: 'normal'},
+      {x: 550, y: groundY - 300, width: 60, height: 20, type: 'coin', hasCoins: true, coinCount: 4},
+      {x: 1150, y: groundY - 280, width: 60, height: 20, type: 'coin', hasCoins: true, coinCount: 6},
+      {x: 1750, y: groundY - 240, width: 60, height: 20, type: 'coin', hasCoins: true, coinCount: 5},
+      {x: 2350, y: groundY - 260, width: 60, height: 20, type: 'coin', hasCoins: true, coinCount: 7}
+    ],
+    powerUps: [
+      {x: 350, y: groundY - 270, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 650, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 850, y: groundY - 220, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+      {x: 1450, y: groundY - 240, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 1650, y: groundY - 180, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 2450, y: groundY - 240, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+      {x: 2650, y: groundY - 180, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0}
+    ],
+    enemies: [
+      {x: 350, y: groundY - 60, width: 30, height: 30, vx: -1.5, type: 'goomba', emoji: '🍄'},
+      {x: 750, y: groundY - 60, width: 30, height: 30, vx: 1.5, type: 'koopa', emoji: '🐢'},
+      {x: 1150, y: groundY - 60, width: 30, height: 30, vx: -1.5, type: 'goomba', emoji: '🍄'},
+      {x: 1550, y: groundY - 60, width: 30, height: 30, vx: 1.5, type: 'koopa', emoji: '🐢'},
+      {x: 1950, y: groundY - 60, width: 30, height: 30, vx: -1.5, type: 'goomba', emoji: '🍄'},
+      {x: 2350, y: groundY - 60, width: 30, height: 30, vx: 1.5, type: 'koopa', emoji: '🐢'},
+      {x: 2750, y: groundY - 60, width: 30, height: 30, vx: -1.5, type: 'goomba', emoji: '🍄'}
+    ]
+  },
+  3: {
+    goalX: 4000,
+    platforms: [
+      {x: 300, y: groundY - 180, width: 100, height: 20, type: 'normal'},
+      {x: 500, y: groundY - 220, width: 80, height: 20, type: 'moving', moveSpeed: 2, moveRange: 140, startX: 500},
+      {x: 700, y: groundY - 200, width: 60, height: 20, type: 'breakable'},
+      {x: 400, y: groundY - 280, width: 40, height: 20, type: 'question', hasPowerUp: true},
+      {x: 900, y: groundY - 240, width: 80, height: 20, type: 'normal'},
+      {x: 1100, y: groundY - 280, width: 60, height: 20, type: 'moving', moveSpeed: -2, moveRange: 120, startX: 1100},
+      {x: 1300, y: groundY - 220, width: 100, height: 20, type: 'normal'},
+      {x: 1500, y: groundY - 260, width: 60, height: 20, type: 'question', hasPowerUp: true},
+      {x: 1700, y: groundY - 200, width: 80, height: 20, type: 'breakable'},
+      {x: 1900, y: groundY - 240, width: 60, height: 20, type: 'normal'},
+      {x: 2100, y: groundY - 280, width: 80, height: 20, type: 'moving', moveSpeed: 1.5, moveRange: 100, startX: 2100},
+      {x: 2300, y: groundY - 240, width: 100, height: 20, type: 'normal'},
+      {x: 2500, y: groundY - 280, width: 60, height: 20, type: 'question', hasPowerUp: true},
+      {x: 2700, y: groundY - 220, width: 80, height: 20, type: 'breakable'},
+      {x: 2900, y: groundY - 260, width: 60, height: 20, type: 'normal'},
+      {x: 3100, y: groundY - 240, width: 100, height: 20, type: 'moving', moveSpeed: -1.5, moveRange: 120, startX: 3100},
+      {x: 3300, y: groundY - 280, width: 80, height: 20, type: 'normal'},
+      {x: 3500, y: groundY - 240, width: 60, height: 20, type: 'question', hasPowerUp: true},
+      {x: 3700, y: groundY - 200, width: 80, height: 20, type: 'breakable'},
+      {x: 3900, y: groundY - 240, width: 60, height: 20, type: 'normal'},
+      {x: 600, y: groundY - 320, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 5},
+      {x: 1200, y: groundY - 300, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 8},
+      {x: 1800, y: groundY - 260, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 6},
+      {x: 2400, y: groundY - 300, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 9},
+      {x: 3000, y: groundY - 280, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 7},
+      {x: 3600, y: groundY - 240, width: 40, height: 20, type: 'coin', hasCoins: true, coinCount: 10}
+    ],
+    powerUps: [
+      {x: 400, y: groundY - 300, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 700, y: groundY - 220, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 900, y: groundY - 260, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+      {x: 1500, y: groundY - 280, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 1700, y: groundY - 220, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 2500, y: groundY - 300, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+      {x: 2700, y: groundY - 240, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+      {x: 3500, y: groundY - 260, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
+      {x: 3700, y: groundY - 220, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0}
+    ],
+    enemies: [
+      {x: 400, y: groundY - 60, width: 30, height: 30, vx: -2, type: 'goomba', emoji: '🍄'},
+      {x: 800, y: groundY - 60, width: 30, height: 30, vx: 2, type: 'koopa', emoji: '🐢'},
+      {x: 1200, y: groundY - 60, width: 30, height: 30, vx: -2, type: 'goomba', emoji: '🍄'},
+      {x: 1600, y: groundY - 60, width: 30, height: 30, vx: 2, type: 'koopa', emoji: '🐢'},
+      {x: 2000, y: groundY - 60, width: 30, height: 30, vx: -2, type: 'goomba', emoji: '🍄'},
+      {x: 2400, y: groundY - 60, width: 30, height: 30, vx: 2, type: 'koopa', emoji: '🐢'},
+      {x: 2800, y: groundY - 60, width: 30, height: 30, vx: -2, type: 'goomba', emoji: '🍄'},
+      {x: 3200, y: groundY - 60, width: 30, height: 30, vx: 2, type: 'koopa', emoji: '🐢'},
+      {x: 3600, y: groundY - 60, width: 30, height: 30, vx: -2, type: 'goomba', emoji: '🍄'},
+      {x: 3800, y: groundY - 60, width: 30, height: 30, vx: 2, type: 'koopa', emoji: '🐢'}
+    ]
+  }
+};
+
+// Load level function
+function loadLevel(levelNumber) {
+  if (levelNumber > totalLevels) {
+    // Game completed!
+    gameWon = true;
+    return;
+  }
+  
+  currentLevel = levelNumber;
+  const config = levelConfigs[levelNumber];
+  
+  // Reset player position
+  player.x = 80;
+  player.y = groundY - 50;
+  player.vx = 0;
+  player.vy = 0;
+  
+  // Load level data
+  platforms = [...config.platforms];
+  powerUps = [...config.powerUps];
+  enemies = [...config.enemies];
+  
+  // Update goal position
+  goal.x = config.goalX;
+  goal.y = groundY - 100;
+  
+  // Reset camera
+  cameraX = 0;
+  
+  // Reset game state
+  gameOver = false;
+  gameWon = false;
+  isPaused = false;
+  
+  // Start background music for new level
+  if (musicEnabled) {
+    startBackgroundMusic();
+  }
+}
 
 function playSound(frequency, duration, type = 'sine') {
   const oscillator = audioContext.createOscillator();
@@ -1202,3 +1574,65 @@ function playEnemyDefeatSound() {
 
 updateScoreBoard();
 gameLoop(); 
+
+// Background music system
+function startBackgroundMusic() {
+  if (!audioContext || !musicEnabled) return;
+  
+  // Stop existing music
+  if (backgroundMusic) {
+    backgroundMusic.stop();
+  }
+  
+  // Create new background music
+  backgroundMusic = createBackgroundMusic();
+  
+  // Loop the music
+  if (backgroundMusic) {
+    backgroundMusic.onended = () => {
+      if (musicEnabled && !gameOver && !gameWon) {
+        startBackgroundMusic();
+      }
+    };
+  }
+}
+
+// Toggle music
+function toggleMusic() {
+  musicEnabled = !musicEnabled;
+  if (musicEnabled) {
+    startBackgroundMusic();
+  } else if (backgroundMusic) {
+    backgroundMusic.stop();
+    backgroundMusic = null;
+  }
+}
+
+// Initialize audio when game starts
+initAudio();
+
+// Music controls
+if (keys['M'] || keys['m']) {
+  if (!keysPressed['M'] && !keysPressed['m']) {
+    toggleMusic();
+    keysPressed['M'] = true;
+    keysPressed['m'] = true;
+  }
+} else {
+  keysPressed['M'] = false;
+  keysPressed['m'] = false;
+}
+
+// Level controls (for testing)
+if (keys['L'] || keys['l']) {
+  if (!keysPressed['L'] && !keysPressed['l']) {
+    if (currentLevel < totalLevels) {
+      loadLevel(currentLevel + 1);
+    }
+    keysPressed['L'] = true;
+    keysPressed['l'] = true;
+  }
+} else {
+  keysPressed['L'] = false;
+  keysPressed['l'] = false;
+}

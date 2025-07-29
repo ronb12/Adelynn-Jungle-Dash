@@ -2,11 +2,38 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreBoard = document.getElementById('scoreBoard');
 
-// Characters: cycle with 'C'
+// Characters: cycle with 'C' - Enhanced with unique designs
 const characters = [
-  {name: 'Adelynn', color: '#ff6f61', secondaryColor: '#ff8a80'},
-  {name: 'Zuri',    color: '#a266ac', secondaryColor: '#ba68c8'},
-  {name: 'Kai',     color: '#4fc3f7', secondaryColor: '#81d4fa'}
+  {
+    name: 'Adelynn', 
+    color: '#ff6f61', 
+    secondaryColor: '#ff8a80',
+    hairColor: '#8B4513',
+    eyeColor: '#4A90E2',
+    outfitColor: '#FF69B4',
+    emoji: '👧',
+    description: 'Brave jungle explorer'
+  },
+  {
+    name: 'Zuri',    
+    color: '#a266ac', 
+    secondaryColor: '#ba68c8',
+    hairColor: '#000000',
+    eyeColor: '#8B0000',
+    outfitColor: '#9370DB',
+    emoji: '🧙‍♀️',
+    description: 'Mystical forest guardian'
+  },
+  {
+    name: 'Kai',     
+    color: '#4fc3f7', 
+    secondaryColor: '#81d4fa',
+    hairColor: '#FFD700',
+    eyeColor: '#32CD32',
+    outfitColor: '#00CED1',
+    emoji: '🧙‍♂️',
+    description: 'Ancient jungle warrior'
+  }
 ];
 let characterIndex = 0;
 
@@ -36,7 +63,7 @@ const player = {
   isCrouching: false
 };
 
-// Platforms system - expanded world
+// Platforms system - expanded world with interactive blocks
 let platforms = [
   {x: 200, y: groundY - 120, width: 150, height: 20, type: 'normal'},
   {x: 400, y: groundY - 180, width: 120, height: 20, type: 'moving', moveSpeed: 1, moveRange: 100, startX: 400},
@@ -47,7 +74,10 @@ let platforms = [
   {x: 1200, y: groundY - 140, width: 150, height: 20, type: 'normal'},
   {x: 1400, y: groundY - 180, width: 100, height: 20, type: 'question', hasPowerUp: true},
   {x: 1600, y: groundY - 120, width: 120, height: 20, type: 'breakable'},
-  {x: 1800, y: groundY - 160, width: 100, height: 20, type: 'normal'}
+  {x: 1800, y: groundY - 160, width: 100, height: 20, type: 'normal'},
+  {x: 500, y: groundY - 280, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 3},
+  {x: 1100, y: groundY - 240, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 5},
+  {x: 1500, y: groundY - 200, width: 80, height: 20, type: 'coin', hasCoins: true, coinCount: 4}
 ];
 
 // Power-ups - expanded world
@@ -73,6 +103,7 @@ let collectibles = [];
 let enemies = [];
 let projectiles = [];
 let score = 0;
+let coins = 0; // Coin counter
 let level = 1;
 let collectSpawnTimer = 0;
 let enemySpawnTimer = 0;
@@ -101,6 +132,7 @@ window.addEventListener('keydown', (e) => {
     player.canJump = false;
     player.isOnGround = false;
     player.isOnPlatform = false;
+    playJumpSound();
   }
   
   // Run with Shift
@@ -151,8 +183,9 @@ window.addEventListener('keyup', (e) => {
 
 function updateScoreBoard() {
   const progress = Math.min(100, Math.floor((player.x / goal.x) * 100));
+  const char = characters[characterIndex];
   const powerUpText = player.powerUpState !== 'normal' ? ` | Power: ${player.powerUpState}` : '';
-  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Progress: ${progress}% | Character: ${characters[characterIndex].name} | Lives: ${player.lives}${powerUpText}`;
+  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Coins: ${coins} | Progress: ${progress}% | ${char.emoji} ${char.name}: ${char.description} | Lives: ${player.lives}${powerUpText}`;
 }
 
 // Spawn a coin emoji with gravity
@@ -209,11 +242,12 @@ function shootProjectile() {
   projectiles.push(projectile);
 }
 
-// Platform collision detection
+// Platform collision detection with interactive blocks
 function checkPlatformCollision() {
   player.isOnPlatform = false;
   
   for (let platform of platforms) {
+    // Check if player is on top of platform
     if (player.x < platform.x + platform.width &&
         player.x + player.width > platform.x &&
         player.y + player.height >= platform.y &&
@@ -244,6 +278,55 @@ function checkPlatformCollision() {
           emoji: '🍄',
           collected: false,
           vy: 0
+        };
+        powerUps.push(powerUp);
+      }
+    }
+    
+    // Check if player hits block from below (interactive blocks)
+    if (player.x < platform.x + platform.width &&
+        player.x + player.width > platform.x &&
+        player.y <= platform.y + platform.height &&
+        player.y + player.height >= platform.y &&
+        player.vy < 0) {
+      
+      // Stop upward movement
+      player.vy = 0;
+      player.y = platform.y + platform.height;
+      
+      // Handle interactive blocks
+      if (platform.type === 'coin' && platform.hasCoins) {
+        // Spawn coins
+        for (let i = 0; i < platform.coinCount; i++) {
+          const coin = {
+            x: platform.x + (i * 20),
+            y: platform.y - 30 - (i * 10),
+            width: 20,
+            height: 20,
+            vy: -8 - (i * 2),
+            vx: (i - 1) * 2,
+            value: 1,
+            emoji: '🪙',
+            collected: false
+          };
+          collectibles.push(coin);
+        }
+        platform.hasCoins = false;
+        platform.coinCount = 0;
+      }
+      
+      if (platform.type === 'question' && platform.hasPowerUp) {
+        // Spawn power-up
+        platform.hasPowerUp = false;
+        const powerUp = {
+          x: platform.x,
+          y: platform.y - 30,
+          width: 30,
+          height: 30,
+          type: 'mushroom',
+          emoji: '🍄',
+          collected: false,
+          vy: -5
         };
         powerUps.push(powerUp);
       }
@@ -447,8 +530,10 @@ function update() {
       player.y + player.height > item.y;
     if (isColliding) {
       score += item.value;
+      coins += item.value; // Track coins separately
       updateScoreBoard();
       item.collected = true;
+      playCoinSound();
       return false;
     }
     return true;
@@ -484,6 +569,7 @@ function update() {
       }
       
       updateScoreBoard();
+      playPowerUpSound();
       return false;
     }
     return true;
@@ -506,6 +592,7 @@ function update() {
         player.vy = -10; // Bounce
         score += 100;
         updateScoreBoard();
+        playEnemyDefeatSound();
       } else {
         // Hit enemy from side
         if (player.powerUpState === 'big') {
@@ -590,6 +677,14 @@ function drawPlatforms() {
           ctx.fillText('?', screenX + platform.width/2 - 5, platform.y - 5);
           ctx.fillStyle = '#FFD700';
           break;
+        case 'coin':
+          ctx.fillStyle = '#FFD700';
+          // Draw coin symbol
+          ctx.fillStyle = '#000';
+          ctx.font = '16px Arial';
+          ctx.fillText('🪙', screenX + platform.width/2 - 8, platform.y - 5);
+          ctx.fillStyle = '#FFD700';
+          break;
       }
       
       ctx.fillRect(screenX, platform.y, platform.width, platform.height);
@@ -663,32 +758,71 @@ function drawGoal() {
   }
 }
 
-// Draw player with camera offset
+// Draw player with camera offset - Enhanced character design
 function drawPlayer() {
   const screenX = player.x - cameraX;
+  const char = characters[characterIndex];
   
   // Only draw if on screen
   if (screenX + player.width > 0 && screenX < canvas.width) {
-    // Draw player body
-    ctx.fillStyle = player.color;
+    // Draw character shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(screenX + 2, player.y + player.height + 2, player.width, 5);
+    
+    // Draw character body (outfit)
+    ctx.fillStyle = char.outfitColor;
     ctx.fillRect(screenX, player.y, player.width, player.height);
     
-    // Draw player details
-    ctx.fillStyle = player.secondaryColor;
-    ctx.fillRect(screenX + 5, player.y + 5, player.width - 10, 10);
+    // Draw character skin tone
+    ctx.fillStyle = char.color;
+    ctx.fillRect(screenX + 5, player.y + 5, player.width - 10, player.height - 15);
+    
+    // Draw hair
+    ctx.fillStyle = char.hairColor;
+    ctx.fillRect(screenX + 3, player.y - 5, player.width - 6, 15);
+    
+    // Draw hair details
+    ctx.fillStyle = char.hairColor;
+    ctx.fillRect(screenX + 8, player.y - 8, 5, 8);
+    ctx.fillRect(screenX + player.width - 13, player.y - 8, 5, 8);
     
     // Draw eyes
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = char.eyeColor;
     const eyeX = player.direction === 1 ? screenX + 25 : screenX + 5;
     ctx.fillRect(eyeX, player.y + 15, 5, 5);
+    ctx.fillRect(eyeX + 8, player.y + 15, 5, 5);
+    
+    // Draw eye pupils
+    ctx.fillStyle = '#000';
+    const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 4;
+    ctx.fillRect(pupilX, player.y + 16, 2, 3);
+    ctx.fillRect(pupilX + 8, player.y + 16, 2, 3);
     
     // Draw mouth
+    ctx.fillStyle = '#FF69B4';
     ctx.fillRect(screenX + 15, player.y + 30, 5, 3);
+    
+    // Draw outfit details
+    ctx.fillStyle = char.secondaryColor;
+    ctx.fillRect(screenX + 8, player.y + 35, player.width - 16, 8);
+    ctx.fillRect(screenX + 12, player.y + 43, player.width - 24, 5);
+    
+    // Draw character emoji above head
+    ctx.font = '16px Arial';
+    ctx.fillText(char.emoji, screenX + 8, player.y - 15);
     
     // Draw power-up indicator
     if (player.powerUpState !== 'normal') {
       ctx.fillStyle = '#FFD700';
       ctx.fillRect(screenX - 5, player.y - 10, player.width + 10, 5);
+      
+      // Draw power-up emoji
+      let powerEmoji = '⭐';
+      if (player.powerUpState === 'big') powerEmoji = '🍄';
+      if (player.powerUpState === 'fire') powerEmoji = '🔥';
+      
+      ctx.font = '14px Arial';
+      ctx.fillText(powerEmoji, screenX + 10, player.y - 20);
     }
     
     // Draw invincibility effect
@@ -696,6 +830,21 @@ function drawPlayer() {
       ctx.strokeStyle = '#FFD700';
       ctx.lineWidth = 3;
       ctx.strokeRect(screenX, player.y, player.width, player.height);
+      
+      // Draw sparkle effect
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(screenX - 3, player.y - 3, 3, 3);
+      ctx.fillRect(screenX + player.width, player.y - 3, 3, 3);
+      ctx.fillRect(screenX - 3, player.y + player.height, 3, 3);
+      ctx.fillRect(screenX + player.width, player.y + player.height, 3, 3);
+    }
+    
+    // Draw running dust effect
+    if (player.isRunning && player.isOnGround) {
+      ctx.fillStyle = 'rgba(139, 69, 19, 0.6)';
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(screenX - 5 - (i * 3), player.y + player.height + 2, 2, 2);
+      }
     }
   }
 }
@@ -867,6 +1016,42 @@ function gameLoop() {
   }
   draw();
   requestAnimationFrame(gameLoop);
+}
+
+// Audio system
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(frequency, duration, type = 'sine') {
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+  oscillator.type = type;
+  
+  gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + duration);
+}
+
+function playCoinSound() {
+  playSound(800, 0.1, 'square');
+}
+
+function playJumpSound() {
+  playSound(400, 0.2, 'sine');
+}
+
+function playPowerUpSound() {
+  playSound(600, 0.3, 'triangle');
+}
+
+function playEnemyDefeatSound() {
+  playSound(300, 0.15, 'sawtooth');
 }
 
 updateScoreBoard();

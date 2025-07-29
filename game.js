@@ -37,7 +37,7 @@ const player = {
 };
 
 // Platforms system
-const platforms = [
+let platforms = [
   {x: 200, y: groundY - 120, width: 150, height: 20, type: 'normal'},
   {x: 400, y: groundY - 180, width: 120, height: 20, type: 'moving', moveSpeed: 1, moveRange: 100, startX: 400},
   {x: 600, y: groundY - 140, width: 100, height: 20, type: 'breakable'},
@@ -45,7 +45,7 @@ const platforms = [
 ];
 
 // Power-ups
-const powerUps = [
+let powerUps = [
   {x: 300, y: groundY - 240, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
   {x: 500, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
   {x: 700, y: groundY - 160, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0}

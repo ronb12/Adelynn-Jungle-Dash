@@ -36,19 +36,27 @@ const player = {
   isCrouching: false
 };
 
-// Platforms system
+// Platforms system - expanded world
 let platforms = [
   {x: 200, y: groundY - 120, width: 150, height: 20, type: 'normal'},
   {x: 400, y: groundY - 180, width: 120, height: 20, type: 'moving', moveSpeed: 1, moveRange: 100, startX: 400},
   {x: 600, y: groundY - 140, width: 100, height: 20, type: 'breakable'},
-  {x: 300, y: groundY - 220, width: 80, height: 20, type: 'question', hasPowerUp: true}
+  {x: 300, y: groundY - 220, width: 80, height: 20, type: 'question', hasPowerUp: true},
+  {x: 800, y: groundY - 160, width: 120, height: 20, type: 'normal'},
+  {x: 1000, y: groundY - 200, width: 100, height: 20, type: 'moving', moveSpeed: -1, moveRange: 80, startX: 1000},
+  {x: 1200, y: groundY - 140, width: 150, height: 20, type: 'normal'},
+  {x: 1400, y: groundY - 180, width: 100, height: 20, type: 'question', hasPowerUp: true},
+  {x: 1600, y: groundY - 120, width: 120, height: 20, type: 'breakable'},
+  {x: 1800, y: groundY - 160, width: 100, height: 20, type: 'normal'}
 ];
 
-// Power-ups
+// Power-ups - expanded world
 let powerUps = [
   {x: 300, y: groundY - 240, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
   {x: 500, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0},
-  {x: 700, y: groundY - 160, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0}
+  {x: 700, y: groundY - 160, width: 30, height: 30, type: 'fireflower', emoji: '🔥', collected: false, vy: 0},
+  {x: 1000, y: groundY - 220, width: 30, height: 30, type: 'mushroom', emoji: '🍄', collected: false, vy: 0},
+  {x: 1400, y: groundY - 200, width: 30, height: 30, type: 'star', emoji: '⭐', collected: false, vy: 0}
 ];
 
 // Enhanced enemy system with AI
@@ -72,9 +80,9 @@ let gameOver = false;
 let gameWon = false;
 let isPaused = false;
 
-// Goal flag at the right end
+// Goal flag at the far right end of the expanded world
 const goal = {
-  x: canvas.width - 60,
+  x: 2000, // Much further to the right
   y: groundY - 100,
   width: 15,
   height: 100
@@ -142,8 +150,9 @@ window.addEventListener('keyup', (e) => {
 });
 
 function updateScoreBoard() {
+  const progress = Math.min(100, Math.floor((player.x / goal.x) * 100));
   const powerUpText = player.powerUpState !== 'normal' ? ` | Power: ${player.powerUpState}` : '';
-  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Character: ${characters[characterIndex].name} | Lives: ${player.lives}${powerUpText}`;
+  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Progress: ${progress}% | Character: ${characters[characterIndex].name} | Lives: ${player.lives}${powerUpText}`;
 }
 
 // Spawn a coin emoji with gravity
@@ -242,7 +251,11 @@ function checkPlatformCollision() {
   }
 }
 
-// Enhanced update function with Mario-style features
+// Camera system for scrolling like Mario Bros
+let cameraX = 0;
+const cameraSpeed = 0.1; // Smooth camera following
+
+// Enhanced update function with Mario-style features and camera
 function update() {
   if (isPaused) return;
   
@@ -276,6 +289,13 @@ function update() {
 
   player.x += player.vx;
 
+  // Camera follows player with smooth scrolling
+  const targetCameraX = player.x - canvas.width / 2;
+  cameraX += (targetCameraX - cameraX) * cameraSpeed;
+  
+  // Keep camera within world bounds
+  cameraX = Math.max(0, Math.min(cameraX, 2000 - canvas.width));
+
   // Apply gravity and vertical movement
   player.vy += 0.8; // Slightly stronger gravity
   player.y += player.vy;
@@ -293,8 +313,8 @@ function update() {
   // Platform collision
   checkPlatformCollision();
 
-  // Keep player in bounds
-  player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+  // Keep player in world bounds (not just screen bounds)
+  player.x = Math.max(0, Math.min(2000 - player.width, player.x));
 
   // Update platforms (moving platforms)
   platforms.forEach(platform => {
@@ -336,7 +356,7 @@ function update() {
   projectiles.forEach(projectile => {
     projectile.x += projectile.vx;
   });
-  projectiles = projectiles.filter(p => p.x > 0 && p.x < canvas.width);
+  projectiles = projectiles.filter(p => p.x > cameraX - 100 && p.x < cameraX + canvas.width + 100);
 
   // Spawn collectibles and enemies
   collectSpawnTimer++;
@@ -408,13 +428,13 @@ function update() {
     
     // Patrol behavior - change direction at edges
     if (enemy.behavior === 'patrol') {
-      if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
+      if (enemy.x <= cameraX || enemy.x + enemy.width >= cameraX + canvas.width) {
         enemy.vx *= -1;
       }
     }
   });
   
-  enemies = enemies.filter(enemy => enemy.x + enemy.width > 0);
+  enemies = enemies.filter(enemy => enemy.x + enemy.width > cameraX - 100);
 
   // Check collectible collisions
   collectibles = collectibles.filter(item => {
@@ -535,244 +555,253 @@ function update() {
   }
 }
 
+// Draw ground with camera offset
 function drawGround() {
-  // Main ground
-  ctx.fillStyle = '#8bc34a';
-  ctx.fillRect(0, groundY, canvas.width, groundHeight);
+  ctx.fillStyle = '#8B4513';
+  ctx.fillRect(0 - cameraX, groundY, canvas.width + 200, groundHeight);
   
-  // Ground texture
-  ctx.fillStyle = '#689f38';
-  for (let i = 0; i < canvas.width; i += 30) {
-    ctx.fillRect(i, groundY, 15, groundHeight);
-  }
-  
-  // Grass detail
-  ctx.fillStyle = '#4caf50';
-  for (let i = 0; i < canvas.width; i += 10) {
-    ctx.fillRect(i, groundY, 2, 10);
-  }
+  // Draw grass on top
+  ctx.fillStyle = '#228B22';
+  ctx.fillRect(0 - cameraX, groundY, canvas.width + 200, 10);
 }
 
+// Draw platforms with camera offset
 function drawPlatforms() {
   platforms.forEach(platform => {
-    let color = '#8d6e63';
-    let borderColor = '#5d4037';
+    const screenX = platform.x - cameraX;
     
-    switch (platform.type) {
-      case 'moving':
-        color = '#ff9800';
-        borderColor = '#f57c00';
-        break;
-      case 'breakable':
-        color = '#d32f2f';
-        borderColor = '#b71c1c';
-        break;
-      case 'question':
-        color = '#ffd54f';
-        borderColor = '#f57f17';
-        break;
-    }
-    
-    // Platform shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(platform.x + 2, platform.y + 2, platform.width, platform.height);
-    
-    // Platform body
-    ctx.fillStyle = color;
-    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-    
-    // Platform border
-    ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
-    
-    // Question mark for question blocks
-    if (platform.type === 'question') {
-      ctx.fillStyle = '#000';
-      ctx.font = 'bold 16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('?', platform.x + platform.width/2, platform.y + platform.height/2 + 5);
+    // Only draw if on screen
+    if (screenX + platform.width > 0 && screenX < canvas.width) {
+      switch (platform.type) {
+        case 'normal':
+          ctx.fillStyle = '#8B4513';
+          break;
+        case 'moving':
+          ctx.fillStyle = '#FF6B35';
+          break;
+        case 'breakable':
+          ctx.fillStyle = '#8B7355';
+          break;
+        case 'question':
+          ctx.fillStyle = '#FFD700';
+          // Draw question mark
+          ctx.fillStyle = '#000';
+          ctx.font = '20px Arial';
+          ctx.fillText('?', screenX + platform.width/2 - 5, platform.y - 5);
+          ctx.fillStyle = '#FFD700';
+          break;
+      }
+      
+      ctx.fillRect(screenX, platform.y, platform.width, platform.height);
+      
+      // Draw platform border
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX, platform.y, platform.width, platform.height);
     }
   });
 }
 
+// Draw power-ups with camera offset
 function drawPowerUps() {
   powerUps.forEach(powerUp => {
     if (!powerUp.collected) {
-      // Power-up shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(powerUp.x + 2, powerUp.y + 2, powerUp.width, powerUp.height);
+      const screenX = powerUp.x - cameraX;
       
-      // Power-up emoji
-      ctx.font = `${powerUp.width}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(powerUp.emoji, powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2);
-      
-      // Sparkle effect
-      const time = Date.now() * 0.005;
-      const sparkle = Math.sin(time + powerUp.x) * 0.3 + 0.7;
-      ctx.fillStyle = `rgba(255, 215, 0, ${sparkle})`;
-      ctx.beginPath();
-      ctx.arc(powerUp.x + powerUp.width/2, powerUp.y + powerUp.height/2, powerUp.width/2 + 5, 0, Math.PI * 2);
-      ctx.fill();
+      // Only draw if on screen
+      if (screenX + powerUp.width > 0 && screenX < canvas.width) {
+        ctx.fillStyle = powerUp.color || '#FF0000';
+        ctx.fillRect(screenX, powerUp.y, powerUp.width, powerUp.height);
+        
+        // Draw emoji
+        ctx.font = '20px Arial';
+        ctx.fillText(powerUp.emoji, screenX + 5, powerUp.y + 20);
+      }
     }
   });
 }
 
+// Draw projectiles with camera offset
 function drawProjectiles() {
   projectiles.forEach(projectile => {
-    // Projectile shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(projectile.x + 2, projectile.y + 2, projectile.width, projectile.height);
+    const screenX = projectile.x - cameraX;
     
-    // Projectile body
-    ctx.fillStyle = projectile.color;
-    ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
-    
-    // Projectile emoji
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(projectile.emoji, projectile.x + projectile.width/2, projectile.y + projectile.height/2);
+    // Only draw if on screen
+    if (screenX + projectile.width > 0 && screenX < canvas.width) {
+      ctx.fillStyle = projectile.color;
+      ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
+      
+      // Draw fire emoji
+      ctx.font = '12px Arial';
+      ctx.fillText(projectile.emoji, screenX + 2, projectile.y + 8);
+    }
   });
 }
 
+// Draw goal with camera offset
 function drawGoal() {
-  // Pole
-  ctx.fillStyle = '#8d6e63';
-  ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+  const screenX = goal.x - cameraX;
   
-  // Pole shadow
-  ctx.fillStyle = '#5d4037';
-  ctx.fillRect(goal.x + 2, goal.y, goal.width - 4, goal.height);
-  
-  // Flag
-  ctx.fillStyle = '#ffeb3b';
-  ctx.fillRect(goal.x + goal.width, goal.y, 40, 25);
-  
-  // Flag pattern
-  ctx.fillStyle = '#f57f17';
-  ctx.fillRect(goal.x + goal.width, goal.y, 40, 8);
-  ctx.fillRect(goal.x + goal.width, goal.y + 17, 40, 8);
-  
-  // Flag pole top
-  ctx.fillStyle = '#ffd54f';
-  ctx.beginPath();
-  ctx.arc(goal.x + goal.width/2, goal.y, 8, 0, Math.PI * 2);
-  ctx.fill();
+  // Only draw if on screen
+  if (screenX + goal.width > 0 && screenX < canvas.width) {
+    // Draw flag pole
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(screenX, goal.y, goal.width, goal.height);
+    
+    // Draw flag
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(screenX + goal.width, goal.y, 40, 30);
+    
+    // Draw flag pattern
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(screenX + goal.width + 5, goal.y + 5, 30, 5);
+    ctx.fillRect(screenX + goal.width + 5, goal.y + 15, 30, 5);
+    
+    // Draw flag pole top
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(screenX - 2, goal.y - 5, goal.width + 4, 10);
+  }
 }
 
+// Draw player with camera offset
 function drawPlayer() {
-  // Invincibility flash effect
-  if (player.isInvincible && Math.floor(player.invincibleTimer / 10) % 2 === 0) {
-    return; // Skip drawing player every other frame when invincible
-  }
+  const screenX = player.x - cameraX;
   
-  // Player shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fillRect(player.x + 2, player.y + player.height - 5, player.width, 10);
-  
-  // Player body
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-  
-  // Player details
-  ctx.fillStyle = player.secondaryColor;
-  ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, 15);
-  
-  // Eyes
-  ctx.fillStyle = '#000';
-  ctx.fillRect(player.x + 8, player.y + 8, 4, 4);
-  ctx.fillRect(player.x + 18, player.y + 8, 4, 4);
-  
-  // Smile
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(player.x + player.width/2, player.y + 20, 8, 0, Math.PI);
-  ctx.stroke();
-  
-  // Power-up indicators
-  if (player.powerUpState === 'fire') {
-    ctx.fillStyle = '#ff5722';
-    ctx.fillRect(player.x + player.width/2 - 5, player.y - 10, 10, 5);
+  // Only draw if on screen
+  if (screenX + player.width > 0 && screenX < canvas.width) {
+    // Draw player body
+    ctx.fillStyle = player.color;
+    ctx.fillRect(screenX, player.y, player.width, player.height);
+    
+    // Draw player details
+    ctx.fillStyle = player.secondaryColor;
+    ctx.fillRect(screenX + 5, player.y + 5, player.width - 10, 10);
+    
+    // Draw eyes
+    ctx.fillStyle = '#000';
+    const eyeX = player.direction === 1 ? screenX + 25 : screenX + 5;
+    ctx.fillRect(eyeX, player.y + 15, 5, 5);
+    
+    // Draw mouth
+    ctx.fillRect(screenX + 15, player.y + 30, 5, 3);
+    
+    // Draw power-up indicator
+    if (player.powerUpState !== 'normal') {
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(screenX - 5, player.y - 10, player.width + 10, 5);
+    }
+    
+    // Draw invincibility effect
+    if (player.isInvincible && Math.floor(Date.now() / 100) % 2) {
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(screenX, player.y, player.width, player.height);
+    }
   }
 }
 
+// Draw collectibles with camera offset
 function drawCollectibles() {
   collectibles.forEach(coin => {
     if (!coin.collected) {
-      // Coin shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.fillRect(coin.x + 2, coin.y + coin.height - 3, coin.width, 6);
+      const screenX = coin.x - cameraX;
       
-      // Coin emoji
-      ctx.font = `${coin.width}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(coin.emoji, coin.x + coin.width/2, coin.y + coin.height/2);
-      
-      // Sparkle effect
-      const time = Date.now() * 0.005;
-      const sparkle = Math.sin(time + coin.x) * 0.3 + 0.7;
-      ctx.fillStyle = `rgba(255, 215, 0, ${sparkle})`;
-      ctx.beginPath();
-      ctx.arc(coin.x + coin.width/2, coin.y + coin.height/2, coin.width/2 + 5, 0, Math.PI * 2);
-      ctx.fill();
+      // Only draw if on screen
+      if (screenX + coin.width > 0 && screenX < canvas.width) {
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(screenX, coin.y, coin.width, coin.height);
+        
+        // Draw coin emoji
+        ctx.font = '20px Arial';
+        ctx.fillText(coin.emoji, screenX + 5, coin.y + 20);
+      }
     }
   });
 }
 
+// Draw enemies with camera offset
 function drawEnemies() {
   enemies.forEach(enemy => {
-    // Enemy shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(enemy.x + 2, enemy.y + enemy.height - 5, enemy.width, 10);
+    const screenX = enemy.x - cameraX;
     
-    // Enemy body
-    ctx.fillStyle = enemy.color;
-    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-    
-    // Enemy details
-    ctx.fillStyle = enemy.secondaryColor;
-    ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.width - 10, 15);
-    
-    // Animal emoji
-    ctx.font = '20px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(enemy.emoji, enemy.x + enemy.width/2, enemy.y + enemy.height/2);
-    
-    // Eyes for some animals
-    if (enemy.emoji === '🐯' || enemy.emoji === '🦁') {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(enemy.x + 8, enemy.y + 8, 3, 3);
-      ctx.fillRect(enemy.x + 18, enemy.y + 8, 3, 3);
+    // Only draw if on screen
+    if (screenX + enemy.width > 0 && screenX < canvas.width) {
+      // Draw enemy body
+      ctx.fillStyle = enemy.color;
+      ctx.fillRect(screenX, enemy.y, enemy.width, enemy.height);
+      
+      // Draw enemy details
+      ctx.fillStyle = enemy.secondaryColor;
+      ctx.fillRect(screenX + 5, enemy.y + 5, enemy.width - 10, 10);
+      
+      // Draw enemy emoji
+      ctx.font = '20px Arial';
+      ctx.fillText(enemy.emoji, screenX + 8, enemy.y + 20);
     }
   });
 }
 
+// Draw background with parallax scrolling
 function drawBackground() {
   // Sky gradient
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
   gradient.addColorStop(0, '#87CEEB');
-  gradient.addColorStop(0.5, '#98FB98');
-  gradient.addColorStop(1, '#8FBC8F');
+  gradient.addColorStop(1, '#98FB98');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Clouds
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  for (let i = 0; i < 5; i++) {
-    const x = (i * 200 + Date.now() * 0.01) % (canvas.width + 100) - 50;
-    const y = 50 + Math.sin(i) * 20;
-    ctx.beginPath();
-    ctx.arc(x, y, 30, 0, Math.PI * 2);
-    ctx.arc(x + 25, y, 25, 0, Math.PI * 2);
-    ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Draw clouds with parallax (move slower than camera)
+  ctx.fillStyle = '#FFFFFF';
+  const cloudOffset = cameraX * 0.3;
+  
+  // Cloud 1
+  ctx.beginPath();
+  ctx.arc(100 - cloudOffset, 80, 30, 0, Math.PI * 2);
+  ctx.arc(130 - cloudOffset, 80, 25, 0, Math.PI * 2);
+  ctx.arc(160 - cloudOffset, 80, 30, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Cloud 2
+  ctx.beginPath();
+  ctx.arc(400 - cloudOffset, 120, 25, 0, Math.PI * 2);
+  ctx.arc(430 - cloudOffset, 120, 20, 0, Math.PI * 2);
+  ctx.arc(460 - cloudOffset, 120, 25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Cloud 3
+  ctx.beginPath();
+  ctx.arc(700 - cloudOffset, 60, 20, 0, Math.PI * 2);
+  ctx.arc(730 - cloudOffset, 60, 15, 0, Math.PI * 2);
+  ctx.arc(760 - cloudOffset, 60, 20, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Draw distant mountains with parallax (move even slower)
+  const mountainOffset = cameraX * 0.1;
+  ctx.fillStyle = '#8B7355';
+  
+  // Mountain 1
+  ctx.beginPath();
+  ctx.moveTo(0 - mountainOffset, groundY);
+  ctx.lineTo(200 - mountainOffset, groundY - 100);
+  ctx.lineTo(400 - mountainOffset, groundY);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Mountain 2
+  ctx.beginPath();
+  ctx.moveTo(300 - mountainOffset, groundY);
+  ctx.lineTo(500 - mountainOffset, groundY - 80);
+  ctx.lineTo(700 - mountainOffset, groundY);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Mountain 3
+  ctx.beginPath();
+  ctx.moveTo(600 - mountainOffset, groundY);
+  ctx.lineTo(800 - mountainOffset, groundY - 120);
+  ctx.lineTo(1000 - mountainOffset, groundY);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function drawPauseScreen() {

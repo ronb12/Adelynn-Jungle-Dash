@@ -60,13 +60,18 @@ const player = {
   canJump: true,
   color: characters[characterIndex].color,
   secondaryColor: characters[characterIndex].secondaryColor,
-  lives: 3, // Now finite lives like Mario
+  lives: Infinity, // Infinite lives for testing
   isInvincible: false,
   invincibleTimer: 0,
   powerUpState: 'normal', // normal, big, fire
   direction: 1, // 1 for right, -1 for left
   isRunning: false,
-  isCrouching: false
+  isCrouching: false,
+  // Animation states
+  animationFrame: 0,
+  walkCycle: 0,
+  jumpFrame: 0,
+  isMoving: false
 };
 
 // Platforms system - expanded world with interactive blocks
@@ -191,7 +196,8 @@ function updateScoreBoard() {
   const progress = Math.min(100, Math.floor((player.x / goal.x) * 100));
   const char = characters[characterIndex];
   const powerUpText = player.powerUpState !== 'normal' ? ` | Power: ${player.powerUpState}` : '';
-  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Coins: ${coins} | Progress: ${progress}% | ${char.emoji} ${char.name}: ${char.description} | Lives: ${player.lives}${powerUpText}`;
+  const livesText = player.lives === Infinity ? '∞' : player.lives;
+  scoreBoard.textContent = `Level: ${level} | Score: ${score} | Coins: ${coins} | Progress: ${progress}% | ${char.name}: ${char.description} | Lives: ${livesText}${powerUpText}`;
 }
 
 // Spawn a coin emoji with gravity
@@ -362,13 +368,30 @@ function update() {
   const moveSpeed = player.isRunning ? runSpeed : baseSpeed;
   
   player.vx = 0;
+  player.isMoving = false;
+  
   if (keys['ArrowLeft']) {
     player.vx = -moveSpeed;
     player.direction = -1;
+    player.isMoving = true;
   }
   if (keys['ArrowRight']) {
     player.vx = moveSpeed;
     player.direction = 1;
+    player.isMoving = true;
+  }
+
+  // Update animation cycles
+  if (player.isMoving && player.isOnGround) {
+    player.walkCycle += 0.2;
+  } else {
+    player.walkCycle = 0;
+  }
+  
+  if (player.vy < 0) {
+    player.jumpFrame += 0.1;
+  } else {
+    player.jumpFrame = 0;
   }
 
   // Crouching reduces speed
@@ -764,7 +787,7 @@ function drawGoal() {
   }
 }
 
-// Draw player with camera offset - Human-like character design with unique details
+// Draw player with camera offset - Human-like character design with animations
 function drawPlayer() {
   const screenX = player.x - cameraX;
   const char = characters[characterIndex];
@@ -775,7 +798,7 @@ function drawPlayer() {
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.fillRect(screenX + 2, player.y + player.height + 2, player.width, 5);
     
-    // Calculate body part positions
+    // Calculate body part positions with animation
     const headX = screenX + 8;
     const headY = player.y - 8;
     const headSize = 20;
@@ -800,82 +823,93 @@ function drawPlayer() {
     const shoeWidth = 12;
     const shoeHeight = 4;
     
-    // Draw legs (pants)
-    ctx.fillStyle = '#4169E1'; // Blue pants like Mario
-    ctx.fillRect(legX, legY, legWidth, legHeight);
-    ctx.fillRect(legX + 10, legY, legWidth, legHeight);
+    // Walking animation for legs
+    const walkOffset = player.isMoving ? Math.sin(player.walkCycle * 0.3) * 2 : 0;
+    const leftLegY = legY + walkOffset;
+    const rightLegY = legY - walkOffset;
     
-    // Draw shoes
+    // Jumping animation for arms
+    const jumpOffset = player.vy < 0 ? -3 : 0;
+    const leftArmY = armY + jumpOffset;
+    const rightArmY = armY + jumpOffset;
+    
+    // Draw legs (pants) with walking animation
+    ctx.fillStyle = '#4169E1'; // Blue pants like Mario
+    ctx.fillRect(legX, leftLegY, legWidth, legHeight);
+    ctx.fillRect(legX + 10, rightLegY, legWidth, legHeight);
+    
+    // Draw shoes with walking animation
     ctx.fillStyle = char.shoeColor;
-    ctx.fillRect(shoeX, shoeY, shoeWidth, shoeHeight);
-    ctx.fillRect(shoeX + 10, shoeY, shoeWidth, shoeHeight);
+    ctx.fillRect(shoeX, leftLegY + legHeight, shoeWidth, shoeHeight);
+    ctx.fillRect(shoeX + 10, rightLegY + legHeight, shoeWidth, shoeHeight);
     
     // Draw body (shirt/dress)
     ctx.fillStyle = char.outfitColor;
     ctx.fillRect(bodyX, bodyY, bodyWidth, bodyHeight);
     
-    // Draw arms (shirt sleeves)
+    // Draw arms (shirt sleeves) with jumping animation
     ctx.fillStyle = char.outfitColor;
-    ctx.fillRect(armX, armY, armWidth, armHeight);
-    ctx.fillRect(armX + player.width - 8, armY, armWidth, armHeight);
+    ctx.fillRect(armX, leftArmY, armWidth, armHeight);
+    ctx.fillRect(armX + player.width - 8, rightArmY, armWidth, armHeight);
     
-    // Draw gloves
+    // Draw gloves with jumping animation
     ctx.fillStyle = char.gloveColor;
-    ctx.fillRect(armX - 1, armY + 15, armWidth + 2, 5);
-    ctx.fillRect(armX + player.width - 9, armY + 15, armWidth + 2, 5);
+    ctx.fillRect(armX - 1, leftArmY + 15, armWidth + 2, 5);
+    ctx.fillRect(armX + player.width - 9, rightArmY + 15, armWidth + 2, 5);
     
-    // Draw head
+    // Draw head with slight bobbing when walking
+    const headBob = player.isMoving ? Math.sin(player.walkCycle * 0.3) * 1 : 0;
     ctx.fillStyle = char.color; // Skin tone
-    ctx.fillRect(headX, headY, headSize, headSize);
+    ctx.fillRect(headX, headY + headBob, headSize, headSize);
     
-    // Draw hair
+    // Draw hair with head bob
     ctx.fillStyle = char.hairColor;
-    ctx.fillRect(headX - 2, headY - 3, headSize + 4, 8);
+    ctx.fillRect(headX - 2, headY - 3 + headBob, headSize + 4, 8);
     
-    // Draw hair details (bangs)
-    ctx.fillRect(headX + 2, headY - 1, 6, 4);
-    ctx.fillRect(headX + 12, headY - 1, 6, 4);
+    // Draw hair details (bangs) with head bob
+    ctx.fillRect(headX + 2, headY - 1 + headBob, 6, 4);
+    ctx.fillRect(headX + 12, headY - 1 + headBob, 6, 4);
     
-    // Character-specific headgear
+    // Character-specific headgear with head bob
     if (char.name === 'Adelynn') {
       // Explorer hat
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(headX - 3, headY - 8, headSize + 6, 6);
-      ctx.fillRect(headX + 2, headY - 12, 12, 8);
+      ctx.fillRect(headX - 3, headY - 8 + headBob, headSize + 6, 6);
+      ctx.fillRect(headX + 2, headY - 12 + headBob, 12, 8);
     } else if (char.name === 'Zuri') {
       // Magical hood
       ctx.fillStyle = '#4B0082';
-      ctx.fillRect(headX - 2, headY - 10, headSize + 4, 10);
+      ctx.fillRect(headX - 2, headY - 10 + headBob, headSize + 4, 10);
       // Hood point
-      ctx.fillRect(headX + 8, headY - 15, 4, 8);
+      ctx.fillRect(headX + 8, headY - 15 + headBob, 4, 8);
     } else if (char.name === 'Kai') {
       // Warrior helmet
       ctx.fillStyle = '#C0C0C0';
-      ctx.fillRect(headX - 2, headY - 6, headSize + 4, 6);
+      ctx.fillRect(headX - 2, headY - 6 + headBob, headSize + 4, 6);
       // Helmet visor
       ctx.fillStyle = '#2F4F4F';
-      ctx.fillRect(headX + 4, headY - 2, 12, 2);
+      ctx.fillRect(headX + 4, headY - 2 + headBob, 12, 2);
     }
     
-    // Draw eyes
+    // Draw eyes with head bob
     ctx.fillStyle = char.eyeColor;
     const eyeX = player.direction === 1 ? headX + 4 : headX + 2;
-    ctx.fillRect(eyeX, headY + 6, 4, 4);
-    ctx.fillRect(eyeX + 8, headY + 6, 4, 4);
+    ctx.fillRect(eyeX, headY + 6 + headBob, 4, 4);
+    ctx.fillRect(eyeX + 8, headY + 6 + headBob, 4, 4);
     
-    // Draw eye pupils
+    // Draw eye pupils with head bob
     ctx.fillStyle = '#000';
     const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 2;
-    ctx.fillRect(pupilX, headY + 7, 2, 2);
-    ctx.fillRect(pupilX + 8, headY + 7, 2, 2);
+    ctx.fillRect(pupilX, headY + 7 + headBob, 2, 2);
+    ctx.fillRect(pupilX + 8, headY + 7 + headBob, 2, 2);
     
-    // Draw nose
+    // Draw nose with head bob
     ctx.fillStyle = '#FFB6C1';
-    ctx.fillRect(headX + 8, headY + 10, 2, 2);
+    ctx.fillRect(headX + 8, headY + 10 + headBob, 2, 2);
     
-    // Draw mouth
+    // Draw mouth with head bob
     ctx.fillStyle = '#FF69B4';
-    ctx.fillRect(headX + 6, headY + 14, 6, 2);
+    ctx.fillRect(headX + 6, headY + 14 + headBob, 6, 2);
     
     // Character-specific outfit details
     if (char.name === 'Adelynn') {
@@ -923,10 +957,6 @@ function drawPlayer() {
       ctx.fillRect(screenX - 10, player.y + 35, 7, 5);
     }
     
-    // Draw character emoji above head
-    ctx.font = '16px Arial';
-    ctx.fillText(char.emoji, screenX + 8, headY - 20);
-    
     // Draw power-up indicator
     if (player.powerUpState !== 'normal') {
       ctx.fillStyle = '#FFD700';
@@ -938,7 +968,7 @@ function drawPlayer() {
       if (player.powerUpState === 'fire') powerEmoji = '🔥';
       
       ctx.font = '14px Arial';
-      ctx.fillText(powerEmoji, screenX + 10, headY - 25);
+      ctx.fillText(powerEmoji, screenX + 10, headY - 20);
     }
     
     // Draw invincibility effect

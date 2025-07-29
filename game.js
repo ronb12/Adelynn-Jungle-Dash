@@ -2,35 +2,41 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreBoard = document.getElementById('scoreBoard');
 
-// Characters: cycle with 'C' - Enhanced with unique designs
+// Characters: cycle with 'C' - Human-like designs with body parts
 const characters = [
   {
     name: 'Adelynn', 
-    color: '#ff6f61', 
-    secondaryColor: '#ff8a80',
-    hairColor: '#8B4513',
-    eyeColor: '#4A90E2',
-    outfitColor: '#FF69B4',
+    color: '#FFB6C1', // Skin tone
+    secondaryColor: '#FF69B4', // Pink outfit
+    hairColor: '#8B4513', // Brown hair
+    eyeColor: '#4A90E2', // Blue eyes
+    outfitColor: '#FF69B4', // Pink dress
+    shoeColor: '#FF1493', // Pink shoes
+    gloveColor: '#FFFFFF', // White gloves
     emoji: '👧',
     description: 'Brave jungle explorer'
   },
   {
     name: 'Zuri',    
-    color: '#a266ac', 
-    secondaryColor: '#ba68c8',
-    hairColor: '#000000',
-    eyeColor: '#8B0000',
-    outfitColor: '#9370DB',
+    color: '#F4A460', // Skin tone
+    secondaryColor: '#9370DB', // Purple outfit
+    hairColor: '#000000', // Black hair
+    eyeColor: '#8B0000', // Red eyes
+    outfitColor: '#9370DB', // Purple robes
+    shoeColor: '#4B0082', // Purple shoes
+    gloveColor: '#FFFFFF', // White gloves
     emoji: '🧙‍♀️',
     description: 'Mystical forest guardian'
   },
   {
     name: 'Kai',     
-    color: '#4fc3f7', 
-    secondaryColor: '#81d4fa',
-    hairColor: '#FFD700',
-    eyeColor: '#32CD32',
-    outfitColor: '#00CED1',
+    color: '#DEB887', // Skin tone
+    secondaryColor: '#00CED1', // Teal outfit
+    hairColor: '#FFD700', // Golden hair
+    eyeColor: '#32CD32', // Green eyes
+    outfitColor: '#00CED1', // Teal armor
+    shoeColor: '#008B8B', // Teal shoes
+    gloveColor: '#FFFFFF', // White gloves
     emoji: '🧙‍♂️',
     description: 'Ancient jungle warrior'
   }
@@ -758,7 +764,7 @@ function drawGoal() {
   }
 }
 
-// Draw player with camera offset - Enhanced character design
+// Draw player with camera offset - Human-like character design with unique details
 function drawPlayer() {
   const screenX = player.x - cameraX;
   const char = characters[characterIndex];
@@ -769,52 +775,162 @@ function drawPlayer() {
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.fillRect(screenX + 2, player.y + player.height + 2, player.width, 5);
     
-    // Draw character body (outfit)
-    ctx.fillStyle = char.outfitColor;
-    ctx.fillRect(screenX, player.y, player.width, player.height);
+    // Calculate body part positions
+    const headX = screenX + 8;
+    const headY = player.y - 8;
+    const headSize = 20;
     
-    // Draw character skin tone
-    ctx.fillStyle = char.color;
-    ctx.fillRect(screenX + 5, player.y + 5, player.width - 10, player.height - 15);
+    const bodyX = screenX + 5;
+    const bodyY = player.y + 12;
+    const bodyWidth = player.width - 10;
+    const bodyHeight = 25;
+    
+    const armX = screenX + 2;
+    const armY = player.y + 15;
+    const armWidth = 6;
+    const armHeight = 20;
+    
+    const legX = screenX + 8;
+    const legY = player.y + 35;
+    const legWidth = 8;
+    const legHeight = 15;
+    
+    const shoeX = screenX + 6;
+    const shoeY = player.y + 48;
+    const shoeWidth = 12;
+    const shoeHeight = 4;
+    
+    // Draw legs (pants)
+    ctx.fillStyle = '#4169E1'; // Blue pants like Mario
+    ctx.fillRect(legX, legY, legWidth, legHeight);
+    ctx.fillRect(legX + 10, legY, legWidth, legHeight);
+    
+    // Draw shoes
+    ctx.fillStyle = char.shoeColor;
+    ctx.fillRect(shoeX, shoeY, shoeWidth, shoeHeight);
+    ctx.fillRect(shoeX + 10, shoeY, shoeWidth, shoeHeight);
+    
+    // Draw body (shirt/dress)
+    ctx.fillStyle = char.outfitColor;
+    ctx.fillRect(bodyX, bodyY, bodyWidth, bodyHeight);
+    
+    // Draw arms (shirt sleeves)
+    ctx.fillStyle = char.outfitColor;
+    ctx.fillRect(armX, armY, armWidth, armHeight);
+    ctx.fillRect(armX + player.width - 8, armY, armWidth, armHeight);
+    
+    // Draw gloves
+    ctx.fillStyle = char.gloveColor;
+    ctx.fillRect(armX - 1, armY + 15, armWidth + 2, 5);
+    ctx.fillRect(armX + player.width - 9, armY + 15, armWidth + 2, 5);
+    
+    // Draw head
+    ctx.fillStyle = char.color; // Skin tone
+    ctx.fillRect(headX, headY, headSize, headSize);
     
     // Draw hair
     ctx.fillStyle = char.hairColor;
-    ctx.fillRect(screenX + 3, player.y - 5, player.width - 6, 15);
+    ctx.fillRect(headX - 2, headY - 3, headSize + 4, 8);
     
-    // Draw hair details
-    ctx.fillStyle = char.hairColor;
-    ctx.fillRect(screenX + 8, player.y - 8, 5, 8);
-    ctx.fillRect(screenX + player.width - 13, player.y - 8, 5, 8);
+    // Draw hair details (bangs)
+    ctx.fillRect(headX + 2, headY - 1, 6, 4);
+    ctx.fillRect(headX + 12, headY - 1, 6, 4);
+    
+    // Character-specific headgear
+    if (char.name === 'Adelynn') {
+      // Explorer hat
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(headX - 3, headY - 8, headSize + 6, 6);
+      ctx.fillRect(headX + 2, headY - 12, 12, 8);
+    } else if (char.name === 'Zuri') {
+      // Magical hood
+      ctx.fillStyle = '#4B0082';
+      ctx.fillRect(headX - 2, headY - 10, headSize + 4, 10);
+      // Hood point
+      ctx.fillRect(headX + 8, headY - 15, 4, 8);
+    } else if (char.name === 'Kai') {
+      // Warrior helmet
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(headX - 2, headY - 6, headSize + 4, 6);
+      // Helmet visor
+      ctx.fillStyle = '#2F4F4F';
+      ctx.fillRect(headX + 4, headY - 2, 12, 2);
+    }
     
     // Draw eyes
     ctx.fillStyle = char.eyeColor;
-    const eyeX = player.direction === 1 ? screenX + 25 : screenX + 5;
-    ctx.fillRect(eyeX, player.y + 15, 5, 5);
-    ctx.fillRect(eyeX + 8, player.y + 15, 5, 5);
+    const eyeX = player.direction === 1 ? headX + 4 : headX + 2;
+    ctx.fillRect(eyeX, headY + 6, 4, 4);
+    ctx.fillRect(eyeX + 8, headY + 6, 4, 4);
     
     // Draw eye pupils
     ctx.fillStyle = '#000';
-    const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 4;
-    ctx.fillRect(pupilX, player.y + 16, 2, 3);
-    ctx.fillRect(pupilX + 8, player.y + 16, 2, 3);
+    const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 2;
+    ctx.fillRect(pupilX, headY + 7, 2, 2);
+    ctx.fillRect(pupilX + 8, headY + 7, 2, 2);
+    
+    // Draw nose
+    ctx.fillStyle = '#FFB6C1';
+    ctx.fillRect(headX + 8, headY + 10, 2, 2);
     
     // Draw mouth
     ctx.fillStyle = '#FF69B4';
-    ctx.fillRect(screenX + 15, player.y + 30, 5, 3);
+    ctx.fillRect(headX + 6, headY + 14, 6, 2);
     
-    // Draw outfit details
-    ctx.fillStyle = char.secondaryColor;
-    ctx.fillRect(screenX + 8, player.y + 35, player.width - 16, 8);
-    ctx.fillRect(screenX + 12, player.y + 43, player.width - 24, 5);
+    // Character-specific outfit details
+    if (char.name === 'Adelynn') {
+      // Explorer vest
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8);
+      // Vest buttons
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(bodyX + 8, bodyY + 4, 3, 3);
+      ctx.fillRect(bodyX + 8, bodyY + 8, 3, 3);
+    } else if (char.name === 'Zuri') {
+      // Magical robe details
+      ctx.fillStyle = '#4B0082';
+      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 6);
+      // Magical symbols
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(bodyX + 8, bodyY + 4, 4, 4);
+    } else if (char.name === 'Kai') {
+      // Warrior armor details
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8);
+      // Armor plates
+      ctx.fillStyle = '#2F4F4F';
+      ctx.fillRect(bodyX + 6, bodyY + 4, 8, 4);
+    }
+    
+    // Draw belt
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(bodyX, bodyY + 22, bodyWidth, 3);
+    
+    // Character-specific accessories
+    if (char.name === 'Zuri') {
+      // Magical staff
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(screenX + player.width - 2, player.y + 10, 3, 30);
+      // Staff orb
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(screenX + player.width - 4, player.y + 8, 7, 7);
+    } else if (char.name === 'Kai') {
+      // Warrior sword
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(screenX - 8, player.y + 15, 3, 25);
+      // Sword handle
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(screenX - 10, player.y + 35, 7, 5);
+    }
     
     // Draw character emoji above head
     ctx.font = '16px Arial';
-    ctx.fillText(char.emoji, screenX + 8, player.y - 15);
+    ctx.fillText(char.emoji, screenX + 8, headY - 20);
     
     // Draw power-up indicator
     if (player.powerUpState !== 'normal') {
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(screenX - 5, player.y - 10, player.width + 10, 5);
+      ctx.fillRect(screenX - 5, headY - 10, player.width + 10, 5);
       
       // Draw power-up emoji
       let powerEmoji = '⭐';
@@ -822,7 +938,7 @@ function drawPlayer() {
       if (player.powerUpState === 'fire') powerEmoji = '🔥';
       
       ctx.font = '14px Arial';
-      ctx.fillText(powerEmoji, screenX + 10, player.y - 20);
+      ctx.fillText(powerEmoji, screenX + 10, headY - 25);
     }
     
     // Draw invincibility effect
@@ -833,8 +949,8 @@ function drawPlayer() {
       
       // Draw sparkle effect
       ctx.fillStyle = '#FFD700';
-      ctx.fillRect(screenX - 3, player.y - 3, 3, 3);
-      ctx.fillRect(screenX + player.width, player.y - 3, 3, 3);
+      ctx.fillRect(screenX - 3, headY - 3, 3, 3);
+      ctx.fillRect(screenX + player.width, headY - 3, 3, 3);
       ctx.fillRect(screenX - 3, player.y + player.height, 3, 3);
       ctx.fillRect(screenX + player.width, player.y + player.height, 3, 3);
     }

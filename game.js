@@ -1556,269 +1556,457 @@ function drawCharacterSprite(ctx, char, frame, x, y) {
   }
 }
 
-// Draw idle sprite
+// Draw idle sprite - Enhanced with more detail
 function drawIdleSprite(ctx, char, x, y) {
-  // Head
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
+  
+  // Head with better proportions
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 8, 7, 0, Math.PI * 2);
   ctx.fill();
   
-  // Hair
+  // Hair with more detail
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
-  ctx.fillRect(x + 12, y + 4, 8, 4);
+  ctx.fillRect(x + 9, y + 1, 14, 8);
+  ctx.fillRect(x + 11, y + 3, 10, 6);
   
-  // Eyes
+  // Hair details (bangs)
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  ctx.fillRect(x + 10, y + 2, 4, 3);
+  ctx.fillRect(x + 18, y + 2, 4, 3);
+  
+  // Eyes with more detail
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 7, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 7, 2, 0, Math.PI * 2);
   ctx.fill();
   
-  // Body
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 9, 2, 2);
+  
+  // Mouth (slight smile)
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 12, 3, 0, Math.PI);
+  ctx.fill();
+  
+  // Body (shirt/dress) with better proportions
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
-  // Arms
-  ctx.fillRect(x + 6, y + 16, 4, 8);
-  ctx.fillRect(x + 22, y + 16, 4, 8);
+  // Arms with more detail
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 17, 4, 10);
+  ctx.fillRect(x + 22, y + 17, 4, 10);
   
-  // Legs
-  ctx.fillRect(x + 10, y + 26, 4, 6);
-  ctx.fillRect(x + 18, y + 26, 4, 6);
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 27, 6, 3);
+  ctx.fillRect(x + 21, y + 27, 6, 3);
   
-  // Shoes
+  // Legs with better proportions
+  ctx.fillStyle = '#4169E1'; // Blue pants
+  ctx.fillRect(x + 10, y + 27, 4, 8);
+  ctx.fillRect(x + 18, y + 27, 4, 8);
+  
+  // Shoes with more detail
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32, 6, 2);
-  ctx.fillRect(x + 18, y + 32, 6, 2);
+  ctx.fillRect(x + 8, y + 35, 6, 3);
+  ctx.fillRect(x + 18, y + 35, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw walk sprite
+// Draw walk sprite - Enhanced with more animation
 function drawWalkSprite(ctx, char, x, y, step) {
-  const legOffset = step === 1 ? 2 : -2;
-  const armOffset = step === 1 ? -1 : 1;
+  const legOffset = step === 1 ? 3 : -3;
+  const armOffset = step === 1 ? -2 : 2;
+  const headBob = step === 1 ? 1 : -1;
   
-  // Head
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
+  
+  // Head with bobbing
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 8 + headBob, 7, 0, Math.PI * 2);
   ctx.fill();
   
-  // Hair
+  // Hair with bobbing
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
-  ctx.fillRect(x + 12, y + 4, 8, 4);
+  ctx.fillRect(x + 9, y + 1 + headBob, 14, 8);
+  ctx.fillRect(x + 11, y + 3 + headBob, 10, 6);
+  ctx.fillRect(x + 12, y + 4 + headBob, 8, 4);
   
-  // Eyes
+  // Eyes with bobbing
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 7 + headBob, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 7 + headBob, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7 + headBob, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7 + headBob, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 9 + headBob, 2, 2);
+  
+  // Mouth
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 12 + headBob, 3, 0, Math.PI);
   ctx.fill();
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
-  // Arms (animated)
-  ctx.fillRect(x + 6, y + 16 + armOffset, 4, 8);
-  ctx.fillRect(x + 22, y + 16 - armOffset, 4, 8);
+  // Arms with animation
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 17 + armOffset, 4, 10);
+  ctx.fillRect(x + 22, y + 17 - armOffset, 4, 10);
   
-  // Legs (animated)
-  ctx.fillRect(x + 10, y + 26 + legOffset, 4, 6);
-  ctx.fillRect(x + 18, y + 26 - legOffset, 4, 6);
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 27 + armOffset, 6, 3);
+  ctx.fillRect(x + 21, y + 27 - armOffset, 6, 3);
   
-  // Shoes
+  // Legs with walking animation
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27 + legOffset, 4, 8);
+  ctx.fillRect(x + 18, y + 27 - legOffset, 4, 8);
+  
+  // Shoes with walking animation
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32 + legOffset, 6, 2);
-  ctx.fillRect(x + 18, y + 32 - legOffset, 6, 2);
+  ctx.fillRect(x + 8, y + 35 + legOffset, 6, 3);
+  ctx.fillRect(x + 18, y + 35 - legOffset, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw jump sprite
+// Draw jump sprite - Enhanced with more dynamic pose
 function drawJumpSprite(ctx, char, x, y) {
-  // Head
+  // Shadow (smaller when jumping)
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillRect(x + 4, y + 30, 24, 3);
+  
+  // Head (slightly raised)
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 6, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 6, 7, 0, Math.PI * 2);
   ctx.fill();
   
   // Hair
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y, 12, 6);
+  ctx.fillRect(x + 9, y - 1, 14, 8);
+  ctx.fillRect(x + 11, y + 1, 10, 6);
   ctx.fillRect(x + 12, y + 2, 8, 4);
   
   // Eyes
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 5, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 5, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 5, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 5, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 5, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 5, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 7, 2, 2);
+  
+  // Mouth (excited)
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 10, 2, 0, Math.PI * 2);
   ctx.fill();
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 12, 16, 12);
+  ctx.fillRect(x + 8, y + 13, 16, 12);
   
-  // Arms (raised)
-  ctx.fillRect(x + 6, y + 10, 4, 8);
-  ctx.fillRect(x + 22, y + 10, 4, 8);
+  // Arms raised (jumping pose)
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 8, 4, 10);
+  ctx.fillRect(x + 22, y + 8, 4, 10);
   
-  // Legs (bent)
-  ctx.fillRect(x + 10, y + 24, 4, 6);
-  ctx.fillRect(x + 18, y + 24, 4, 6);
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 18, 6, 3);
+  ctx.fillRect(x + 21, y + 18, 6, 3);
+  
+  // Legs bent (jumping pose)
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 25, 4, 6);
+  ctx.fillRect(x + 18, y + 25, 4, 6);
   
   // Shoes
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 30, 6, 2);
-  ctx.fillRect(x + 18, y + 30, 6, 2);
+  ctx.fillRect(x + 8, y + 31, 6, 3);
+  ctx.fillRect(x + 18, y + 31, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw run sprite
+// Draw run sprite - Enhanced with more exaggerated movement
 function drawRunSprite(ctx, char, x, y, step) {
-  const legOffset = step === 1 ? 3 : -3;
-  const armOffset = step === 1 ? -2 : 2;
+  const legOffset = step === 1 ? 4 : -4;
+  const armOffset = step === 1 ? -3 : 3;
+  const headBob = step === 1 ? 2 : -2;
   
-  // Head
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
+  
+  // Head with bobbing
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 8 + headBob, 7, 0, Math.PI * 2);
   ctx.fill();
   
-  // Hair
+  // Hair with bobbing
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
-  ctx.fillRect(x + 12, y + 4, 8, 4);
+  ctx.fillRect(x + 9, y + 1 + headBob, 14, 8);
+  ctx.fillRect(x + 11, y + 3 + headBob, 10, 6);
+  ctx.fillRect(x + 12, y + 4 + headBob, 8, 4);
   
-  // Eyes
+  // Eyes with bobbing
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 7 + headBob, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 7 + headBob, 2, 0, Math.PI * 2);
   ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7 + headBob, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7 + headBob, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 9 + headBob, 2, 2);
+  
+  // Mouth (determined)
+  ctx.fillStyle = '#FF69B4';
+  ctx.fillRect(x + 14, y + 12 + headBob, 4, 2);
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
-  // Arms (more animated)
-  ctx.fillRect(x + 6, y + 16 + armOffset, 4, 8);
-  ctx.fillRect(x + 22, y + 16 - armOffset, 4, 8);
+  // Arms with exaggerated animation
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 17 + armOffset, 4, 10);
+  ctx.fillRect(x + 22, y + 17 - armOffset, 4, 10);
   
-  // Legs (more animated)
-  ctx.fillRect(x + 10, y + 26 + legOffset, 4, 6);
-  ctx.fillRect(x + 18, y + 26 - legOffset, 4, 6);
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 27 + armOffset, 6, 3);
+  ctx.fillRect(x + 21, y + 27 - armOffset, 6, 3);
   
-  // Shoes
+  // Legs with exaggerated movement
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27 + legOffset, 4, 8);
+  ctx.fillRect(x + 18, y + 27 - legOffset, 4, 8);
+  
+  // Shoes with exaggerated movement
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32 + legOffset, 6, 2);
-  ctx.fillRect(x + 18, y + 32 - legOffset, 6, 2);
+  ctx.fillRect(x + 8, y + 35 + legOffset, 6, 3);
+  ctx.fillRect(x + 18, y + 35 - legOffset, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw crouch sprite
+// Draw crouch sprite - Enhanced with more detail
 function drawCrouchSprite(ctx, char, x, y) {
-  // Head
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
+  
+  // Head (lowered)
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 12, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 12, 7, 0, Math.PI * 2);
   ctx.fill();
   
   // Hair
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 6, 12, 6);
+  ctx.fillRect(x + 9, y + 5, 14, 8);
+  ctx.fillRect(x + 11, y + 7, 10, 6);
   ctx.fillRect(x + 12, y + 8, 8, 4);
   
   // Eyes
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 11, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 11, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 11, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 11, 2, 0, Math.PI * 2);
   ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 11, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 11, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 13, 2, 2);
+  
+  // Mouth (focused)
+  ctx.fillStyle = '#FF69B4';
+  ctx.fillRect(x + 14, y + 16, 4, 1);
   
   // Body (compressed)
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 18, 16, 8);
+  ctx.fillRect(x + 8, y + 19, 16, 8);
   
   // Arms (down)
-  ctx.fillRect(x + 6, y + 20, 4, 6);
-  ctx.fillRect(x + 22, y + 20, 4, 6);
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 22, 4, 6);
+  ctx.fillRect(x + 22, y + 22, 4, 6);
+  
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 28, 6, 3);
+  ctx.fillRect(x + 21, y + 28, 6, 3);
   
   // Legs (bent)
-  ctx.fillRect(x + 10, y + 26, 4, 6);
-  ctx.fillRect(x + 18, y + 26, 4, 6);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27, 4, 6);
+  ctx.fillRect(x + 18, y + 27, 4, 6);
   
   // Shoes
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32, 6, 2);
-  ctx.fillRect(x + 18, y + 32, 6, 2);
+  ctx.fillRect(x + 8, y + 33, 6, 3);
+  ctx.fillRect(x + 18, y + 33, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw power up sprite
+// Draw power up sprite - Enhanced with glow effects
 function drawPowerUpSprite(ctx, char, x, y) {
-  // Power up glow
-  ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+  // Power up glow effect
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
   ctx.fillRect(x, y, 32, 32);
+  
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
   
   // Head
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 8, 7, 0, Math.PI * 2);
   ctx.fill();
   
   // Hair
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 9, y + 1, 14, 8);
+  ctx.fillRect(x + 11, y + 3, 10, 6);
   ctx.fillRect(x + 12, y + 4, 8, 4);
   
-  // Eyes
-  ctx.fillStyle = char.eyeColor;
+  // Eyes (glowing)
+  ctx.fillStyle = '#FFD700';
   ctx.beginPath();
-  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 7, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 7, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 9, 2, 2);
+  
+  // Mouth (excited)
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 12, 3, 0, Math.PI * 2);
   ctx.fill();
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
   // Arms
-  ctx.fillRect(x + 6, y + 16, 4, 8);
-  ctx.fillRect(x + 22, y + 16, 4, 8);
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 17, 4, 10);
+  ctx.fillRect(x + 22, y + 17, 4, 10);
+  
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 27, 6, 3);
+  ctx.fillRect(x + 21, y + 27, 6, 3);
   
   // Legs
-  ctx.fillRect(x + 10, y + 26, 4, 6);
-  ctx.fillRect(x + 18, y + 26, 4, 6);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27, 4, 8);
+  ctx.fillRect(x + 18, y + 27, 4, 8);
   
   // Shoes
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32, 6, 2);
-  ctx.fillRect(x + 18, y + 32, 6, 2);
+  ctx.fillRect(x + 8, y + 35, 6, 3);
+  ctx.fillRect(x + 18, y + 35, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
@@ -1829,26 +2017,35 @@ function drawPowerUpSprite(ctx, char, x, y) {
   ctx.fillText('⭐', x + 12, y + 6);
 }
 
-// Draw hurt sprite
+// Draw hurt sprite - Enhanced with more dramatic effect
 function drawHurtSprite(ctx, char, x, y) {
-  // Hurt effect
-  ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+  // Hurt effect overlay
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
   ctx.fillRect(x, y, 32, 32);
+  
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
   
   // Head (tilted)
   ctx.fillStyle = char.color;
   ctx.save();
   ctx.translate(x + 16, y + 8);
-  ctx.rotate(0.2);
+  ctx.rotate(0.3);
   ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.arc(0, 0, 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
   
-  // Hair
+  // Hair (tilted)
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
-  ctx.fillRect(x + 12, y + 4, 8, 4);
+  ctx.save();
+  ctx.translate(x + 16, y + 8);
+  ctx.rotate(0.3);
+  ctx.fillRect(-7, -7, 14, 8);
+  ctx.fillRect(-5, -5, 10, 6);
+  ctx.fillRect(-4, -4, 8, 4);
+  ctx.restore();
   
   // Eyes (X marks)
   ctx.fillStyle = '#FF0000';
@@ -1859,26 +2056,33 @@ function drawHurtSprite(ctx, char, x, y) {
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
   // Arms (down)
-  ctx.fillRect(x + 6, y + 20, 4, 6);
-  ctx.fillRect(x + 22, y + 20, 4, 6);
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 22, 4, 6);
+  ctx.fillRect(x + 22, y + 22, 4, 6);
+  
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 28, 6, 3);
+  ctx.fillRect(x + 21, y + 28, 6, 3);
   
   // Legs (bent)
-  ctx.fillRect(x + 10, y + 26, 4, 6);
-  ctx.fillRect(x + 18, y + 26, 4, 6);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27, 4, 6);
+  ctx.fillRect(x + 18, y + 27, 4, 6);
   
   // Shoes
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32, 6, 2);
-  ctx.fillRect(x + 18, y + 32, 6, 2);
+  ctx.fillRect(x + 8, y + 33, 6, 3);
+  ctx.fillRect(x + 18, y + 33, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw celebrate sprite
+// Draw celebrate sprite - Enhanced with sparkles and joy
 function drawCelebrateSprite(ctx, char, x, y) {
   // Celebration sparkles
   ctx.fillStyle = '#FFD700';
@@ -1886,66 +2090,197 @@ function drawCelebrateSprite(ctx, char, x, y) {
   ctx.fillRect(x + 26, y + 4, 2, 2);
   ctx.fillRect(x + 6, y + 28, 2, 2);
   ctx.fillRect(x + 24, y + 30, 2, 2);
+  ctx.fillRect(x + 2, y + 15, 2, 2);
+  ctx.fillRect(x + 28, y + 15, 2, 2);
+  
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
   
   // Head
   ctx.fillStyle = char.color;
   ctx.beginPath();
-  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.arc(x + 16, y + 8, 7, 0, Math.PI * 2);
   ctx.fill();
   
   // Hair
   ctx.fillStyle = char.hairColor;
-  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 9, y + 1, 14, 8);
+  ctx.fillRect(x + 11, y + 3, 10, 6);
   ctx.fillRect(x + 12, y + 4, 8, 4);
   
   // Eyes (happy)
   ctx.fillStyle = char.eyeColor;
   ctx.beginPath();
-  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 14, y + 7, 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.arc(x + 18, y + 7, 2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye pupils
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FFB6C1';
+  ctx.fillRect(x + 15, y + 9, 2, 2);
+  
+  // Mouth (big smile)
+  ctx.fillStyle = '#FF69B4';
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 12, 4, 0, Math.PI);
   ctx.fill();
   
   // Body
   ctx.fillStyle = char.outfitColor;
-  ctx.fillRect(x + 8, y + 14, 16, 12);
+  ctx.fillRect(x + 8, y + 15, 16, 12);
   
-  // Arms (raised)
-  ctx.fillRect(x + 6, y + 10, 4, 8);
-  ctx.fillRect(x + 22, y + 10, 4, 8);
+  // Arms (raised in celebration)
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 6, y + 10, 4, 10);
+  ctx.fillRect(x + 22, y + 10, 4, 10);
+  
+  // Hands
+  ctx.fillStyle = char.color;
+  ctx.fillRect(x + 5, y + 20, 6, 3);
+  ctx.fillRect(x + 21, y + 20, 6, 3);
   
   // Legs
-  ctx.fillRect(x + 10, y + 26, 4, 6);
-  ctx.fillRect(x + 18, y + 26, 4, 6);
+  ctx.fillStyle = '#4169E1';
+  ctx.fillRect(x + 10, y + 27, 4, 8);
+  ctx.fillRect(x + 18, y + 27, 4, 8);
   
   // Shoes
   ctx.fillStyle = char.shoeColor;
-  ctx.fillRect(x + 8, y + 32, 6, 2);
-  ctx.fillRect(x + 18, y + 32, 6, 2);
+  ctx.fillRect(x + 8, y + 35, 6, 3);
+  ctx.fillRect(x + 18, y + 35, 6, 3);
   
   // Character-specific details
   drawCharacterDetails(ctx, char, x, y);
 }
 
-// Draw character-specific details
+// Draw character-specific details - Enhanced with more detail
 function drawCharacterDetails(ctx, char, x, y) {
   if (char.name === 'Adelynn') {
-    // Explorer hat
+    // Explorer hat with more detail
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(x + 10, y, 12, 4);
-    ctx.fillRect(x + 12, y - 4, 8, 8);
-  } else if (char.name === 'Zuri') {
-    // Magical hood
-    ctx.fillStyle = '#4B0082';
-    ctx.fillRect(x + 8, y - 2, 16, 8);
-    ctx.fillRect(x + 14, y - 7, 4, 6);
-  } else if (char.name === 'Kai') {
-    // Warrior helmet
+    ctx.fillRect(x + 9, y, 14, 4);
+    ctx.fillRect(x + 11, y - 4, 10, 8);
+    
+    // Hat band
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x + 10, y - 2, 12, 2);
+    
+    // Hat buckle
     ctx.fillStyle = '#C0C0C0';
-    ctx.fillRect(x + 8, y + 2, 16, 4);
+    ctx.fillRect(x + 14, y - 1, 4, 2);
+    
+    // Explorer vest
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + 9, y + 16, 14, 6);
+    
+    // Vest buttons
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(x + 13, y + 18, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 13, y + 22, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Vest pockets
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(x + 10, y + 19, 3, 3);
+    ctx.fillRect(x + 19, y + 19, 3, 3);
+    
+  } else if (char.name === 'Zuri') {
+    // Magical hood with more detail
+    ctx.fillStyle = '#4B0082';
+    ctx.fillRect(x + 8, y - 2, 16, 10);
+    
+    // Hood point
+    ctx.fillRect(x + 14, y - 7, 4, 8);
+    
+    // Hood trim
+    ctx.fillStyle = '#9370DB';
+    ctx.fillRect(x + 9, y, 14, 2);
+    
+    // Magical robe details
+    ctx.fillStyle = '#4B0082';
+    ctx.fillRect(x + 9, y + 16, 14, 6);
+    
+    // Magical symbols
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(x + 13, y + 18, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 19, y + 18, 2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Staff
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + 24, y + 15, 3, 20);
+    
+    // Staff orb
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(x + 25.5, y + 13, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Staff glow
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.beginPath();
+    ctx.arc(x + 25.5, y + 13, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+  } else if (char.name === 'Kai') {
+    // Warrior helmet with more detail
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 8, y + 2, 16, 6);
+    
+    // Helmet visor
     ctx.fillStyle = '#2F4F4F';
-    ctx.fillRect(x + 12, y + 6, 8, 2);
+    ctx.fillRect(x + 10, y + 4, 12, 2);
+    
+    // Helmet crest
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x + 14, y, 4, 8);
+    
+    // Helmet trim
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + 9, y + 6, 14, 1);
+    
+    // Warrior armor
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 9, y + 16, 14, 6);
+    
+    // Armor plates
+    ctx.fillStyle = '#2F4F4F';
+    ctx.fillRect(x + 11, y + 18, 10, 2);
+    ctx.fillRect(x + 11, y + 22, 10, 2);
+    
+    // Sword
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x - 6, y + 17, 3, 18);
+    
+    // Sword handle
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x - 8, y + 32, 7, 3);
+    
+    // Sword guard
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(x - 7, y + 30, 5, 2);
+    
+    // Sword glow
+    ctx.fillStyle = 'rgba(192, 192, 192, 0.3)';
+    ctx.fillRect(x - 7, y + 17, 5, 18);
   }
 }
 

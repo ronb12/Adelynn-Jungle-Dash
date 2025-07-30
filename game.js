@@ -12,6 +12,37 @@ function initSprites() {
   }
 }
 
+// Sprite system for characters
+class SpriteSheet {
+  constructor(width, height, spriteWidth, spriteHeight) {
+    this.canvas = document.createElement('canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.spriteWidth = spriteWidth;
+    this.spriteHeight = spriteHeight;
+    this.spritesPerRow = Math.floor(width / spriteWidth);
+  }
+  
+  drawSprite(ctx, spriteX, spriteY, destX, destY, destWidth, destHeight, flipX = false) {
+    const sourceX = (spriteX % this.spritesPerRow) * this.spriteWidth;
+    const sourceY = Math.floor(spriteX / this.spritesPerRow) * this.spriteHeight;
+    
+    ctx.save();
+    if (flipX) {
+      ctx.scale(-1, 1);
+      destX = -destX - destWidth;
+    }
+    
+    ctx.drawImage(
+      this.canvas,
+      sourceX, sourceY, this.spriteWidth, this.spriteHeight,
+      destX, destY, destWidth, destHeight
+    );
+    ctx.restore();
+  }
+}
+
 // Characters: cycle with 'C' - Human-like designs with body parts
 const characters = [
   {
@@ -1451,37 +1482,6 @@ if (keys['L'] || keys['l']) {
 } else {
   keysPressed['L'] = false;
   keysPressed['l'] = false;
-}
-
-// Sprite system for characters
-class SpriteSheet {
-  constructor(width, height, spriteWidth, spriteHeight) {
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.spriteWidth = spriteWidth;
-    this.spriteHeight = spriteHeight;
-    this.spritesPerRow = Math.floor(width / spriteWidth);
-  }
-  
-  drawSprite(ctx, spriteX, spriteY, destX, destY, destWidth, destHeight, flipX = false) {
-    const sourceX = (spriteX % this.spritesPerRow) * this.spriteWidth;
-    const sourceY = Math.floor(spriteX / this.spritesPerRow) * this.spriteHeight;
-    
-    ctx.save();
-    if (flipX) {
-      ctx.scale(-1, 1);
-      destX = -destX - destWidth;
-    }
-    
-    ctx.drawImage(
-      this.canvas,
-      sourceX, sourceY, this.spriteWidth, this.spriteHeight,
-      destX, destY, destWidth, destHeight
-    );
-    ctx.restore();
-  }
 }
 
 // Character sprite generator

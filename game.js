@@ -2,6 +2,16 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreBoard = document.getElementById('scoreBoard');
 
+// Initialize sprite sheets
+let characterSprites = null;
+
+// Initialize sprite sheets when game loads
+function initSprites() {
+  if (!characterSprites) {
+    characterSprites = generateCharacterSprites();
+  }
+}
+
 // Characters: cycle with 'C' - Human-like designs with body parts
 const characters = [
   {
@@ -821,9 +831,7 @@ function drawPlayer() {
   // Only draw if on screen
   if (screenX + player.width > 0 && screenX < canvas.width) {
     // Initialize sprite sheets if not done
-    if (!characterSprites) {
-      characterSprites = generateCharacterSprites();
-    }
+    initSprites();
     
     // Determine current animation state
     let animationFrame = 0;
@@ -1417,6 +1425,7 @@ function toggleMusic() {
 
 // Initialize audio when game starts
 initAudio();
+initSprites();
 
 // Music controls
 if (keys['M'] || keys['m']) {
@@ -1940,14 +1949,9 @@ function drawCharacterDetails(ctx, char, x, y) {
   }
 }
 
-// Initialize sprite sheets
-let characterSprites = null;
-
 // Export sprite sheets as images (for debugging)
 function exportSpriteSheets() {
-  if (!characterSprites) {
-    characterSprites = generateCharacterSprites();
-  }
+  initSprites();
   
   Object.keys(characterSprites).forEach(charName => {
     const sheet = characterSprites[charName];
@@ -1960,9 +1964,7 @@ function exportSpriteSheets() {
 
 // Debug function to show sprite sheets
 function showSpriteSheets() {
-  if (!characterSprites) {
-    characterSprites = generateCharacterSprites();
-  }
+  initSprites();
   
   // Create a debug window to show sprites
   const debugWindow = window.open('', '_blank');

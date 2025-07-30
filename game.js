@@ -12,6 +12,9 @@ function initSprites() {
   }
 }
 
+// Keyboard state tracking
+let keysPressed = {};
+
 // Sprite system for characters
 class SpriteSheet {
   constructor(width, height, spriteWidth, spriteHeight) {
@@ -967,10 +970,7 @@ function drawCollectibles() {
       
       // Only draw if on screen
       if (screenX + coin.width > 0 && screenX < canvas.width) {
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(screenX, coin.y, coin.width, coin.height);
-        
-        // Draw coin emoji
+        // Draw coin emoji only (no box)
         ctx.font = '20px Arial';
         ctx.fillText(coin.emoji, screenX + 5, coin.y + 20);
       }

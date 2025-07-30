@@ -71,7 +71,10 @@ const player = {
   animationFrame: 0,
   walkCycle: 0,
   jumpFrame: 0,
-  isMoving: false
+  isMoving: false,
+  spriteFrame: 0,
+  animationTimer: 0,
+  currentAnimation: 'idle'
 };
 
 // Platforms system - expanded world with interactive blocks
@@ -686,6 +689,12 @@ function update() {
       }
     }
   }
+
+  // Update animation timer
+  player.animationTimer++;
+  if (player.animationTimer > 1000) {
+    player.animationTimer = 0;
+  }
 }
 
 // Draw ground with camera offset
@@ -804,310 +813,108 @@ function drawGoal() {
   }
 }
 
-// Draw player with camera offset - Human-like character design with rounded shapes
+// Draw player with sprite system
 function drawPlayer() {
   const screenX = player.x - cameraX;
   const char = characters[characterIndex];
   
   // Only draw if on screen
   if (screenX + player.width > 0 && screenX < canvas.width) {
-    // Draw character shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(screenX + 2, player.y + player.height + 2, player.width, 5);
-    
-    // Calculate body part positions with animation
-    const headX = screenX + 8;
-    const headY = player.y - 8;
-    const headRadius = 10;
-    
-    const bodyX = screenX + 5;
-    const bodyY = player.y + 12;
-    const bodyWidth = player.width - 10;
-    const bodyHeight = 25;
-    
-    const armX = screenX + 2;
-    const armY = player.y + 15;
-    const armWidth = 6;
-    const armHeight = 20;
-    
-    const legX = screenX + 8;
-    const legY = player.y + 35;
-    const legWidth = 8;
-    const legHeight = 15;
-    
-    const shoeX = screenX + 6;
-    const shoeY = player.y + 48;
-    const shoeWidth = 12;
-    const shoeHeight = 4;
-    
-    // Walking animation for legs
-    const walkOffset = player.isMoving ? Math.sin(player.walkCycle * 0.3) * 2 : 0;
-    const leftLegY = legY + walkOffset;
-    const rightLegY = legY - walkOffset;
-    
-    // Jumping animation for arms
-    const jumpOffset = player.vy < 0 ? -3 : 0;
-    const leftArmY = armY + jumpOffset;
-    const rightArmY = armY + jumpOffset;
-    
-    // Draw legs (pants) with walking animation - ROUNDED
-    ctx.fillStyle = '#4169E1'; // Blue pants like Mario
-    // Left leg - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(legX, leftLegY, legWidth, legHeight, 3);
-    ctx.fill();
-    // Right leg - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(legX + 10, rightLegY, legWidth, legHeight, 3);
-    ctx.fill();
-    
-    // Draw shoes with walking animation - ROUNDED
-    ctx.fillStyle = char.shoeColor;
-    // Left shoe - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(shoeX, leftLegY + legHeight, shoeWidth, shoeHeight, 2);
-    ctx.fill();
-    // Right shoe - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(shoeX + 10, rightLegY + legHeight, shoeWidth, shoeHeight, 2);
-    ctx.fill();
-    
-    // Draw body (shirt/dress) - ROUNDED
-    ctx.fillStyle = char.outfitColor;
-    ctx.beginPath();
-    ctx.roundRect(bodyX, bodyY, bodyWidth, bodyHeight, 5);
-    ctx.fill();
-    
-    // Draw arms (shirt sleeves) with jumping animation - ROUNDED
-    ctx.fillStyle = char.outfitColor;
-    // Left arm - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(armX, leftArmY, armWidth, armHeight, 3);
-    ctx.fill();
-    // Right arm - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(armX + player.width - 8, rightArmY, armWidth, armHeight, 3);
-    ctx.fill();
-    
-    // Draw gloves with jumping animation - ROUNDED
-    ctx.fillStyle = char.gloveColor;
-    // Left glove - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(armX - 1, leftArmY + 15, armWidth + 2, 5, 2);
-    ctx.fill();
-    // Right glove - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(armX + player.width - 9, rightArmY + 15, armWidth + 2, 5, 2);
-    ctx.fill();
-    
-    // Draw head with slight bobbing when walking - CIRCULAR
-    const headBob = player.isMoving ? Math.sin(player.walkCycle * 0.3) * 1 : 0;
-    ctx.fillStyle = char.color; // Skin tone
-    ctx.beginPath();
-    ctx.arc(headX + headRadius, headY + headRadius + headBob, headRadius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw hair with head bob - ROUNDED
-    ctx.fillStyle = char.hairColor;
-    // Hair base - rounded rectangle
-    ctx.beginPath();
-    ctx.roundRect(headX - 2, headY - 3 + headBob, headRadius * 2 + 4, 8, 4);
-    ctx.fill();
-    
-    // Draw hair details (bangs) with head bob - ROUNDED
-    ctx.beginPath();
-    ctx.roundRect(headX + 2, headY - 1 + headBob, 6, 4, 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(headX + 12, headY - 1 + headBob, 6, 4, 2);
-    ctx.fill();
-    
-    // Character-specific headgear with head bob - ROUNDED
-    if (char.name === 'Adelynn') {
-      // Explorer hat - rounded
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.roundRect(headX - 3, headY - 8 + headBob, headRadius * 2 + 6, 6, 3);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.roundRect(headX + 2, headY - 12 + headBob, 12, 8, 4);
-      ctx.fill();
-    } else if (char.name === 'Zuri') {
-      // Magical hood - rounded
-      ctx.fillStyle = '#4B0082';
-      ctx.beginPath();
-      ctx.roundRect(headX - 2, headY - 10 + headBob, headRadius * 2 + 4, 10, 5);
-      ctx.fill();
-      // Hood point - rounded
-      ctx.beginPath();
-      ctx.roundRect(headX + 8, headY - 15 + headBob, 4, 8, 2);
-      ctx.fill();
-    } else if (char.name === 'Kai') {
-      // Warrior helmet - rounded
-      ctx.fillStyle = '#C0C0C0';
-      ctx.beginPath();
-      ctx.roundRect(headX - 2, headY - 6 + headBob, headRadius * 2 + 4, 6, 3);
-      ctx.fill();
-      // Helmet visor - rounded
-      ctx.fillStyle = '#2F4F4F';
-      ctx.beginPath();
-      ctx.roundRect(headX + 4, headY - 2 + headBob, 12, 2, 1);
-      ctx.fill();
+    // Initialize sprite sheets if not done
+    if (!characterSprites) {
+      characterSprites = generateCharacterSprites();
     }
     
-    // Draw eyes with head bob - ROUNDED
-    ctx.fillStyle = char.eyeColor;
-    const eyeX = player.direction === 1 ? headX + 4 : headX + 2;
-    // Left eye - circle
-    ctx.beginPath();
-    ctx.arc(eyeX + 2, headY + 6 + headBob + 2, 2, 0, Math.PI * 2);
-    ctx.fill();
-    // Right eye - circle
-    ctx.beginPath();
-    ctx.arc(eyeX + 10, headY + 6 + headBob + 2, 2, 0, Math.PI * 2);
-    ctx.fill();
+    // Determine current animation state
+    let animationFrame = 0;
+    let flipX = false;
     
-    // Draw eye pupils with head bob - CIRCULAR
-    ctx.fillStyle = '#000';
-    const pupilX = player.direction === 1 ? eyeX + 1 : eyeX + 2;
-    // Left pupil - circle
-    ctx.beginPath();
-    ctx.arc(pupilX + 2, headY + 7 + headBob + 2, 1, 0, Math.PI * 2);
-    ctx.fill();
-    // Right pupil - circle
-    ctx.beginPath();
-    ctx.arc(pupilX + 10, headY + 7 + headBob + 2, 1, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw nose with head bob - ROUNDED
-    ctx.fillStyle = '#FFB6C1';
-    ctx.beginPath();
-    ctx.roundRect(headX + 8, headY + 10 + headBob, 2, 2, 1);
-    ctx.fill();
-    
-    // Draw mouth with head bob - ROUNDED
-    ctx.fillStyle = '#FF69B4';
-    ctx.beginPath();
-    ctx.roundRect(headX + 6, headY + 14 + headBob, 6, 2, 1);
-    ctx.fill();
-    
-    // Character-specific outfit details - ROUNDED
-    if (char.name === 'Adelynn') {
-      // Explorer vest - rounded
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8, 3);
-      ctx.fill();
-      // Vest buttons - circles
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.arc(bodyX + 8 + 1.5, bodyY + 4 + 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(bodyX + 8 + 1.5, bodyY + 8 + 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (char.name === 'Zuri') {
-      // Magical robe details - rounded
-      ctx.fillStyle = '#4B0082';
-      ctx.beginPath();
-      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 6, 3);
-      ctx.fill();
-      // Magical symbols - rounded
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.roundRect(bodyX + 8, bodyY + 4, 4, 4, 2);
-      ctx.fill();
-    } else if (char.name === 'Kai') {
-      // Warrior armor details - rounded
-      ctx.fillStyle = '#C0C0C0';
-      ctx.beginPath();
-      ctx.roundRect(bodyX + 2, bodyY + 2, bodyWidth - 4, 8, 3);
-      ctx.fill();
-      // Armor plates - rounded
-      ctx.fillStyle = '#2F4F4F';
-      ctx.beginPath();
-      ctx.roundRect(bodyX + 6, bodyY + 4, 8, 4, 2);
-      ctx.fill();
+    if (player.direction === -1) {
+      flipX = true;
     }
     
-    // Draw belt - ROUNDED
-    ctx.fillStyle = '#654321';
-    ctx.beginPath();
-    ctx.roundRect(bodyX, bodyY + 22, bodyWidth, 3, 1);
-    ctx.fill();
-    
-    // Character-specific accessories - ROUNDED
-    if (char.name === 'Zuri') {
-      // Magical staff - rounded
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.roundRect(screenX + player.width - 2, player.y + 10, 3, 30, 1);
-      ctx.fill();
-      // Staff orb - circle
-      ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.arc(screenX + player.width - 4 + 3.5, player.y + 8 + 3.5, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (char.name === 'Kai') {
-      // Warrior sword - rounded
-      ctx.fillStyle = '#C0C0C0';
-      ctx.beginPath();
-      ctx.roundRect(screenX - 8, player.y + 15, 3, 25, 1);
-      ctx.fill();
-      // Sword handle - rounded
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.roundRect(screenX - 10, player.y + 35, 7, 5, 2);
-      ctx.fill();
+    // Choose animation based on player state
+    if (player.isInvincible && Math.floor(Date.now() / 100) % 2) {
+      // Hurt animation when invincible
+      animationFrame = 8;
+    } else if (player.vy < 0) {
+      // Jumping
+      animationFrame = 3;
+    } else if (player.isCrouching) {
+      // Crouching
+      animationFrame = 6;
+    } else if (player.isRunning && player.isMoving) {
+      // Running
+      animationFrame = 4 + (Math.floor(player.animationTimer / 5) % 2);
+    } else if (player.isMoving) {
+      // Walking
+      animationFrame = 1 + (Math.floor(player.animationTimer / 8) % 2);
+    } else {
+      // Idle
+      animationFrame = 0;
     }
     
-    // Draw power-up indicator - ROUNDED
+    // Power up effect
+    if (player.powerUpState !== 'normal') {
+      animationFrame = 7;
+    }
+    
+    // Victory celebration
+    if (gameWon) {
+      animationFrame = 9;
+    }
+    
+    // Get character sprite sheet
+    const spriteSheet = characterSprites[char.name];
+    if (spriteSheet) {
+      // Draw sprite with proper scaling
+      const spriteSize = 32;
+      const scale = player.width / spriteSize;
+      const destWidth = spriteSize * scale;
+      const destHeight = spriteSize * scale;
+      
+      spriteSheet.drawSprite(
+        ctx,
+        animationFrame,
+        0,
+        screenX,
+        player.y - 8,
+        destWidth,
+        destHeight,
+        flipX
+      );
+    }
+    
+    // Draw power-up indicator above sprite
     if (player.powerUpState !== 'normal') {
       ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.roundRect(screenX - 5, headY - 10, player.width + 10, 5, 2);
-      ctx.fill();
-      
-      // Draw power-up emoji
+      ctx.font = '12px Arial';
       let powerEmoji = '⭐';
       if (player.powerUpState === 'big') powerEmoji = '🍄';
       if (player.powerUpState === 'fire') powerEmoji = '🔥';
       
-      ctx.font = '14px Arial';
-      ctx.fillText(powerEmoji, screenX + 10, headY - 20);
+      ctx.fillText(powerEmoji, screenX + 10, player.y - 20);
     }
     
-    // Draw invincibility effect - ROUNDED
+    // Draw invincibility effect
     if (player.isInvincible && Math.floor(Date.now() / 100) % 2) {
       ctx.strokeStyle = '#FFD700';
       ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.roundRect(screenX, player.y, player.width, player.height, 5);
-      ctx.stroke();
+      ctx.strokeRect(screenX, player.y, player.width, player.height);
       
-      // Draw sparkle effect - circles
+      // Draw sparkle effect
       ctx.fillStyle = '#FFD700';
-      ctx.beginPath();
-      ctx.arc(screenX - 1.5, headY - 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(screenX + player.width + 1.5, headY - 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(screenX - 1.5, player.y + player.height + 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(screenX + player.width + 1.5, player.y + player.height + 1.5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillRect(screenX - 2, player.y - 2, 4, 4);
+      ctx.fillRect(screenX + player.width - 2, player.y - 2, 4, 4);
+      ctx.fillRect(screenX - 2, player.y + player.height - 2, 4, 4);
+      ctx.fillRect(screenX + player.width - 2, player.y + player.height - 2, 4, 4);
     }
     
-    // Draw running dust effect - ROUNDED
+    // Draw running dust effect
     if (player.isRunning && player.isOnGround) {
       ctx.fillStyle = 'rgba(139, 69, 19, 0.6)';
       for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.arc(screenX - 5 - (i * 3) + 1, player.y + player.height + 2 + 1, 1, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillRect(screenX - 5 - (i * 3), player.y + player.height + 2, 2, 2);
       }
     }
   }
@@ -1635,4 +1442,561 @@ if (keys['L'] || keys['l']) {
 } else {
   keysPressed['L'] = false;
   keysPressed['l'] = false;
+}
+
+// Sprite system for characters
+class SpriteSheet {
+  constructor(width, height, spriteWidth, spriteHeight) {
+    this.canvas = document.createElement('canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.spriteWidth = spriteWidth;
+    this.spriteHeight = spriteHeight;
+    this.spritesPerRow = Math.floor(width / spriteWidth);
+  }
+  
+  drawSprite(ctx, spriteX, spriteY, destX, destY, destWidth, destHeight, flipX = false) {
+    const sourceX = (spriteX % this.spritesPerRow) * this.spriteWidth;
+    const sourceY = Math.floor(spriteX / this.spritesPerRow) * this.spriteHeight;
+    
+    ctx.save();
+    if (flipX) {
+      ctx.scale(-1, 1);
+      destX = -destX - destWidth;
+    }
+    
+    ctx.drawImage(
+      this.canvas,
+      sourceX, sourceY, this.spriteWidth, this.spriteHeight,
+      destX, destY, destWidth, destHeight
+    );
+    ctx.restore();
+  }
+}
+
+// Character sprite generator
+function generateCharacterSprites() {
+  const spriteSheets = {};
+  
+  characters.forEach((char, charIndex) => {
+    const sheet = new SpriteSheet(320, 160, 32, 32); // 10 sprites per row, 5 rows
+    const ctx = sheet.ctx;
+    
+    // Generate different animation frames
+    for (let frame = 0; frame < 10; frame++) {
+      const x = (frame % 10) * 32;
+      const y = Math.floor(frame / 10) * 32;
+      
+      // Clear frame area
+      ctx.clearRect(x, y, 32, 32);
+      
+      // Draw character based on frame
+      drawCharacterSprite(ctx, char, frame, x, y);
+    }
+    
+    spriteSheets[char.name] = sheet;
+  });
+  
+  return spriteSheets;
+}
+
+// Draw individual character sprite frame
+function drawCharacterSprite(ctx, char, frame, x, y) {
+  const centerX = x + 16;
+  const centerY = y + 16;
+  
+  // Animation states: 0=idle, 1=walk1, 2=walk2, 3=jump, 4=run1, 5=run2, 6=crouch, 7=powerup, 8=hurt, 9=celebrate
+  
+  // Draw shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(x + 2, y + 28, 28, 4);
+  
+  // Draw body parts based on frame
+  switch (frame) {
+    case 0: // Idle
+      drawIdleSprite(ctx, char, x, y);
+      break;
+    case 1: // Walk 1
+      drawWalkSprite(ctx, char, x, y, 1);
+      break;
+    case 2: // Walk 2
+      drawWalkSprite(ctx, char, x, y, 2);
+      break;
+    case 3: // Jump
+      drawJumpSprite(ctx, char, x, y);
+      break;
+    case 4: // Run 1
+      drawRunSprite(ctx, char, x, y, 1);
+      break;
+    case 5: // Run 2
+      drawRunSprite(ctx, char, x, y, 2);
+      break;
+    case 6: // Crouch
+      drawCrouchSprite(ctx, char, x, y);
+      break;
+    case 7: // Power up
+      drawPowerUpSprite(ctx, char, x, y);
+      break;
+    case 8: // Hurt
+      drawHurtSprite(ctx, char, x, y);
+      break;
+    case 9: // Celebrate
+      drawCelebrateSprite(ctx, char, x, y);
+      break;
+  }
+}
+
+// Draw idle sprite
+function drawIdleSprite(ctx, char, x, y) {
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms
+  ctx.fillRect(x + 6, y + 16, 4, 8);
+  ctx.fillRect(x + 22, y + 16, 4, 8);
+  
+  // Legs
+  ctx.fillRect(x + 10, y + 26, 4, 6);
+  ctx.fillRect(x + 18, y + 26, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32, 6, 2);
+  ctx.fillRect(x + 18, y + 32, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw walk sprite
+function drawWalkSprite(ctx, char, x, y, step) {
+  const legOffset = step === 1 ? 2 : -2;
+  const armOffset = step === 1 ? -1 : 1;
+  
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms (animated)
+  ctx.fillRect(x + 6, y + 16 + armOffset, 4, 8);
+  ctx.fillRect(x + 22, y + 16 - armOffset, 4, 8);
+  
+  // Legs (animated)
+  ctx.fillRect(x + 10, y + 26 + legOffset, 4, 6);
+  ctx.fillRect(x + 18, y + 26 - legOffset, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32 + legOffset, 6, 2);
+  ctx.fillRect(x + 18, y + 32 - legOffset, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw jump sprite
+function drawJumpSprite(ctx, char, x, y) {
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 6, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y, 12, 6);
+  ctx.fillRect(x + 12, y + 2, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 12, 16, 12);
+  
+  // Arms (raised)
+  ctx.fillRect(x + 6, y + 10, 4, 8);
+  ctx.fillRect(x + 22, y + 10, 4, 8);
+  
+  // Legs (bent)
+  ctx.fillRect(x + 10, y + 24, 4, 6);
+  ctx.fillRect(x + 18, y + 24, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 30, 6, 2);
+  ctx.fillRect(x + 18, y + 30, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw run sprite
+function drawRunSprite(ctx, char, x, y, step) {
+  const legOffset = step === 1 ? 3 : -3;
+  const armOffset = step === 1 ? -2 : 2;
+  
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms (more animated)
+  ctx.fillRect(x + 6, y + 16 + armOffset, 4, 8);
+  ctx.fillRect(x + 22, y + 16 - armOffset, 4, 8);
+  
+  // Legs (more animated)
+  ctx.fillRect(x + 10, y + 26 + legOffset, 4, 6);
+  ctx.fillRect(x + 18, y + 26 - legOffset, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32 + legOffset, 6, 2);
+  ctx.fillRect(x + 18, y + 32 - legOffset, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw crouch sprite
+function drawCrouchSprite(ctx, char, x, y) {
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 12, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 6, 12, 6);
+  ctx.fillRect(x + 12, y + 8, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 11, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 11, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body (compressed)
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 18, 16, 8);
+  
+  // Arms (down)
+  ctx.fillRect(x + 6, y + 20, 4, 6);
+  ctx.fillRect(x + 22, y + 20, 4, 6);
+  
+  // Legs (bent)
+  ctx.fillRect(x + 10, y + 26, 4, 6);
+  ctx.fillRect(x + 18, y + 26, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32, 6, 2);
+  ctx.fillRect(x + 18, y + 32, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw power up sprite
+function drawPowerUpSprite(ctx, char, x, y) {
+  // Power up glow
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.fillRect(x, y, 32, 32);
+  
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms
+  ctx.fillRect(x + 6, y + 16, 4, 8);
+  ctx.fillRect(x + 22, y + 16, 4, 8);
+  
+  // Legs
+  ctx.fillRect(x + 10, y + 26, 4, 6);
+  ctx.fillRect(x + 18, y + 26, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32, 6, 2);
+  ctx.fillRect(x + 18, y + 32, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+  
+  // Power up symbol
+  ctx.fillStyle = '#FFD700';
+  ctx.font = '12px Arial';
+  ctx.fillText('⭐', x + 12, y + 6);
+}
+
+// Draw hurt sprite
+function drawHurtSprite(ctx, char, x, y) {
+  // Hurt effect
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+  ctx.fillRect(x, y, 32, 32);
+  
+  // Head (tilted)
+  ctx.fillStyle = char.color;
+  ctx.save();
+  ctx.translate(x + 16, y + 8);
+  ctx.rotate(0.2);
+  ctx.beginPath();
+  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes (X marks)
+  ctx.fillStyle = '#FF0000';
+  ctx.fillRect(x + 13, y + 6, 2, 2);
+  ctx.fillRect(x + 17, y + 6, 2, 2);
+  ctx.fillRect(x + 13, y + 8, 2, 2);
+  ctx.fillRect(x + 17, y + 8, 2, 2);
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms (down)
+  ctx.fillRect(x + 6, y + 20, 4, 6);
+  ctx.fillRect(x + 22, y + 20, 4, 6);
+  
+  // Legs (bent)
+  ctx.fillRect(x + 10, y + 26, 4, 6);
+  ctx.fillRect(x + 18, y + 26, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32, 6, 2);
+  ctx.fillRect(x + 18, y + 32, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw celebrate sprite
+function drawCelebrateSprite(ctx, char, x, y) {
+  // Celebration sparkles
+  ctx.fillStyle = '#FFD700';
+  ctx.fillRect(x + 4, y + 2, 2, 2);
+  ctx.fillRect(x + 26, y + 4, 2, 2);
+  ctx.fillRect(x + 6, y + 28, 2, 2);
+  ctx.fillRect(x + 24, y + 30, 2, 2);
+  
+  // Head
+  ctx.fillStyle = char.color;
+  ctx.beginPath();
+  ctx.arc(x + 16, y + 8, 6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hair
+  ctx.fillStyle = char.hairColor;
+  ctx.fillRect(x + 10, y + 2, 12, 6);
+  ctx.fillRect(x + 12, y + 4, 8, 4);
+  
+  // Eyes (happy)
+  ctx.fillStyle = char.eyeColor;
+  ctx.beginPath();
+  ctx.arc(x + 14, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 18, y + 7, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Body
+  ctx.fillStyle = char.outfitColor;
+  ctx.fillRect(x + 8, y + 14, 16, 12);
+  
+  // Arms (raised)
+  ctx.fillRect(x + 6, y + 10, 4, 8);
+  ctx.fillRect(x + 22, y + 10, 4, 8);
+  
+  // Legs
+  ctx.fillRect(x + 10, y + 26, 4, 6);
+  ctx.fillRect(x + 18, y + 26, 4, 6);
+  
+  // Shoes
+  ctx.fillStyle = char.shoeColor;
+  ctx.fillRect(x + 8, y + 32, 6, 2);
+  ctx.fillRect(x + 18, y + 32, 6, 2);
+  
+  // Character-specific details
+  drawCharacterDetails(ctx, char, x, y);
+}
+
+// Draw character-specific details
+function drawCharacterDetails(ctx, char, x, y) {
+  if (char.name === 'Adelynn') {
+    // Explorer hat
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(x + 10, y, 12, 4);
+    ctx.fillRect(x + 12, y - 4, 8, 8);
+  } else if (char.name === 'Zuri') {
+    // Magical hood
+    ctx.fillStyle = '#4B0082';
+    ctx.fillRect(x + 8, y - 2, 16, 8);
+    ctx.fillRect(x + 14, y - 7, 4, 6);
+  } else if (char.name === 'Kai') {
+    // Warrior helmet
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(x + 8, y + 2, 16, 4);
+    ctx.fillStyle = '#2F4F4F';
+    ctx.fillRect(x + 12, y + 6, 8, 2);
+  }
+}
+
+// Initialize sprite sheets
+let characterSprites = null;
+
+// Export sprite sheets as images (for debugging)
+function exportSpriteSheets() {
+  if (!characterSprites) {
+    characterSprites = generateCharacterSprites();
+  }
+  
+  Object.keys(characterSprites).forEach(charName => {
+    const sheet = characterSprites[charName];
+    const link = document.createElement('a');
+    link.download = `${charName}_sprites.png`;
+    link.href = sheet.canvas.toDataURL();
+    link.click();
+  });
+}
+
+// Debug function to show sprite sheets
+function showSpriteSheets() {
+  if (!characterSprites) {
+    characterSprites = generateCharacterSprites();
+  }
+  
+  // Create a debug window to show sprites
+  const debugWindow = window.open('', '_blank');
+  debugWindow.document.write('<html><body style="background: #333; color: white;">');
+  debugWindow.document.write('<h1>Character Sprite Sheets</h1>');
+  
+  Object.keys(characterSprites).forEach(charName => {
+    const sheet = characterSprites[charName];
+    debugWindow.document.write(`<h2>${charName}</h2>`);
+    debugWindow.document.write(`<img src="${sheet.canvas.toDataURL()}" style="border: 2px solid white; margin: 10px;">`);
+  });
+  
+  debugWindow.document.write('</body></html>');
+}
+
+// Sprite debugging controls
+if (keys['S'] || keys['s']) {
+  if (!keysPressed['S'] && !keysPressed['s']) {
+    showSpriteSheets();
+    keysPressed['S'] = true;
+    keysPressed['s'] = true;
+  }
+} else {
+  keysPressed['S'] = false;
+  keysPressed['s'] = false;
+}
+
+if (keys['E'] || keys['e']) {
+  if (!keysPressed['E'] && !keysPressed['e']) {
+    exportSpriteSheets();
+    keysPressed['E'] = true;
+    keysPressed['e'] = true;
+  }
+} else {
+  keysPressed['E'] = false;
+  keysPressed['e'] = false;
 }

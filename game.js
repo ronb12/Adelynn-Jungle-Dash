@@ -1,5 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
+// Version 2.1.1 - Cache busting
 
 class JungleMemoryGame {
     constructor() {

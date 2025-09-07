@@ -347,26 +347,7 @@ body::before {
 }
 
 .card.flipped .card-inner {
-    transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
-}
-
-/* More specific selector to ensure flip works */
-div.card.flipped div.card-inner {
-    transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
-}
-
-/* Even more specific selector */
-.game-board .card.flipped .card-inner {
-    transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
-}
-
-/* Maximum specificity selector */
-#game-board .card.flipped .card-inner {
-    transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
+    transform: rotateY(180deg);
 }
 
 .card-front, .card-back {
@@ -1202,4 +1183,4 @@ div.card.flipped div.card-inner {
     }
 }
 
-/* Cache busting - Version 2.2.6 - Force Card Flipping with Multiple Selectors */
+/* Cache busting - Version 3.0.0 - Clean Card Implementation */

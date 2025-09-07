@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 2.2.5 - Fix Animal Image Visibility
+// Version 2.2.6 - Force Card Flipping with JavaScript Fallback
 
 class JungleMemoryGame {
     constructor() {
@@ -519,6 +519,13 @@ class JungleMemoryGame {
         cardElement.classList.add('flipped');
         cardElement.setAttribute('aria-pressed', 'true');
         this.gameState.flippedCards.push(card);
+        
+        // Force the transform with JavaScript as fallback
+        const cardInner = cardElement.querySelector('.card-inner');
+        if (cardInner) {
+            cardInner.style.transform = 'rotateY(180deg)';
+            console.log('🔧 Applied JavaScript transform fallback');
+        }
         
         console.log('🎨 CSS classes after flip:', cardElement.className);
         console.log('🎯 Card element style after flip:', {

@@ -336,8 +336,20 @@ class JungleMemoryGame {
     }
 
     showAnimalInfo(animal) {
-        document.getElementById('animal-image').src = `sprites/${animal.id}.png`;
-        document.getElementById('animal-image').alt = animal.name;
+        // Use emoji instead of image since we don't have animal images yet
+        const animalImage = document.getElementById('animal-image');
+        animalImage.style.display = 'none'; // Hide the img element
+        
+        // Create or update emoji display
+        let emojiDisplay = document.getElementById('animal-emoji-display');
+        if (!emojiDisplay) {
+            emojiDisplay = document.createElement('div');
+            emojiDisplay.id = 'animal-emoji-display';
+            emojiDisplay.style.cssText = 'font-size: 4rem; text-align: center; margin: 20px 0;';
+            animalImage.parentNode.insertBefore(emojiDisplay, animalImage);
+        }
+        emojiDisplay.textContent = animal.emoji;
+        
         document.getElementById('animal-name').textContent = animal.name;
         document.getElementById('animal-fact').textContent = animal.fact;
         document.getElementById('animal-modal').dataset.animalSound = animal.sound;

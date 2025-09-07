@@ -59,6 +59,65 @@
             </div>
             <button id="new-game-btn" class="btn btn-primary">New Game</button>
             <button id="pause-btn" class="btn btn-secondary">Pause</button>
+            <button id="quiz-mode-btn" class="btn btn-secondary">Quiz Mode</button>
+            <button id="high-scores-btn" class="btn btn-secondary">High Scores</button>
+            <button id="settings-btn" class="btn btn-secondary">⚙️ Settings</button>
+        </div>
+
+        <!-- Settings Panel -->
+        <div id="settings-panel" class="settings-panel hidden">
+            <h3>⚙️ Game Settings</h3>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="sound-enabled" checked>
+                    🔊 Sound Effects
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="haptic-enabled" checked>
+                    📳 Haptic Feedback
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="colorblind-mode">
+                    🎨 Color Blind Friendly
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="high-contrast-mode">
+                    🔆 High Contrast
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="screen-reader-mode">
+                    🔊 Screen Reader Mode
+                </label>
+            </div>
+            <button id="close-settings-btn" class="btn btn-primary">Close Settings</button>
+        </div>
+
+        <!-- High Scores Display -->
+        <div id="high-scores-display" class="high-scores hidden">
+            <h3>🏆 High Scores</h3>
+            <div id="high-scores-content"></div>
+        </div>
+
+        <!-- Learning Progress -->
+        <div id="learning-progress-display" class="learning-progress hidden">
+            <h3>📚 Learning Progress</h3>
+            <div id="learning-progress-content"></div>
+        </div>
+
+        <!-- Quiz Mode -->
+        <div id="quiz-mode-display" class="quiz-mode hidden">
+            <h3>🧠 Animal Quiz</h3>
+            <div id="quiz-question" class="quiz-question"></div>
+            <div id="quiz-options" class="quiz-options"></div>
+            <button id="next-question-btn" class="btn btn-primary hidden">Next Question</button>
         </div>
 
         <!-- Game Board -->

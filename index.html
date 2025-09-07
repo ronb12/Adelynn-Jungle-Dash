@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelynn's Jungle Memory Safari</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2d5016">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="header-content">
+                <h1 class="game-title">🌿 Adelynn's Jungle Memory Safari 🐾</h1>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Score:</span>
+                        <span id="score" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Moves:</span>
+                        <span id="moves" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Time:</span>
+                        <span id="timer" class="stat-value">0:00</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Game Controls -->
+        <div class="game-controls">
+            <div class="difficulty-selector">
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy (6 pairs)</option>
+                    <option value="medium">Medium (8 pairs)</option>
+                    <option value="hard">Hard (12 pairs)</option>
+                </select>
+            </div>
+            <button id="new-game-btn" class="btn btn-primary">New Game</button>
+            <button id="pause-btn" class="btn btn-secondary">Pause</button>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board-container">
+            <div id="game-board" class="game-board">
+                <!-- Cards will be dynamically generated here -->
+            </div>
+        </div>
+
+        <!-- Game Messages -->
+        <div id="game-message" class="game-message hidden">
+            <div class="message-content">
+                <h2 id="message-title"></h2>
+                <p id="message-text"></p>
+                <button id="message-btn" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+
+        <!-- Animal Info Modal -->
+        <div id="animal-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="animal-info">
+                    <img id="animal-image" src="" alt="">
+                    <h3 id="animal-name"></h3>
+                    <p id="animal-fact"></p>
+                    <button id="play-sound-btn" class="btn btn-secondary">🔊 Animal Sound</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pause-overlay" class="pause-overlay hidden">
+            <div class="pause-content">
+                <h2>Game Paused</h2>
+                <p>Take a break and enjoy the jungle sounds!</p>
+                <button id="resume-btn" class="btn btn-primary">Resume Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Audio -->
+    <audio id="background-audio" loop>
+        <source src="sounds/jungle-ambiance.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="flip-sound">
+        <source src="sounds/card-flip.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="match-sound">
+        <source src="sounds/match-success.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="win-sound">
+        <source src="sounds/game-win.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="game.js"></script>
+</body>
+</html>

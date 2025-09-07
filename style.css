@@ -1,0 +1,535 @@
+/* Adelynn's Jungle Memory Safari - Styling */
+/* Product of Bradley Virtual Solutions, LLC */
+
+:root {
+    --jungle-green: #2d5016;
+    --jungle-light: #4a7c23;
+    --jungle-dark: #1a3009;
+    --leaf-green: #6ba644;
+    --earth-brown: #8b4513;
+    --sunshine-yellow: #ffd700;
+    --flower-pink: #ff69b4;
+    --water-blue: #4169e1;
+    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, 
+        var(--jungle-green) 0%, 
+        var(--jungle-light) 50%, 
+        var(--jungle-dark) 100%);
+    min-height: 100vh;
+    color: white;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Animated jungle background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(107, 166, 68, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 105, 180, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+    animation: jungleGlow 8s ease-in-out infinite alternate;
+    z-index: -1;
+}
+
+@keyframes jungleGlow {
+    0% { opacity: 0.5; transform: scale(1); }
+    100% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Header Styles */
+.game-header {
+    background: rgba(26, 48, 9, 0.8);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(10px);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.game-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--sunshine-yellow);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.game-stats {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--leaf-green);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sunshine-yellow);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Game Controls */
+.game-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.difficulty-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-weight: 600;
+}
+
+.difficulty-selector select {
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--jungle-light);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.difficulty-selector select:hover {
+    background: var(--leaf-green);
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: var(--card-shadow);
+}
+
+.btn-primary {
+    background: var(--sunshine-yellow);
+    color: var(--jungle-dark);
+}
+
+.btn-primary:hover {
+    background: #ffed4e;
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.btn-secondary {
+    background: var(--flower-pink);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #ff8dc7;
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+/* Game Board */
+.game-board-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.game-board {
+    display: grid;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(26, 48, 9, 0.6);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(10px);
+}
+
+.game-board.easy {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 600px;
+}
+
+.game-board.medium {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 700px;
+}
+
+.game-board.hard {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 800px;
+}
+
+/* Card Styles */
+.card {
+    aspect-ratio: 1;
+    perspective: 1000px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.card-front {
+    background: linear-gradient(135deg, white 0%, #f8f9fa 100%);
+    color: var(--jungle-dark);
+    transform: rotateY(180deg);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-back {
+    background: linear-gradient(135deg, 
+        var(--leaf-green) 0%, 
+        var(--jungle-light) 50%, 
+        var(--jungle-green) 100%);
+    color: white;
+    position: relative;
+}
+
+.card-back::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    border-radius: var(--border-radius);
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    z-index: 1;
+    position: relative;
+}
+
+.animal-emoji {
+    font-size: 3rem;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.animal-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--jungle-dark);
+    text-shadow: none;
+    line-height: 1.2;
+}
+
+.card-pattern {
+    font-size: 2rem;
+    opacity: 0.8;
+    animation: leafFloat 3s ease-in-out infinite alternate;
+}
+
+@keyframes leafFloat {
+    0% { transform: rotate(-5deg) scale(1); }
+    100% { transform: rotate(5deg) scale(1.1); }
+}
+
+.card.matched {
+    animation: matchPulse 0.6s ease-in-out;
+}
+
+.card.matched .card-inner {
+    box-shadow: 0 0 20px var(--sunshine-yellow);
+}
+
+@keyframes matchPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Modal Styles */
+.modal, .game-message, .pause-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content, .message-content, .pause-content {
+    background: linear-gradient(135deg, var(--jungle-green), var(--jungle-light));
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-hover-shadow);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2rem;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close-modal:hover {
+    color: var(--sunshine-yellow);
+    transform: scale(1.2);
+}
+
+.animal-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.animal-info img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--sunshine-yellow);
+    box-shadow: var(--card-shadow);
+}
+
+.animal-info h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--sunshine-yellow);
+    margin: 0;
+}
+
+.animal-info p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: white;
+    margin: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .game-stats {
+        justify-content: center;
+    }
+
+    .game-controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .game-board.easy,
+    .game-board.medium,
+    .game-board.hard {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 400px;
+        gap: 10px;
+        padding: 15px;
+    }
+
+    .animal-emoji {
+        font-size: 2.5rem;
+    }
+
+    .animal-name {
+        font-size: 0.8rem;
+    }
+
+    .card-pattern {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        padding: 10px;
+    }
+
+    .game-title {
+        font-size: 1.5rem;
+    }
+
+    .game-board.easy,
+    .game-board.medium,
+    .game-board.hard {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 300px;
+    }
+
+    .animal-emoji {
+        font-size: 2rem;
+    }
+
+    .animal-name {
+        font-size: 0.7rem;
+    }
+
+    .modal-content, .message-content, .pause-content {
+        padding: 20px;
+        margin: 20px;
+    }
+}
+
+/* Loading Animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--jungle-light);
+    border-radius: 50%;
+    border-top-color: var(--sunshine-yellow);
+    animation: spin 1s ease-in-out infinite;
+}
+
+/* Success animations */
+@keyframes celebration {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-5deg); }
+    75% { transform: scale(1.1) rotate(5deg); }
+}
+
+.celebrate {
+    animation: celebration 0.6s ease-in-out;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.card:focus {
+    outline: 3px solid var(--sunshine-yellow);
+    outline-offset: 2px;
+}
+
+.btn:focus {
+    outline: 3px solid var(--water-blue);
+    outline-offset: 2px;
+}

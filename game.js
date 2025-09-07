@@ -131,8 +131,40 @@ class JungleMemoryGame {
 
     init() {
         this.bindEvents();
+        this.setupIOSOptimizations();
         this.newGame();
         this.startBackgroundMusic();
+    }
+
+    setupIOSOptimizations() {
+        // Prevent iOS Safari from bouncing on scroll
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.game-board')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Fix iOS viewport height issues
+        const setVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+        
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVH, 100);
+        });
+
+        // Prevent double-tap zoom on cards
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     }
 
     bindEvents() {
@@ -235,7 +267,29 @@ class JungleMemoryGame {
             </div>
         `;
 
-        cardDiv.addEventListener('click', () => this.flipCard(card.id));
+        // Add both click and touch events for better iOS support
+        cardDiv.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.flipCard(card.id);
+        });
+        
+        cardDiv.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Add visual feedback for touch
+            cardDiv.classList.add('touching');
+        });
+        
+        cardDiv.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            cardDiv.classList.remove('touching');
+            this.flipCard(card.id);
+        });
+        
+        cardDiv.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            cardDiv.classList.remove('touching');
+        });
+        
         return cardDiv;
     }
 

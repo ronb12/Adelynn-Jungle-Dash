@@ -109,15 +109,25 @@ class JungleMemoryGame {
             hard: { pairs: 12, gridCols: 4, timeBonus: 2000 }
         };
 
+        // Audio elements are not present in HTML, so we'll use fallback sounds
         this.sounds = {
-            background: document.getElementById('background-audio'),
-            flip: document.getElementById('flip-sound'),
-            match: document.getElementById('match-sound'),
-            win: document.getElementById('win-sound')
+            background: null,
+            flip: null,
+            match: null,
+            win: null
+        };
+
+        // No audio files available - use fallback sounds only
+        this.audioFilesAvailable = {
+            background: false,
+            flip: false,
+            match: false,
+            win: false
         };
 
         this.init();
     }
+
 
     init() {
         this.bindEvents();
@@ -397,7 +407,8 @@ class JungleMemoryGame {
     }
 
     playSound(type) {
-        if (this.sounds[type]) {
+        // Check if audio file is available and valid
+        if (this.sounds[type] && this.audioFilesAvailable[type]) {
             this.sounds[type].currentTime = 0;
             this.sounds[type].volume = 0.5;
             this.sounds[type].play().catch(e => {
@@ -406,6 +417,7 @@ class JungleMemoryGame {
                 this.playFallbackSound(type);
             });
         } else {
+            // Use fallback sound for missing or invalid audio files
             this.playFallbackSound(type);
         }
     }
@@ -441,14 +453,9 @@ class JungleMemoryGame {
     }
 
     startBackgroundMusic() {
-        // Only try to play background music after user interaction
-        if (this.sounds.background) {
-            this.sounds.background.volume = 0.2;
-            this.sounds.background.play().catch(e => {
-                console.log('Could not play background music:', e);
-                // Don't try to play fallback background music automatically
-            });
-        }
+        // Don't try to play background music automatically to avoid autoplay restrictions
+        // Background music will only play after user interaction
+        console.log('Background music ready - will play after user interaction');
     }
 }
 

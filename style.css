@@ -1,5 +1,6 @@
 /* Adelynn's Jungle Memory Safari - Styling */
 /* Product of Bradley Virtual Solutions, LLC */
+/* Version: 2.1.0 - Enhanced Card Backs */
 
 :root {
     --jungle-green: #2d5016;
@@ -355,14 +356,14 @@ body::before {
         #2d5016 25%, 
         #4a7c23 50%,
         #6ba644 75%,
-        #2d5016 100%);
-    color: white;
+        #2d5016 100%) !important;
+    color: white !important;
     position: relative;
     overflow: hidden;
-    border: 2px solid rgba(255, 215, 0, 0.4);
+    border: 2px solid rgba(255, 215, 0, 0.4) !important;
     box-shadow: 
         inset 0 0 20px rgba(0, 0, 0, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.3);
+        0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .card-back::before {
@@ -373,18 +374,19 @@ body::before {
     right: 0;
     bottom: 0;
     background-image: 
-        radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.3) 0%, transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.2) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(107, 166, 68, 0.4) 0%, transparent 60%),
+        radial-gradient(circle at 20% 20%, rgba(255, 215, 0, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(107, 166, 68, 0.5) 0%, transparent 60%),
         repeating-linear-gradient(
             45deg,
             transparent,
             transparent 4px,
-            rgba(255, 215, 0, 0.08) 4px,
-            rgba(255, 215, 0, 0.08) 8px
-        );
+            rgba(255, 215, 0, 0.12) 4px,
+            rgba(255, 215, 0, 0.12) 8px
+        ) !important;
     border-radius: 12px;
     animation: cardGlow 3s ease-in-out infinite alternate;
+    z-index: 1;
 }
 
 .card-back::after {
@@ -395,10 +397,11 @@ body::before {
     right: 0;
     bottom: 0;
     background-image: 
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3Ccircle cx='10' cy='10' r='1'/%3E%3Ccircle cx='50' cy='10' r='1'/%3E%3Ccircle cx='10' cy='50' r='1'/%3E%3Ccircle cx='50' cy='50' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.4;
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='0.2'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3Ccircle cx='10' cy='10' r='2'/%3E%3Ccircle cx='50' cy='10' r='2'/%3E%3Ccircle cx='10' cy='50' r='2'/%3E%3Ccircle cx='50' cy='50' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.6;
     border-radius: 12px;
     animation: cardPattern 4s ease-in-out infinite alternate;
+    z-index: 1;
 }
 
 @keyframes cardGlow {

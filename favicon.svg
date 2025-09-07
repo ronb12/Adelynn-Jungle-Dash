@@ -24,4 +24,9 @@
   <path d="M65 40 Q60 45 65 50" stroke="#000" stroke-width="1.5" fill="none"/>
   <path d="M40 35 Q45 40 40 45" stroke="#000" stroke-width="1" fill="none"/>
   <path d="M60 35 Q55 40 60 45" stroke="#000" stroke-width="1" fill="none"/>
+  
+  <!-- App name text -->
+  <text x="50" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white">
+    <tspan x="50" dy="0">JUNGLE</tspan>
+  </text>
 </svg>

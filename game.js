@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 2.1.1 - Cache busting
+// Version 2.2.3 - Debug Card Flipping
 
 class JungleMemoryGame {
     constructor() {
@@ -148,12 +148,15 @@ class JungleMemoryGame {
 
 
     init() {
+        console.log('🚀 Initializing Jungle Memory Game...');
         this.bindEvents();
         this.setupIOSOptimizations();
         this.setupAccessibility();
         this.newGame();
         this.startBackgroundMusic();
         this.updateAchievementsDisplay();
+        console.log('✅ Game initialization complete!');
+        console.log('🎮 Game state:', this.gameState);
     }
 
     // Storage and Achievement Methods
@@ -406,17 +409,26 @@ class JungleMemoryGame {
     }
 
     renderBoard() {
+        console.log('🎨 Rendering game board...');
         const gameBoard = document.getElementById('game-board');
         const difficulty = this.difficultySettings[this.gameState.difficulty];
+        
+        console.log('🎯 Game board element:', gameBoard);
+        console.log('⚙️ Difficulty settings:', difficulty);
+        console.log('🃏 Cards to render:', this.gameState.cards.length);
         
         gameBoard.innerHTML = '';
         gameBoard.className = `game-board ${this.gameState.difficulty}`;
         gameBoard.style.gridTemplateColumns = `repeat(${difficulty.gridCols}, 1fr)`;
 
-        this.gameState.cards.forEach((card) => {
+        this.gameState.cards.forEach((card, index) => {
+            console.log(`🃏 Creating card ${index + 1}:`, card);
             const cardElement = this.createCardElement(card);
             gameBoard.appendChild(cardElement);
+            console.log(`✅ Card ${index + 1} added to board`);
         });
+        
+        console.log('✅ Game board rendered with', this.gameState.cards.length, 'cards');
     }
 
     createCardElement(card) {
@@ -445,17 +457,20 @@ class JungleMemoryGame {
 
         // Add both click and touch events for better iOS support
         cardDiv.addEventListener('click', (e) => {
+            console.log('🖱️ Card clicked:', card.id, 'Event:', e);
             e.preventDefault();
             this.flipCard(card.id);
         });
         
         cardDiv.addEventListener('touchstart', (e) => {
+            console.log('👆 Touch start on card:', card.id);
             e.preventDefault();
             // Add visual feedback for touch
             cardDiv.classList.add('touching');
         });
         
         cardDiv.addEventListener('touchend', (e) => {
+            console.log('👆 Touch end on card:', card.id);
             e.preventDefault();
             cardDiv.classList.remove('touching');
             this.flipCard(card.id);
@@ -470,20 +485,59 @@ class JungleMemoryGame {
     }
 
     flipCard(cardId) {
-        if (this.gameState.isPaused || this.gameState.gameWon) return;
+        console.log('🔄 flipCard called with cardId:', cardId);
+        console.log('🎮 Game state:', {
+            isPaused: this.gameState.isPaused,
+            gameWon: this.gameState.gameWon,
+            flippedCardsCount: this.gameState.flippedCards.length
+        });
+
+        if (this.gameState.isPaused || this.gameState.gameWon) {
+            console.log('❌ Card flip blocked - game paused or won');
+            return;
+        }
 
         const card = this.gameState.cards.find(c => c.id === cardId);
         const cardElement = document.querySelector(`[data-card-id="${cardId}"]`);
 
+        console.log('🃏 Card found:', card);
+        console.log('🎯 Card element found:', cardElement);
+
         if (!card || card.isFlipped || card.isMatched || this.gameState.flippedCards.length >= 2) {
+            console.log('❌ Card flip blocked - conditions:', {
+                noCard: !card,
+                isFlipped: card?.isFlipped,
+                isMatched: card?.isMatched,
+                tooManyFlipped: this.gameState.flippedCards.length >= 2
+            });
             return;
         }
 
+        console.log('✅ Proceeding with card flip...');
         // Flip the card
         card.isFlipped = true;
         cardElement.classList.add('flipped');
         cardElement.setAttribute('aria-pressed', 'true');
         this.gameState.flippedCards.push(card);
+        
+        console.log('🎨 CSS classes after flip:', cardElement.className);
+        console.log('🎯 Card element style after flip:', {
+            transform: cardElement.style.transform,
+            classList: Array.from(cardElement.classList)
+        });
+        
+        // Check if the card inner element exists and has the right classes
+        const cardInner = cardElement.querySelector('.card-inner');
+        if (cardInner) {
+            console.log('🔄 Card inner element found:', cardInner);
+            console.log('🎨 Card inner classes:', cardInner.className);
+            console.log('🎯 Card inner computed style:', {
+                transform: getComputedStyle(cardInner).transform,
+                backfaceVisibility: getComputedStyle(cardInner).backfaceVisibility
+            });
+        } else {
+            console.log('❌ Card inner element not found!');
+        }
         
         this.playSound('flip');
         this.triggerHapticFeedback('light');

@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 2.2.3 - Debug Card Flipping
+// Version 2.2.5 - Fix Animal Image Visibility
 
 class JungleMemoryGame {
     constructor() {
@@ -444,7 +444,7 @@ class JungleMemoryGame {
             <div class="card-inner">
                 <div class="card-front">
                     <div class="card-content">
-                        <img src="images/animals/${card.animal.id}.png" alt="${card.animal.name}" class="animal-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="images/animals/${card.animal.id}.png" alt="${card.animal.name}" class="animal-image" onload="console.log('✅ Image loaded:', '${card.animal.id}.png')" onerror="console.log('❌ Image failed to load:', '${card.animal.id}.png'); this.style.display='none'; this.nextElementSibling.style.display='block';">
                         <div class="animal-emoji" style="display: none;">${card.animal.emoji}</div>
                         <div class="animal-name">${card.animal.name}</div>
                     </div>

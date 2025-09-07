@@ -224,79 +224,41 @@ body::before {
 
 .game-board {
     display: grid;
-    gap: 18px;
-    padding: 30px;
-    background: 
-        radial-gradient(circle at 25% 25%, rgba(34, 139, 34, 0.1) 0%, transparent 60%),
-        radial-gradient(circle at 75% 75%, rgba(0, 100, 0, 0.08) 0%, transparent 60%),
-        linear-gradient(135deg, 
-            rgba(10, 25, 10, 0.95) 0%, 
-            rgba(15, 35, 15, 0.9) 30%, 
-            rgba(20, 45, 15, 0.85) 60%, 
-            rgba(15, 35, 15, 0.9) 100%);
-    border-radius: 25px;
+    gap: 15px;
+    padding: 25px;
+    background: linear-gradient(135deg, 
+        rgba(26, 48, 9, 0.8) 0%, 
+        rgba(45, 80, 22, 0.6) 50%, 
+        rgba(107, 166, 68, 0.4) 100%);
+    border-radius: 20px;
     box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.4),
-        0 8px 20px rgba(0, 0, 0, 0.3),
-        inset 0 3px 0 rgba(255, 255, 255, 0.15),
-        inset 0 -3px 0 rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(255, 215, 0, 0.3);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 215, 0, 0.4);
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     z-index: 1;
-    overflow: hidden;
-}
-
-/* Enhanced decorative elements for game board */
-.game-board::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-        url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffd700' fill-opacity='0.08'%3E%3Cpath d='M30 30c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15zm60 60c0-8.3 6.7-15 15-15s15 6.7 15 15-6.7 15-15 15-15-6.7-15-15z'/%3E%3Ccircle cx='60' cy='30' r='3'/%3E%3Ccircle cx='30' cy='60' r='3'/%3E%3Ccircle cx='90' cy='60' r='3'/%3E%3Ccircle cx='60' cy='90' r='3'/%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.4;
-    border-radius: 25px;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.game-board::after {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    bottom: 15px;
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 15px;
-    z-index: 1;
-    pointer-events: none;
-    box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.1);
 }
 
 .game-board.easy {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 600px;
-    gap: 12px;
-    padding: 20px;
+    max-width: 480px;
+    gap: 8px;
+    padding: 15px;
 }
 
 .game-board.medium {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 600px;
-    gap: 12px;
-    padding: 20px;
+    max-width: 480px;
+    gap: 8px;
+    padding: 15px;
 }
 
 .game-board.hard {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 600px;
-    gap: 10px;
-    padding: 20px;
+    max-width: 480px;
+    gap: 6px;
+    padding: 15px;
 }
 
 /* Card Styles - Optimized for container fit */
@@ -339,22 +301,13 @@ body::before {
     transform-style: preserve-3d;
     border-radius: 12px;
     box-shadow: 
-        0 6px 20px rgba(0, 0, 0, 0.4),
-        0 3px 8px rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .card.flipped .card-inner {
     transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
-}
-
-/* More specific selector to ensure flip works */
-div.card.flipped div.card-inner {
-    transform: rotateY(180deg) !important;
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
 }
 
 .card-front, .card-back {
@@ -367,7 +320,6 @@ div.card.flipped div.card-inner {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    transform-style: preserve-3d;
 }
 
 .card-front {
@@ -382,7 +334,6 @@ div.card.flipped div.card-inner {
         inset 0 -2px 4px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
-    border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .card-front::before {
@@ -400,24 +351,19 @@ div.card.flipped div.card-inner {
 }
 
 .card-back {
-    background: 
-        radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 70% 70%, rgba(107, 166, 68, 0.4) 0%, transparent 50%),
-        linear-gradient(135deg, 
-            #2d5016 0%, 
-            #4a7c23 25%, 
-            #6ba644 50%,
-            #8bc34a 75%,
-            #4a7c23 100%);
+    background: linear-gradient(135deg, 
+        #1a3009 0%, 
+        #2d5016 25%, 
+        #4a7c23 50%,
+        #6ba644 75%,
+        #2d5016 100%);
     color: white;
     position: relative;
     overflow: hidden;
-    border: 3px solid rgba(255, 215, 0, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.4);
     box-shadow: 
-        inset 0 0 30px rgba(0, 0, 0, 0.6),
-        0 8px 20px rgba(0, 0, 0, 0.5),
-        0 0 25px rgba(255, 215, 0, 0.4),
-        0 0 0 2px rgba(255, 255, 255, 0.2);
+        inset 0 0 20px rgba(0, 0, 0, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .card-back::before {
@@ -491,15 +437,12 @@ div.card.flipped div.card-inner {
 }
 
 .animal-image {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
     border-radius: 8px;
-    margin-bottom: 8px;
-    filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.4));
-    background: rgba(255, 255, 255, 0.1);
-    padding: 5px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 5px;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .animal-emoji {
@@ -519,38 +462,27 @@ div.card.flipped div.card-inner {
 }
 
 .card-pattern {
-    font-size: 2.2rem;
-    opacity: 0.95;
-    animation: leafFloat 4s ease-in-out infinite alternate;
-    filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.6));
-    text-shadow: 
-        0 0 15px rgba(255, 215, 0, 0.4),
-        0 0 30px rgba(107, 166, 68, 0.3);
-    transform-origin: center;
+    font-size: 2rem;
+    opacity: 0.9;
+    animation: leafFloat 3s ease-in-out infinite alternate;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
     z-index: 2;
     position: relative;
 }
 
 @keyframes leafFloat {
     0% { 
-        transform: rotate(-10deg) scale(1) translateY(0px); 
-        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.6)) hue-rotate(0deg);
-    }
-    25% { 
-        transform: rotate(-5deg) scale(1.02) translateY(-1px); 
-        filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.7)) hue-rotate(5deg);
+        transform: rotate(-8deg) scale(1) translateY(0px); 
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) hue-rotate(0deg);
     }
     50% { 
-        transform: rotate(0deg) scale(1.05) translateY(-3px); 
-        filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.8)) hue-rotate(10deg);
-    }
-    75% { 
-        transform: rotate(5deg) scale(1.02) translateY(-1px); 
-        filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.7)) hue-rotate(5deg);
+        transform: rotate(0deg) scale(1.05) translateY(-2px); 
+        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.6)) hue-rotate(10deg);
     }
     100% { 
-        transform: rotate(10deg) scale(1) translateY(0px); 
-        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.6)) hue-rotate(0deg);
+        transform: rotate(8deg) scale(1.1) translateY(0px); 
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5)) hue-rotate(0deg);
     }
 }
 
@@ -692,7 +624,7 @@ div.card.flipped div.card-inner {
     .game-board.medium,
     .game-board.hard {
         grid-template-columns: repeat(3, 1fr);
-        max-width: 400px;
+        max-width: 320px;
         gap: 6px;
         padding: 10px;
     }
@@ -730,9 +662,9 @@ div.card.flipped div.card-inner {
     .game-board.medium,
     .game-board.hard {
         grid-template-columns: repeat(2, 1fr);
-        max-width: 280px;
-        gap: 8px;
-        padding: 12px;
+        max-width: 220px;
+        gap: 4px;
+        padding: 8px;
     }
     
     .card {
@@ -1190,4 +1122,4 @@ div.card.flipped div.card-inner {
     }
 }
 
-/* Cache busting - Version 2.2.5 - Fix Animal Image Visibility */
+/* Cache busting - Version 2.1.1 */ 

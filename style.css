@@ -280,23 +280,23 @@ body::before {
 
 .game-board.easy {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 480px;
-    gap: 8px;
-    padding: 15px;
+    max-width: 600px;
+    gap: 12px;
+    padding: 20px;
 }
 
 .game-board.medium {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 480px;
-    gap: 8px;
-    padding: 15px;
+    max-width: 600px;
+    gap: 12px;
+    padding: 20px;
 }
 
 .game-board.hard {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 480px;
-    gap: 6px;
-    padding: 15px;
+    max-width: 600px;
+    gap: 10px;
+    padding: 20px;
 }
 
 /* Card Styles - Optimized for container fit */
@@ -681,7 +681,7 @@ body::before {
     .game-board.medium,
     .game-board.hard {
         grid-template-columns: repeat(3, 1fr);
-        max-width: 320px;
+        max-width: 400px;
         gap: 6px;
         padding: 10px;
     }
@@ -719,9 +719,9 @@ body::before {
     .game-board.medium,
     .game-board.hard {
         grid-template-columns: repeat(2, 1fr);
-        max-width: 220px;
-        gap: 4px;
-        padding: 8px;
+        max-width: 280px;
+        gap: 8px;
+        padding: 12px;
     }
     
     .card {
@@ -1179,4 +1179,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 2.2.1 - Fix Card Visibility & Flipping */
+/* Cache busting - Version 2.2.2 - Fix Card Container Size */

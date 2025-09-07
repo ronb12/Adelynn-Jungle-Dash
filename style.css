@@ -227,13 +227,13 @@ body::before {
     gap: 18px;
     padding: 30px;
     background: 
-        radial-gradient(circle at 25% 25%, rgba(34, 139, 34, 0.15) 0%, transparent 60%),
-        radial-gradient(circle at 75% 75%, rgba(0, 100, 0, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 25% 25%, rgba(34, 139, 34, 0.1) 0%, transparent 60%),
+        radial-gradient(circle at 75% 75%, rgba(0, 100, 0, 0.08) 0%, transparent 60%),
         linear-gradient(135deg, 
-            rgba(15, 42, 15, 0.95) 0%, 
-            rgba(26, 58, 26, 0.9) 30%, 
-            rgba(45, 80, 22, 0.85) 60%, 
-            rgba(26, 58, 26, 0.9) 100%);
+            rgba(10, 25, 10, 0.95) 0%, 
+            rgba(15, 35, 15, 0.9) 30%, 
+            rgba(20, 45, 15, 0.85) 60%, 
+            rgba(15, 35, 15, 0.9) 100%);
     border-radius: 25px;
     box-shadow: 
         0 20px 50px rgba(0, 0, 0, 0.4),
@@ -339,13 +339,15 @@ body::before {
     transform-style: preserve-3d;
     border-radius: 12px;
     box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.2),
-        0 2px 4px rgba(0, 0, 0, 0.1);
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 3px 8px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .card.flipped .card-inner {
-    transform: rotateY(180deg) !important;
+    transform: rotateY(180deg);
 }
 
 .card-front, .card-back {
@@ -358,6 +360,7 @@ body::before {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    transform-style: preserve-3d;
 }
 
 .card-front {
@@ -390,23 +393,23 @@ body::before {
 
 .card-back {
     background: 
-        radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.2) 0%, transparent 50%),
-        radial-gradient(circle at 70% 70%, rgba(107, 166, 68, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(107, 166, 68, 0.4) 0%, transparent 50%),
         linear-gradient(135deg, 
-            #0f2a0f 0%, 
-            #1a3009 20%, 
-            #2d5016 40%,
-            #4a7c23 60%,
-            #6ba644 80%,
-            #2d5016 100%);
+            #2d5016 0%, 
+            #4a7c23 25%, 
+            #6ba644 50%,
+            #8bc34a 75%,
+            #4a7c23 100%);
     color: white;
     position: relative;
     overflow: hidden;
-    border: 2px solid rgba(255, 215, 0, 0.5);
+    border: 3px solid rgba(255, 215, 0, 0.8);
     box-shadow: 
-        inset 0 0 25px rgba(0, 0, 0, 0.5),
-        0 6px 15px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 215, 0, 0.2);
+        inset 0 0 30px rgba(0, 0, 0, 0.6),
+        0 8px 20px rgba(0, 0, 0, 0.5),
+        0 0 25px rgba(255, 215, 0, 0.4),
+        0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .card-back::before {
@@ -1176,4 +1179,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 2.2.0 - Card Area Redesign */
+/* Cache busting - Version 2.2.1 - Fix Card Visibility & Flipping */

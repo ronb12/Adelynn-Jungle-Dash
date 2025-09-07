@@ -400,7 +400,43 @@ class JungleMemoryGame {
         if (this.sounds[type]) {
             this.sounds[type].currentTime = 0;
             this.sounds[type].volume = 0.5;
-            this.sounds[type].play().catch(e => console.log(`Could not play ${type} sound:`, e));
+            this.sounds[type].play().catch(e => {
+                console.log(`Could not play ${type} sound:`, e);
+                // Fallback: create a simple beep sound using Web Audio API
+                this.playFallbackSound(type);
+            });
+        } else {
+            this.playFallbackSound(type);
+        }
+    }
+
+    playFallbackSound(type) {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Different frequencies for different sound types
+            const frequencies = {
+                flip: 800,
+                match: 1200,
+                win: 1500,
+                background: 400
+            };
+            
+            oscillator.frequency.setValueAtTime(frequencies[type] || 600, audioContext.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        } catch (e) {
+            console.log('Web Audio API not supported:', e);
         }
     }
 

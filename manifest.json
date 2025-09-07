@@ -1,7 +1,7 @@
 {
     "name": "Adelynn's Jungle Memory Safari",
     "short_name": "Jungle Memory",
-    "description": "A fun and educational jungle animal memory matching game for children",
+    "description": "A fun and educational jungle animal memory matching game for children. Help Adelynn discover and learn about jungle animals by matching pairs of animal cards!",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#2d5016",
@@ -10,6 +10,9 @@
     "categories": ["games", "education", "kids"],
     "lang": "en",
     "scope": "/",
+    "id": "adelynn-jungle-memory-safari",
+    "version": "1.0.0",
+    "author": "Bradley Virtual Solutions, LLC",
     "icons": [
         {
             "src": "icons/icon-72x72.png",
@@ -65,5 +68,39 @@
             "type": "image/png",
             "form_factor": "narrow"
         }
-    ]
+    ],
+    "shortcuts": [
+        {
+            "name": "New Game",
+            "short_name": "New Game",
+            "description": "Start a new jungle memory game",
+            "url": "/?action=new-game",
+            "icons": [
+                {
+                    "src": "icons/icon-96x96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Easy Mode",
+            "short_name": "Easy",
+            "description": "Start an easy game with 6 pairs",
+            "url": "/?difficulty=easy",
+            "icons": [
+                {
+                    "src": "icons/icon-96x96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    }
 }

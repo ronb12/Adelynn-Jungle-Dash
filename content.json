@@ -1,0 +1,147 @@
+{
+  "name": "Adelynn's Jungle Memory Safari",
+  "short_name": "Jungle Memory",
+  "description": "A fun and educational jungle animal memory matching game for children. Help Adelynn discover and learn about jungle animals by matching pairs of animal cards!",
+  "version": "1.0.0",
+  "author": "Bradley Virtual Solutions, LLC",
+  "website": "https://ronb12.github.io/Adelynn-Jungle-Dash/",
+  "repository": "https://github.com/ronb12/Adelynn-Jungle-Dash",
+  "license": "MIT",
+  "keywords": [
+    "memory game",
+    "jungle animals",
+    "educational",
+    "kids game",
+    "matching game",
+    "PWA",
+    "mobile game",
+    "learning"
+  ],
+  "categories": [
+    "Games",
+    "Education",
+    "Kids"
+  ],
+  "features": [
+    "12 unique jungle animals with educational facts",
+    "3 difficulty levels (Easy/Medium/Hard)",
+    "Responsive design for all devices",
+    "Progressive Web App (PWA) support",
+    "Offline gameplay capability",
+    "Educational animal information",
+    "Scoring system with timer",
+    "Beautiful jungle-themed graphics",
+    "Audio integration ready",
+    "Mobile-friendly interface"
+  ],
+  "animals": [
+    {
+      "id": "tiger",
+      "name": "Bengal Tiger",
+      "emoji": "🐅",
+      "fact": "Tigers are excellent swimmers and love to cool off in water!"
+    },
+    {
+      "id": "monkey",
+      "name": "Spider Monkey",
+      "emoji": "🐒",
+      "fact": "Spider monkeys can swing through trees at speeds up to 35 mph!"
+    },
+    {
+      "id": "parrot",
+      "name": "Scarlet Macaw",
+      "emoji": "🦜",
+      "fact": "Macaws can live up to 100 years and mate for life!"
+    },
+    {
+      "id": "elephant",
+      "name": "Asian Elephant",
+      "emoji": "🐘",
+      "fact": "Elephants can recognize themselves in mirrors and mourn their dead!"
+    },
+    {
+      "id": "jaguar",
+      "name": "Jaguar",
+      "emoji": "🐆",
+      "fact": "Jaguars have the strongest bite force of any big cat!"
+    },
+    {
+      "id": "toucan",
+      "name": "Toucan",
+      "emoji": "🦜",
+      "fact": "A toucan's colorful beak helps regulate their body temperature!"
+    },
+    {
+      "id": "sloth",
+      "name": "Three-toed Sloth",
+      "emoji": "🦥",
+      "fact": "Sloths only come down from trees once a week to go to the bathroom!"
+    },
+    {
+      "id": "snake",
+      "name": "Emerald Tree Boa",
+      "emoji": "🐍",
+      "fact": "These snakes change color from red to green as they mature!"
+    },
+    {
+      "id": "frog",
+      "name": "Poison Dart Frog",
+      "emoji": "🐸",
+      "fact": "These tiny frogs are among the most toxic animals on Earth!"
+    },
+    {
+      "id": "butterfly",
+      "name": "Blue Morpho",
+      "emoji": "🦋",
+      "fact": "Blue Morpho wings aren't actually blue - they reflect light to appear blue!"
+    },
+    {
+      "id": "crocodile",
+      "name": "American Crocodile",
+      "emoji": "🐊",
+      "fact": "Crocodiles haven't changed much in 200 million years!"
+    },
+    {
+      "id": "hippo",
+      "name": "Hippopotamus",
+      "emoji": "🦛",
+      "fact": "Hippos spend up to 16 hours a day in water to keep cool!"
+    }
+  ],
+  "difficulty_levels": {
+    "easy": {
+      "pairs": 6,
+      "grid_cols": 4,
+      "description": "Perfect for beginners - 6 animal pairs to match"
+    },
+    "medium": {
+      "pairs": 8,
+      "grid_cols": 4,
+      "description": "Intermediate challenge - 8 animal pairs to match"
+    },
+    "hard": {
+      "pairs": 12,
+      "grid_cols": 4,
+      "description": "Expert level - 12 animal pairs to match"
+    }
+  },
+  "technical_specs": {
+    "framework": "Vanilla JavaScript",
+    "styling": "CSS3 with custom properties",
+    "pwa": true,
+    "responsive": true,
+    "offline_support": true,
+    "browser_support": "Modern browsers (Chrome, Firefox, Safari, Edge)",
+    "mobile_optimized": true
+  },
+  "installation": {
+    "web": "Visit https://ronb12.github.io/Adelynn-Jungle-Dash/",
+    "mobile": "Add to home screen from browser menu",
+    "desktop": "Install as PWA from browser menu"
+  },
+  "support": {
+    "email": "support@bradleyvirtualsolutions.com",
+    "website": "https://bradleyvirtualsolutions.com",
+    "github": "https://github.com/ronb12/Adelynn-Jungle-Dash/issues"
+  }
+}

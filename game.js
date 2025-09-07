@@ -298,31 +298,51 @@ class JungleMemoryGame {
     }
 
     bindEvents() {
-        document.getElementById('new-game-btn').addEventListener('click', () => this.newGame());
-        document.getElementById('pause-btn').addEventListener('click', () => this.togglePause());
-        document.getElementById('resume-btn').addEventListener('click', () => this.togglePause());
-        document.getElementById('quiz-mode-btn').addEventListener('click', () => this.toggleQuizMode());
-        document.getElementById('high-scores-btn').addEventListener('click', () => this.toggleHighScores());
-        document.getElementById('settings-btn').addEventListener('click', () => this.toggleSettings());
-        document.getElementById('close-settings-btn').addEventListener('click', () => this.toggleSettings());
-        document.getElementById('difficulty').addEventListener('change', (e) => {
+        // Helper function to safely add event listeners
+        const safeAddEventListener = (elementId, event, handler) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.log(`Element with id '${elementId}' not found`);
+            }
+        };
+
+        const safeQuerySelector = (selector, event, handler) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.log(`Element with selector '${selector}' not found`);
+            }
+        };
+
+        // Main game controls
+        safeAddEventListener('new-game-btn', 'click', () => this.newGame());
+        safeAddEventListener('pause-btn', 'click', () => this.togglePause());
+        safeAddEventListener('resume-btn', 'click', () => this.togglePause());
+        safeAddEventListener('quiz-mode-btn', 'click', () => this.toggleQuizMode());
+        safeAddEventListener('high-scores-btn', 'click', () => this.toggleHighScores());
+        safeAddEventListener('settings-btn', 'click', () => this.toggleSettings());
+        safeAddEventListener('close-settings-btn', 'click', () => this.toggleSettings());
+        safeAddEventListener('difficulty', 'change', (e) => {
             this.gameState.difficulty = e.target.value;
             this.newGame();
         });
 
         // Settings event listeners
-        document.getElementById('sound-enabled').addEventListener('change', (e) => this.toggleSound(e.target.checked));
-        document.getElementById('haptic-enabled').addEventListener('change', (e) => this.toggleHaptic(e.target.checked));
-        document.getElementById('colorblind-mode').addEventListener('change', (e) => this.toggleColorblind(e.target.checked));
-        document.getElementById('high-contrast-mode').addEventListener('change', (e) => this.toggleHighContrast(e.target.checked));
-        document.getElementById('screen-reader-mode').addEventListener('change', (e) => this.toggleScreenReader(e.target.checked));
-        document.getElementById('message-btn').addEventListener('click', () => this.hideMessage());
-        document.querySelector('.close-modal').addEventListener('click', () => this.hideAnimalModal());
-        document.getElementById('play-sound-btn').addEventListener('click', () => this.playAnimalSound());
-        document.getElementById('next-question-btn').addEventListener('click', () => this.nextQuizQuestion());
+        safeAddEventListener('sound-enabled', 'change', (e) => this.toggleSound(e.target.checked));
+        safeAddEventListener('haptic-enabled', 'change', (e) => this.toggleHaptic(e.target.checked));
+        safeAddEventListener('colorblind-mode', 'change', (e) => this.toggleColorblind(e.target.checked));
+        safeAddEventListener('high-contrast-mode', 'change', (e) => this.toggleHighContrast(e.target.checked));
+        safeAddEventListener('screen-reader-mode', 'change', (e) => this.toggleScreenReader(e.target.checked));
+        safeAddEventListener('message-btn', 'click', () => this.hideMessage());
+        safeQuerySelector('.close-modal', 'click', () => this.hideAnimalModal());
+        safeAddEventListener('play-sound-btn', 'click', () => this.playAnimalSound());
+        safeAddEventListener('next-question-btn', 'click', () => this.nextQuizQuestion());
 
         // Close modal when clicking outside
-        document.getElementById('animal-modal').addEventListener('click', (e) => {
+        safeAddEventListener('animal-modal', 'click', (e) => {
             if (e.target.id === 'animal-modal') {
                 this.hideAnimalModal();
             }
@@ -330,6 +350,9 @@ class JungleMemoryGame {
     }
 
     newGame() {
+        const difficultyElement = document.getElementById('difficulty');
+        const difficulty = difficultyElement ? difficultyElement.value : 'easy';
+        
         this.gameState = {
             cards: [],
             flippedCards: [],
@@ -340,7 +363,7 @@ class JungleMemoryGame {
             timeElapsed: 0,
             isPaused: false,
             gameWon: false,
-            difficulty: document.getElementById('difficulty').value
+            difficulty: difficulty
         };
 
         // Update learning progress
@@ -1095,7 +1118,25 @@ class JungleMemoryGame {
 
 // Initialize the game when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new JungleMemoryGame();
+    try {
+        window.game = new JungleMemoryGame();
+        console.log('Jungle Memory Game initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+        // Show error message to user
+        const gameContainer = document.querySelector('.game-container');
+        if (gameContainer) {
+            gameContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #ff0000;">
+                    <h2>Game Loading Error</h2>
+                    <p>There was an error loading the game. Please refresh the page and try again.</p>
+                    <button onclick="location.reload()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Refresh Page
+                    </button>
+                </div>
+            `;
+        }
+    }
 });
 
 // Service Worker registration for PWA functionality

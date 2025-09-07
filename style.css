@@ -347,7 +347,14 @@ body::before {
 }
 
 .card.flipped .card-inner {
-    transform: rotateY(180deg);
+    transform: rotateY(180deg) !important;
+    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
+}
+
+/* More specific selector to ensure flip works */
+div.card.flipped div.card-inner {
+    transform: rotateY(180deg) !important;
+    background-color: rgba(255, 0, 0, 0.3) !important; /* Debug: red tint when flipped */
 }
 
 .card-front, .card-back {
@@ -1179,4 +1186,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 2.2.2 - Fix Card Container Size */
+/* Cache busting - Version 2.2.4 - Fix Card Flipping CSS */

@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 2.2.6 - Force Card Flipping with JavaScript Fallback
+// Version 2.2.7 - Fix Duplicate Variable Declaration
 
 class JungleMemoryGame {
     constructor() {
@@ -534,7 +534,6 @@ class JungleMemoryGame {
         });
         
         // Check if the card inner element exists and has the right classes
-        const cardInner = cardElement.querySelector('.card-inner');
         if (cardInner) {
             console.log('🔄 Card inner element found:', cardInner);
             console.log('🎨 Card inner classes:', cardInner.className);

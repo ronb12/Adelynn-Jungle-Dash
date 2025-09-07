@@ -1,7 +1,7 @@
 // Service Worker for Adelynn's Jungle Memory Safari
 // Product of Bradley Virtual Solutions, LLC
 
-const CACHE_NAME = 'jungle-memory-v1.0.0';
+const CACHE_NAME = 'jungle-memory-v2.1.0';
 const urlsToCache = [
   './',
   './index.html',

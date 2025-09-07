@@ -55,20 +55,6 @@
             "type": "image/png"
         }
     ],
-    "screenshots": [
-        {
-            "src": "screenshots/gameplay-wide.png",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "form_factor": "wide"
-        },
-        {
-            "src": "screenshots/gameplay-narrow.png",
-            "sizes": "540x960",
-            "type": "image/png",
-            "form_factor": "narrow"
-        }
-    ],
     "shortcuts": [
         {
             "name": "New Game",

@@ -441,8 +441,14 @@ class JungleMemoryGame {
     }
 
     startBackgroundMusic() {
-        this.sounds.background.volume = 0.2;
-        this.sounds.background.play().catch(e => console.log('Could not play background music:', e));
+        // Only try to play background music after user interaction
+        if (this.sounds.background) {
+            this.sounds.background.volume = 0.2;
+            this.sounds.background.play().catch(e => {
+                console.log('Could not play background music:', e);
+                // Don't try to play fallback background music automatically
+            });
+        }
     }
 }
 
@@ -454,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Service Worker registration for PWA functionality
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js')
             .then((registration) => {
                 console.log('SW registered: ', registration);
             })

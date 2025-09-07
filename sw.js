@@ -3,14 +3,14 @@
 
 const CACHE_NAME = 'jungle-memory-v1.0.0';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/game.js',
-  '/style.css',
-  '/manifest.json',
-  '/favicon.svg',
-  '/favicon.ico',
-  '/content.json',
+  './',
+  './index.html',
+  './game.js',
+  './style.css',
+  './manifest.json',
+  './favicon.svg',
+  './favicon.ico',
+  './content.json',
   'https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Nunito:wght@400;600;700&display=swap'
 ];
 
@@ -59,7 +59,7 @@ self.addEventListener('fetch', event => {
         }).catch(() => {
           // Return offline page or fallback
           if (event.request.destination === 'document') {
-            return caches.match('/index.html');
+            return caches.match('./index.html');
           }
         });
       })
@@ -101,8 +101,8 @@ self.addEventListener('push', event => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
+      icon: './icons/icon-192x192.png',
+      badge: './icons/icon-72x72.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -112,12 +112,12 @@ self.addEventListener('push', event => {
         {
           action: 'explore',
           title: 'Play Game',
-          icon: '/icons/icon-72x72.png'
+          icon: './icons/icon-72x72.png'
         },
         {
           action: 'close',
           title: 'Close',
-          icon: '/icons/icon-72x72.png'
+          icon: './icons/icon-72x72.png'
         }
       ]
     };
@@ -134,7 +134,7 @@ self.addEventListener('notificationclick', event => {
   
   if (event.action === 'explore') {
     event.waitUntil(
-      clients.openWindow('/')
+      clients.openWindow('./')
     );
   }
 });

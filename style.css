@@ -266,11 +266,12 @@ body {
     align-items: center;
     justify-content: center;
     margin-bottom: 2px;
+    background: transparent;
 }
 
 .animal-image {
-    width: 115px;
-    height: 115px;
+    width: 125px;
+    height: 125px;
     object-fit: contain;
     border-radius: 8px;
     background: transparent;

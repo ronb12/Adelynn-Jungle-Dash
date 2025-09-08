@@ -350,6 +350,14 @@ body::before {
     transform: rotateY(180deg);
 }
 
+.card.flipped .card-front {
+    transform: rotateY(0deg);
+}
+
+.card.flipped .card-back {
+    transform: rotateY(180deg);
+}
+
 .card-front, .card-back {
     position: absolute;
     width: 100%;
@@ -1175,4 +1183,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 4.0.0 - Rebuilt Gameboard */
+/* Cache busting - Version 4.0.3 - Fix Card Visibility When Flipped */

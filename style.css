@@ -176,23 +176,23 @@ body {
 
 .game-board.easy {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 600px;
+    max-width: 800px;
 }
 
 .game-board.medium {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 600px;
+    max-width: 800px;
 }
 
 .game-board.hard {
     grid-template-columns: repeat(6, 1fr);
-    max-width: 900px;
+    max-width: 1200px;
 }
 
 /* Cards */
 .card {
-    width: 130px;
-    height: 170px;
+    width: 180px;
+    height: 220px;
     perspective: 1000px;
     cursor: pointer;
     transition: transform 0.3s ease;
@@ -269,8 +269,8 @@ body {
 }
 
 .animal-image {
-    width: 120px;
-    height: 120px;
+    width: 168px;
+    height: 168px;
     object-fit: contain;
     border-radius: 8px;
     background: transparent;

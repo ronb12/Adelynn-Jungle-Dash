@@ -2,7 +2,7 @@
   "name": "Adelynn's Jungle Memory Safari",
   "short_name": "Jungle Memory",
   "description": "A fun and educational jungle animal memory matching game for children. Help Adelynn discover and learn about jungle animals by matching pairs of animal cards!",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "author": "Bradley Virtual Solutions, LLC",
   "website": "https://ronb12.github.io/Adelynn-Jungle-Dash/",
   "repository": "https://github.com/ronb12/Adelynn-Jungle-Dash",
@@ -17,91 +17,463 @@
     "progressive web app",
     "children",
     "learning",
-    "animals"
+    "animals",
+    "wildlife",
+    "nature"
   ],
   "features": [
     "Memory matching gameplay",
-    "12 jungle animals",
-    "Three difficulty levels",
+    "50+ jungle animals",
+    "Five difficulty levels",
+    "Educational animal facts",
     "Progressive Web App",
     "Offline play",
     "Touch optimized",
     "Sound effects",
     "Responsive design",
-    "Educational content"
+    "Interactive learning"
   ],
   "animals": [
     {
       "id": "tiger",
       "name": "Bengal Tiger",
       "emoji": "🐅",
-      "fact": "Bengal tigers are the largest cats in the world and can weigh up to 500 pounds!"
+      "fact": "Bengal tigers are the largest cats in the world and can weigh up to 500 pounds! They have unique stripe patterns, just like human fingerprints.",
+      "category": "Big Cats"
     },
     {
       "id": "elephant",
       "name": "African Elephant",
       "emoji": "🐘",
-      "fact": "African elephants are the largest land mammals and can live up to 70 years!"
+      "fact": "African elephants are the largest land mammals and can live up to 70 years! They use their trunks like a hand to pick up objects.",
+      "category": "Large Mammals"
     },
     {
       "id": "monkey",
       "name": "Spider Monkey",
       "emoji": "🐒",
-      "fact": "Spider monkeys have the longest tails of any primate and use them like a fifth limb!"
+      "fact": "Spider monkeys have the longest tails of any primate and use them like a fifth limb! They can swing through trees at amazing speeds.",
+      "category": "Primates"
     },
     {
       "id": "parrot",
       "name": "Scarlet Macaw",
       "emoji": "🦜",
-      "fact": "Scarlet macaws can live up to 50 years and are excellent mimics!"
+      "fact": "Scarlet macaws can live up to 50 years and are excellent mimics! They can learn to say over 100 different words.",
+      "category": "Birds"
     },
     {
       "id": "jaguar",
       "name": "Jaguar",
       "emoji": "🐆",
-      "fact": "Jaguars have the strongest bite of any big cat and can crush turtle shells!"
+      "fact": "Jaguars have the strongest bite of any big cat and can crush turtle shells! They are excellent swimmers and love water.",
+      "category": "Big Cats"
     },
     {
       "id": "toucan",
       "name": "Toucan",
       "emoji": "🦜",
-      "fact": "Toucans use their large beaks to reach fruit on thin branches!"
+      "fact": "Toucans use their large beaks to reach fruit on thin branches! Their beaks are actually very light despite their size.",
+      "category": "Birds"
     },
     {
       "id": "crocodile",
       "name": "Crocodile",
       "emoji": "🐊",
-      "fact": "Crocodiles have been around for over 200 million years - they're living dinosaurs!"
+      "fact": "Crocodiles have been around for over 200 million years - they're living dinosaurs! They can go months without eating.",
+      "category": "Reptiles"
     },
     {
       "id": "hippo",
       "name": "Hippopotamus",
       "emoji": "🦛",
-      "fact": "Hippos can hold their breath for up to 5 minutes underwater!"
+      "fact": "Hippos can hold their breath for up to 5 minutes underwater! Despite their size, they can run faster than humans on land.",
+      "category": "Large Mammals"
     },
     {
       "id": "snake",
       "name": "Anaconda",
       "emoji": "🐍",
-      "fact": "Anacondas are the heaviest snakes in the world and can grow up to 30 feet long!"
+      "fact": "Anacondas are the heaviest snakes in the world and can grow up to 30 feet long! They can eat prey larger than their own heads.",
+      "category": "Reptiles"
     },
     {
       "id": "frog",
       "name": "Poison Dart Frog",
       "emoji": "🐸",
-      "fact": "Poison dart frogs get their poison from the insects they eat in the wild!"
+      "fact": "Poison dart frogs get their poison from the insects they eat in the wild! Their bright colors warn predators they're dangerous.",
+      "category": "Amphibians"
     },
     {
       "id": "butterfly",
       "name": "Morpho Butterfly",
       "emoji": "🦋",
-      "fact": "Morpho butterflies have iridescent blue wings that shimmer in the sunlight!"
+      "fact": "Morpho butterflies have iridescent blue wings that shimmer in the sunlight! They taste with their feet instead of their mouths.",
+      "category": "Insects"
     },
     {
       "id": "sloth",
       "name": "Sloth",
       "emoji": "🦥",
-      "fact": "Sloths move so slowly that algae grows on their fur, giving them a green color!"
+      "fact": "Sloths move so slowly that algae grows on their fur, giving them a green color! They only come down from trees once a week.",
+      "category": "Mammals"
+    },
+    {
+      "id": "giraffe",
+      "name": "Giraffe",
+      "emoji": "🦒",
+      "fact": "Giraffes are the tallest animals on Earth and can grow up to 18 feet tall! Their tongues are 20 inches long and blue-black in color.",
+      "category": "Large Mammals"
+    },
+    {
+      "id": "zebra",
+      "name": "Zebra",
+      "emoji": "🦓",
+      "fact": "Every zebra has a unique stripe pattern, just like human fingerprints! Their stripes help confuse predators when they run in groups.",
+      "category": "Mammals"
+    },
+    {
+      "id": "lion",
+      "name": "Lion",
+      "emoji": "🦁",
+      "fact": "Lions are the only cats that live in groups called prides! A lion's roar can be heard from 5 miles away.",
+      "category": "Big Cats"
+    },
+    {
+      "id": "cheetah",
+      "name": "Cheetah",
+      "emoji": "🐆",
+      "fact": "Cheetahs are the fastest land animals and can run up to 70 mph! They can accelerate from 0 to 60 mph in just 3 seconds.",
+      "category": "Big Cats"
+    },
+    {
+      "id": "rhino",
+      "name": "Rhinoceros",
+      "emoji": "🦏",
+      "fact": "Rhinos have thick skin that can be up to 2 inches thick! Despite their size, they can run up to 30 mph.",
+      "category": "Large Mammals"
+    },
+    {
+      "id": "gazelle",
+      "name": "Gazelle",
+      "emoji": "🦌",
+      "fact": "Gazelles can run up to 60 mph and jump 10 feet high! They have excellent eyesight and can spot predators from far away.",
+      "category": "Mammals"
+    },
+    {
+      "id": "antelope",
+      "name": "Antelope",
+      "emoji": "🦌",
+      "fact": "Antelopes have hollow horns that never stop growing! They can run up to 50 mph to escape from predators.",
+      "category": "Mammals"
+    },
+    {
+      "id": "wildebeest",
+      "name": "Wildebeest",
+      "emoji": "🦬",
+      "fact": "Wildebeests migrate in herds of over 1 million animals! They travel over 1,000 miles each year in search of food and water.",
+      "category": "Mammals"
+    },
+    {
+      "id": "buffalo",
+      "name": "African Buffalo",
+      "emoji": "🐃",
+      "fact": "African buffaloes are one of the most dangerous animals in Africa! They have never been successfully domesticated.",
+      "category": "Large Mammals"
+    },
+    {
+      "id": "warthog",
+      "name": "Warthog",
+      "emoji": "🐗",
+      "fact": "Warthogs can run up to 30 mph and have tusks that can grow up to 10 inches long! They kneel on their front legs to eat.",
+      "category": "Mammals"
+    },
+    {
+      "id": "meerkat",
+      "name": "Meerkat",
+      "emoji": "🦦",
+      "fact": "Meerkats always have a sentry on guard duty! They take turns watching for predators while others forage for food.",
+      "category": "Mammals"
+    },
+    {
+      "id": "mongoose",
+      "name": "Mongoose",
+      "emoji": "🦦",
+      "fact": "Mongooses are immune to snake venom! They can fight and kill cobras that are much larger than themselves.",
+      "category": "Mammals"
+    },
+    {
+      "id": "hyena",
+      "name": "Hyena",
+      "emoji": "🐕",
+      "fact": "Hyenas have the strongest bite force of any mammal! Their laugh-like calls can be heard from 3 miles away.",
+      "category": "Mammals"
+    },
+    {
+      "id": "jackal",
+      "name": "Jackal",
+      "emoji": "🐕",
+      "fact": "Jackals are excellent hunters and can run up to 40 mph! They often hunt in pairs and share their food.",
+      "category": "Mammals"
+    },
+    {
+      "id": "fox",
+      "name": "Fennec Fox",
+      "emoji": "🦊",
+      "fact": "Fennec foxes have the largest ears relative to their body size! Their ears help them hear prey underground and stay cool.",
+      "category": "Mammals"
+    },
+    {
+      "id": "bat",
+      "name": "Fruit Bat",
+      "emoji": "🦇",
+      "fact": "Fruit bats are the only mammals that can truly fly! They use echolocation to navigate in the dark.",
+      "category": "Mammals"
+    },
+    {
+      "id": "lemur",
+      "name": "Ring-tailed Lemur",
+      "emoji": "🦝",
+      "fact": "Ring-tailed lemurs use their tails to communicate! They wave their striped tails to show dominance and mark territory.",
+      "category": "Primates"
+    },
+    {
+      "id": "baboon",
+      "name": "Baboon",
+      "emoji": "🐒",
+      "fact": "Baboons have cheek pouches to store food while foraging! They can carry up to 20% of their body weight in their cheeks.",
+      "category": "Primates"
+    },
+    {
+      "id": "chimp",
+      "name": "Chimpanzee",
+      "emoji": "🐵",
+      "fact": "Chimpanzees share 98% of their DNA with humans! They use tools like sticks to fish for termites.",
+      "category": "Primates"
+    },
+    {
+      "id": "gorilla",
+      "name": "Gorilla",
+      "emoji": "🦍",
+      "fact": "Gorillas are the largest primates and can weigh up to 400 pounds! They build nests in trees to sleep at night.",
+      "category": "Primates"
+    },
+    {
+      "id": "orangutan",
+      "name": "Orangutan",
+      "emoji": "🦧",
+      "fact": "Orangutans are the largest tree-dwelling animals! They spend 90% of their time in trees and rarely come down.",
+      "category": "Primates"
+    },
+    {
+      "id": "eagle",
+      "name": "Bald Eagle",
+      "emoji": "🦅",
+      "fact": "Bald eagles can see fish from 2 miles away! They can dive at speeds of up to 100 mph to catch their prey.",
+      "category": "Birds"
+    },
+    {
+      "id": "owl",
+      "name": "Great Horned Owl",
+      "emoji": "🦉",
+      "fact": "Owls can turn their heads 270 degrees! They have excellent night vision and can hear a mouse from 100 feet away.",
+      "category": "Birds"
+    },
+    {
+      "id": "flamingo",
+      "name": "Flamingo",
+      "emoji": "🦩",
+      "fact": "Flamingos get their pink color from the shrimp they eat! They can stand on one leg for hours without getting tired.",
+      "category": "Birds"
+    },
+    {
+      "id": "pelican",
+      "name": "Pelican",
+      "emoji": "🦆",
+      "fact": "Pelicans can hold up to 3 gallons of water in their beak pouches! They use their pouches like fishing nets.",
+      "category": "Birds"
+    },
+    {
+      "id": "peacock",
+      "name": "Peacock",
+      "emoji": "🦚",
+      "fact": "Peacocks can grow up to 200 feathers in their tail! They use their colorful feathers to attract mates.",
+      "category": "Birds"
+    },
+    {
+      "id": "hummingbird",
+      "name": "Hummingbird",
+      "emoji": "🦜",
+      "fact": "Hummingbirds can fly backwards and hover in place! Their wings beat up to 80 times per second.",
+      "category": "Birds"
+    },
+    {
+      "id": "woodpecker",
+      "name": "Woodpecker",
+      "emoji": "🐦",
+      "fact": "Woodpeckers can peck up to 20 times per second! Their skulls have special shock absorbers to protect their brains.",
+      "category": "Birds"
+    },
+    {
+      "id": "turtle",
+      "name": "Sea Turtle",
+      "emoji": "🐢",
+      "fact": "Sea turtles can live up to 100 years! They return to the same beach where they were born to lay their eggs.",
+      "category": "Reptiles"
+    },
+    {
+      "id": "lizard",
+      "name": "Chameleon",
+      "emoji": "🦎",
+      "fact": "Chameleons can change color in just 20 seconds! They have eyes that can move independently of each other.",
+      "category": "Reptiles"
+    },
+    {
+      "id": "gecko",
+      "name": "Gecko",
+      "emoji": "🦎",
+      "fact": "Geckos can walk on walls and ceilings! They have millions of tiny hairs on their feet that create molecular forces.",
+      "category": "Reptiles"
+    },
+    {
+      "id": "iguana",
+      "name": "Iguana",
+      "emoji": "🦎",
+      "fact": "Iguanas can grow up to 6 feet long! They can drop their tails to escape from predators and grow new ones.",
+      "category": "Reptiles"
+    },
+    {
+      "id": "salamander",
+      "name": "Salamander",
+      "emoji": "🦎",
+      "fact": "Salamanders can regenerate lost limbs! They can grow back arms, legs, and even parts of their hearts.",
+      "category": "Amphibians"
+    },
+    {
+      "id": "newt",
+      "name": "Newt",
+      "emoji": "🦎",
+      "fact": "Newts can live up to 20 years! They have bright colors to warn predators that they're poisonous.",
+      "category": "Amphibians"
+    },
+    {
+      "id": "toad",
+      "name": "Toad",
+      "emoji": "🐸",
+      "fact": "Toads can live up to 40 years! They have bumpy skin and can inflate themselves to look bigger when threatened.",
+      "category": "Amphibians"
+    },
+    {
+      "id": "bee",
+      "name": "Honeybee",
+      "emoji": "🐝",
+      "fact": "Honeybees can fly up to 15 mph! They visit up to 2,000 flowers per day to collect nectar and pollen.",
+      "category": "Insects"
+    },
+    {
+      "id": "dragonfly",
+      "name": "Dragonfly",
+      "emoji": "🦟",
+      "fact": "Dragonflies can fly up to 35 mph! They have been around for over 300 million years and are excellent hunters.",
+      "category": "Insects"
+    },
+    {
+      "id": "ladybug",
+      "name": "Ladybug",
+      "emoji": "🐞",
+      "fact": "Ladybugs can eat up to 5,000 aphids in their lifetime! They are considered good luck in many cultures.",
+      "category": "Insects"
+    },
+    {
+      "id": "spider",
+      "name": "Jumping Spider",
+      "emoji": "🕷️",
+      "fact": "Jumping spiders can jump up to 50 times their body length! They have excellent vision and can see in color.",
+      "category": "Arachnids"
+    },
+    {
+      "id": "scorpion",
+      "name": "Scorpion",
+      "emoji": "🦂",
+      "fact": "Scorpions can glow under ultraviolet light! They can survive without food for up to a year.",
+      "category": "Arachnids"
+    },
+    {
+      "id": "penguin",
+      "name": "Penguin",
+      "emoji": "🐧",
+      "fact": "Penguins can swim up to 22 mph underwater! They can hold their breath for up to 20 minutes while diving.",
+      "category": "Birds"
+    },
+    {
+      "id": "seal",
+      "name": "Seal",
+      "emoji": "🦭",
+      "fact": "Seals can hold their breath for up to 2 hours! They can dive up to 1,000 feet deep in search of food.",
+      "category": "Marine Mammals"
+    },
+    {
+      "id": "dolphin",
+      "name": "Dolphin",
+      "emoji": "🐬",
+      "fact": "Dolphins are one of the smartest animals on Earth! They use echolocation to find food and communicate with each other.",
+      "category": "Marine Mammals"
+    },
+    {
+      "id": "whale",
+      "name": "Humpback Whale",
+      "emoji": "🐋",
+      "fact": "Humpback whales can grow up to 60 feet long! They sing complex songs that can be heard from 20 miles away.",
+      "category": "Marine Mammals"
+    },
+    {
+      "id": "shark",
+      "name": "Great White Shark",
+      "emoji": "🦈",
+      "fact": "Great white sharks can detect a drop of blood in 25 gallons of water! They can swim up to 35 mph.",
+      "category": "Fish"
+    },
+    {
+      "id": "octopus",
+      "name": "Octopus",
+      "emoji": "🐙",
+      "fact": "Octopuses have 3 hearts and blue blood! They can change color and texture to blend in with their surroundings.",
+      "category": "Marine Life"
+    },
+    {
+      "id": "jellyfish",
+      "name": "Jellyfish",
+      "emoji": "🪼",
+      "fact": "Jellyfish have been around for over 500 million years! They don't have brains, hearts, or bones.",
+      "category": "Marine Life"
+    },
+    {
+      "id": "starfish",
+      "name": "Starfish",
+      "emoji": "⭐",
+      "fact": "Starfish can regenerate lost arms! They can grow back an entire arm if it gets cut off.",
+      "category": "Marine Life"
+    },
+    {
+      "id": "crab",
+      "name": "Crab",
+      "emoji": "🦀",
+      "fact": "Crabs can walk sideways faster than forwards! They have 10 legs and can regenerate lost claws.",
+      "category": "Marine Life"
+    },
+    {
+      "id": "lobster",
+      "name": "Lobster",
+      "emoji": "🦞",
+      "fact": "Lobsters can live up to 100 years! They can grow new claws if they lose one in a fight.",
+      "category": "Marine Life"
+    },
+    {
+      "id": "seahorse",
+      "name": "Seahorse",
+      "emoji": "🦐",
+      "fact": "Seahorses are the only animals where the male gives birth! They can change color to match their surroundings.",
+      "category": "Marine Life"
     }
   ],
   "difficulty_levels": {
@@ -111,14 +483,24 @@
       "description": "Perfect for beginners - 6 animal pairs"
     },
     "medium": {
-      "pairs": 8,
+      "pairs": 12,
       "gridCols": 4,
-      "description": "Intermediate challenge - 8 animal pairs"
+      "description": "Intermediate challenge - 12 animal pairs"
     },
     "hard": {
-      "pairs": 12,
+      "pairs": 20,
+      "gridCols": 5,
+      "description": "Expert level - 20 animal pairs"
+    },
+    "expert": {
+      "pairs": 30,
       "gridCols": 6,
-      "description": "Expert level - all 12 animal pairs"
+      "description": "Master level - 30 animal pairs"
+    },
+    "legendary": {
+      "pairs": 50,
+      "gridCols": 10,
+      "description": "Legendary challenge - all 50 animal pairs"
     }
   },
   "pwa": {

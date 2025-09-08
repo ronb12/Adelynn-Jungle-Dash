@@ -3,25 +3,14 @@
 
 class JungleMemoryGame {
     constructor() {
-        this.animals = [
-            { id: 'tiger', name: 'Bengal Tiger', emoji: '🐅' },
-            { id: 'elephant', name: 'African Elephant', emoji: '🐘' },
-            { id: 'monkey', name: 'Spider Monkey', emoji: '🐒' },
-            { id: 'parrot', name: 'Scarlet Macaw', emoji: '🦜' },
-            { id: 'jaguar', name: 'Jaguar', emoji: '🐆' },
-            { id: 'toucan', name: 'Toucan', emoji: '🦜' },
-            { id: 'crocodile', name: 'Crocodile', emoji: '🐊' },
-            { id: 'hippo', name: 'Hippopotamus', emoji: '🦛' },
-            { id: 'snake', name: 'Anaconda', emoji: '🐍' },
-            { id: 'frog', name: 'Poison Dart Frog', emoji: '🐸' },
-            { id: 'butterfly', name: 'Morpho Butterfly', emoji: '🦋' },
-            { id: 'sloth', name: 'Sloth', emoji: '🦥' }
-        ];
-
+        this.animals = [];
+        this.contentData = null;
         this.difficultySettings = {
             easy: { pairs: 6, gridCols: 4 },
-            medium: { pairs: 8, gridCols: 4 },
-            hard: { pairs: 12, gridCols: 6 }
+            medium: { pairs: 12, gridCols: 4 },
+            hard: { pairs: 20, gridCols: 5 },
+            expert: { pairs: 30, gridCols: 6 },
+            legendary: { pairs: 50, gridCols: 10 }
         };
 
         this.gameState = {
@@ -48,11 +37,38 @@ class JungleMemoryGame {
         this.init();
     }
 
-    init() {
+    async init() {
+        await this.loadContentData();
         this.initializeSounds();
         this.bindEvents();
         this.newGame();
         this.startTimer();
+    }
+
+    async loadContentData() {
+        try {
+            const response = await fetch('content.json');
+            this.contentData = await response.json();
+            this.animals = this.contentData.animals;
+            console.log(`Loaded ${this.animals.length} animals from content.json`);
+        } catch (error) {
+            console.error('Error loading content.json:', error);
+            // Fallback to hardcoded animals
+            this.animals = [
+                { id: 'tiger', name: 'Bengal Tiger', emoji: '🐅', fact: 'Bengal tigers are the largest cats in the world!' },
+                { id: 'elephant', name: 'African Elephant', emoji: '🐘', fact: 'African elephants are the largest land mammals!' },
+                { id: 'monkey', name: 'Spider Monkey', emoji: '🐒', fact: 'Spider monkeys have the longest tails of any primate!' },
+                { id: 'parrot', name: 'Scarlet Macaw', emoji: '🦜', fact: 'Scarlet macaws can live up to 50 years!' },
+                { id: 'jaguar', name: 'Jaguar', emoji: '🐆', fact: 'Jaguars have the strongest bite of any big cat!' },
+                { id: 'toucan', name: 'Toucan', emoji: '🦜', fact: 'Toucans use their large beaks to reach fruit!' },
+                { id: 'crocodile', name: 'Crocodile', emoji: '🐊', fact: 'Crocodiles have been around for over 200 million years!' },
+                { id: 'hippo', name: 'Hippopotamus', emoji: '🦛', fact: 'Hippos can hold their breath for up to 5 minutes!' },
+                { id: 'snake', name: 'Anaconda', emoji: '🐍', fact: 'Anacondas are the heaviest snakes in the world!' },
+                { id: 'frog', name: 'Poison Dart Frog', emoji: '🐸', fact: 'Poison dart frogs get their poison from insects!' },
+                { id: 'butterfly', name: 'Morpho Butterfly', emoji: '🦋', fact: 'Morpho butterflies have iridescent blue wings!' },
+                { id: 'sloth', name: 'Sloth', emoji: '🦥', fact: 'Sloths move so slowly that algae grows on their fur!' }
+            ];
+        }
     }
 
     initializeSounds() {
@@ -279,6 +295,9 @@ class JungleMemoryGame {
             if (card1Element) card1Element.classList.add('matched');
             if (card2Element) card2Element.classList.add('matched');
             
+            // Show educational fact
+            this.showAnimalFact(card1.animal);
+            
             this.gameState.flippedCards = [];
             
             // Check if game is won
@@ -305,6 +324,36 @@ class JungleMemoryGame {
         this.updateDisplay();
     }
 
+    showAnimalFact(animal) {
+        // Create or update the fact display
+        let factDisplay = document.getElementById('animal-fact-display');
+        if (!factDisplay) {
+            factDisplay = document.createElement('div');
+            factDisplay.id = 'animal-fact-display';
+            factDisplay.className = 'animal-fact-display';
+            document.body.appendChild(factDisplay);
+        }
+
+        factDisplay.innerHTML = `
+            <div class="fact-content">
+                <div class="fact-header">
+                    <span class="fact-emoji">${animal.emoji}</span>
+                    <h3 class="fact-title">${animal.name}</h3>
+                    <button class="fact-close" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                </div>
+                <p class="fact-text">${animal.fact}</p>
+                ${animal.category ? `<div class="fact-category">Category: ${animal.category}</div>` : ''}
+            </div>
+        `;
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (factDisplay && factDisplay.parentElement) {
+                factDisplay.remove();
+            }
+        }, 5000);
+    }
+
     gameWon() {
         this.gameState.gameWon = true;
         
@@ -318,7 +367,7 @@ class JungleMemoryGame {
         setTimeout(() => {
             this.showMessage(
                 '🎉 Congratulations!',
-                `You won in ${this.gameState.moves} moves and ${minutes}:${seconds.toString().padStart(2, '0')}!`
+                `You won in ${this.gameState.moves} moves and ${minutes}:${seconds.toString().padStart(2, '0')}! You've learned about ${this.gameState.matchedPairs} amazing animals!`
             );
         }, 500);
     }

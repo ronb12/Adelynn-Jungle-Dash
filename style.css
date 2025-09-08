@@ -185,8 +185,18 @@ body {
 }
 
 .game-board.hard {
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 1000px;
+}
+
+.game-board.expert {
     grid-template-columns: repeat(6, 1fr);
-    max-width: 900px;
+    max-width: 1200px;
+}
+
+.game-board.legendary {
+    grid-template-columns: repeat(10, 1fr);
+    max-width: 1400px;
 }
 
 /* Cards */
@@ -329,6 +339,95 @@ body {
     margin-bottom: 30px;
     font-size: 1.1rem;
     line-height: 1.5;
+}
+
+/* Educational Fact Display */
+.animal-fact-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--jungle-green), var(--jungle-light));
+    border: 3px solid var(--jungle-yellow);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    max-width: 400px;
+    width: 90%;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: factSlideIn 0.5s ease-out;
+}
+
+@keyframes factSlideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.fact-content {
+    text-align: center;
+    color: var(--white);
+}
+
+.fact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--jungle-yellow);
+    padding-bottom: 10px;
+}
+
+.fact-emoji {
+    font-size: 2.5rem;
+    margin-right: 10px;
+}
+
+.fact-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--jungle-yellow);
+    margin: 0;
+    flex: 1;
+}
+
+.fact-close {
+    background: var(--jungle-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.fact-close:hover {
+    background: var(--jungle-pink);
+}
+
+.fact-text {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.fact-category {
+    font-size: 0.9rem;
+    color: var(--jungle-yellow);
+    font-style: italic;
+    margin-top: 10px;
+    text-align: center;
 }
 
 /* Responsive Design */

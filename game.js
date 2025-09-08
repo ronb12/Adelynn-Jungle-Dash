@@ -36,13 +36,57 @@ class JungleMemoryGame {
             difficulty: 'easy'
         };
 
+        // Sound system
+        this.sounds = {
+            cardFlip: null,
+            matchSuccess: null,
+            gameWin: null,
+            jungleAmbiance: null
+        };
+        this.soundEnabled = true;
+
         this.init();
     }
 
     init() {
+        this.initializeSounds();
         this.bindEvents();
         this.newGame();
         this.startTimer();
+    }
+
+    initializeSounds() {
+        // Create audio elements for sounds
+        this.sounds.cardFlip = new Audio('sounds/card-flip.wav');
+        this.sounds.matchSuccess = new Audio('sounds/match-success.wav');
+        this.sounds.gameWin = new Audio('sounds/game-win.wav');
+        this.sounds.jungleAmbiance = new Audio('sounds/jungle-ambiance.wav');
+        
+        // Set audio properties
+        Object.values(this.sounds).forEach(audio => {
+            if (audio) {
+                audio.preload = 'auto';
+                audio.volume = 0.5;
+            }
+        });
+        
+        // Set jungle ambiance to loop
+        if (this.sounds.jungleAmbiance) {
+            this.sounds.jungleAmbiance.loop = true;
+            this.sounds.jungleAmbiance.volume = 0.3;
+        }
+    }
+
+    playSound(soundName) {
+        if (!this.soundEnabled) return;
+        
+        const sound = this.sounds[soundName];
+        if (sound) {
+            sound.currentTime = 0; // Reset to beginning
+            sound.play().catch(error => {
+                console.log('Could not play sound:', error);
+            });
+        }
     }
 
     startTimer() {
@@ -59,6 +103,26 @@ class JungleMemoryGame {
             this.gameState.difficulty = e.target.value;
             this.newGame();
         });
+        
+        // Sound toggle
+        const soundToggle = document.getElementById('sound-toggle');
+        if (soundToggle) {
+            soundToggle.addEventListener('change', (e) => {
+                this.soundEnabled = e.target.checked;
+                if (this.soundEnabled && this.sounds.jungleAmbiance) {
+                    this.sounds.jungleAmbiance.play().catch(() => {});
+                } else if (this.sounds.jungleAmbiance) {
+                    this.sounds.jungleAmbiance.pause();
+                }
+            });
+        }
+        
+        // Start jungle ambiance on first user interaction
+        document.addEventListener('click', () => {
+            if (this.soundEnabled && this.sounds.jungleAmbiance) {
+                this.sounds.jungleAmbiance.play().catch(() => {});
+            }
+        }, { once: true });
     }
 
     newGame() {
@@ -182,6 +246,9 @@ class JungleMemoryGame {
         this.gameState.flippedCards.push(card);
         this.gameState.moves++;
 
+        // Play card flip sound
+        this.playSound('cardFlip');
+
         this.updateDisplay();
 
         // Check for matches
@@ -201,6 +268,9 @@ class JungleMemoryGame {
             card2.isMatched = true;
             this.gameState.matchedPairs++;
             this.gameState.score += 100;
+            
+            // Play match success sound
+            this.playSound('matchSuccess');
             
             // Add matched class to both cards
             const card1Element = document.querySelector(`[data-card-id="${card1.id}"]`);
@@ -237,6 +307,10 @@ class JungleMemoryGame {
 
     gameWon() {
         this.gameState.gameWon = true;
+        
+        // Play game win sound
+        this.playSound('gameWin');
+        
         const timeElapsed = Date.now() - this.gameState.timeStarted;
         const minutes = Math.floor(timeElapsed / 60000);
         const seconds = Math.floor((timeElapsed % 60000) / 1000);

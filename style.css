@@ -30,6 +30,19 @@ body {
     min-height: 100vh;
     color: var(--white);
     overflow-x: hidden;
+    
+    /* iOS Touch Optimizations */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    
+    /* iOS Safe Area Support */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .game-container {
@@ -107,6 +120,23 @@ body {
     font-weight: bold;
 }
 
+.sound-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sound-controls label {
+    font-size: 1.2rem;
+    color: var(--jungle-yellow);
+}
+
+.sound-controls input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--jungle-yellow);
+}
+
 .btn {
     padding: 12px 24px;
     border: none;
@@ -166,6 +196,20 @@ body {
     perspective: 1000px;
     cursor: pointer;
     transition: transform 0.3s ease;
+    
+    /* iOS Touch Optimizations */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    
+    /* Prevent zoom on double tap */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
 }
 
 .card:hover {

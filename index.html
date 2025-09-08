@@ -2,16 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Adelynn's Jungle Memory Safari</title>
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <meta name="theme-color" content="#2d5016">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jungle Memory">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- SEO and Social Meta Tags -->
     <meta name="description" content="A fun and educational jungle animal memory matching game for children. Help Adelynn discover and learn about jungle animals!">
+    <meta name="keywords" content="memory game, jungle animals, educational, kids game, matching game, PWA">
     <meta name="author" content="Bradley Virtual Solutions, LLC">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Adelynn's Jungle Memory Safari">
+    <meta property="og:description" content="A fun and educational jungle animal memory matching game for children">
+    <meta property="og:image" content="icons/icon-512x512.png">
+    <meta property="og:url" content="https://ronb12.github.io/Adelynn-Jungle-Dash/">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Adelynn's Jungle Memory Safari">
+    <meta name="twitter:description" content="A fun and educational jungle animal memory matching game for children">
+    <meta name="twitter:image" content="icons/icon-512x512.png">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
@@ -43,6 +68,10 @@
                     <option value="medium">Medium (8 pairs)</option>
                     <option value="hard">Hard (12 pairs)</option>
                 </select>
+            </div>
+            <div class="sound-controls">
+                <label for="sound-toggle">🔊</label>
+                <input type="checkbox" id="sound-toggle" checked>
             </div>
             <button id="new-game-btn" class="btn btn-primary">New Game</button>
         </div>

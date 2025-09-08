@@ -1,0 +1,144 @@
+{
+  "name": "Adelynn's Jungle Memory Safari",
+  "short_name": "Jungle Memory",
+  "description": "A fun and educational jungle animal memory matching game for children. Help Adelynn discover and learn about jungle animals by matching pairs of animal cards!",
+  "version": "2.0.0",
+  "author": "Bradley Virtual Solutions, LLC",
+  "website": "https://ronb12.github.io/Adelynn-Jungle-Dash/",
+  "repository": "https://github.com/ronb12/Adelynn-Jungle-Dash",
+  "license": "MIT",
+  "keywords": [
+    "memory game",
+    "jungle animals",
+    "educational",
+    "kids game",
+    "matching game",
+    "PWA",
+    "progressive web app",
+    "children",
+    "learning",
+    "animals"
+  ],
+  "features": [
+    "Memory matching gameplay",
+    "12 jungle animals",
+    "Three difficulty levels",
+    "Progressive Web App",
+    "Offline play",
+    "Touch optimized",
+    "Sound effects",
+    "Responsive design",
+    "Educational content"
+  ],
+  "animals": [
+    {
+      "id": "tiger",
+      "name": "Bengal Tiger",
+      "emoji": "🐅",
+      "fact": "Bengal tigers are the largest cats in the world and can weigh up to 500 pounds!"
+    },
+    {
+      "id": "elephant",
+      "name": "African Elephant",
+      "emoji": "🐘",
+      "fact": "African elephants are the largest land mammals and can live up to 70 years!"
+    },
+    {
+      "id": "monkey",
+      "name": "Spider Monkey",
+      "emoji": "🐒",
+      "fact": "Spider monkeys have the longest tails of any primate and use them like a fifth limb!"
+    },
+    {
+      "id": "parrot",
+      "name": "Scarlet Macaw",
+      "emoji": "🦜",
+      "fact": "Scarlet macaws can live up to 50 years and are excellent mimics!"
+    },
+    {
+      "id": "jaguar",
+      "name": "Jaguar",
+      "emoji": "🐆",
+      "fact": "Jaguars have the strongest bite of any big cat and can crush turtle shells!"
+    },
+    {
+      "id": "toucan",
+      "name": "Toucan",
+      "emoji": "🦜",
+      "fact": "Toucans use their large beaks to reach fruit on thin branches!"
+    },
+    {
+      "id": "crocodile",
+      "name": "Crocodile",
+      "emoji": "🐊",
+      "fact": "Crocodiles have been around for over 200 million years - they're living dinosaurs!"
+    },
+    {
+      "id": "hippo",
+      "name": "Hippopotamus",
+      "emoji": "🦛",
+      "fact": "Hippos can hold their breath for up to 5 minutes underwater!"
+    },
+    {
+      "id": "snake",
+      "name": "Anaconda",
+      "emoji": "🐍",
+      "fact": "Anacondas are the heaviest snakes in the world and can grow up to 30 feet long!"
+    },
+    {
+      "id": "frog",
+      "name": "Poison Dart Frog",
+      "emoji": "🐸",
+      "fact": "Poison dart frogs get their poison from the insects they eat in the wild!"
+    },
+    {
+      "id": "butterfly",
+      "name": "Morpho Butterfly",
+      "emoji": "🦋",
+      "fact": "Morpho butterflies have iridescent blue wings that shimmer in the sunlight!"
+    },
+    {
+      "id": "sloth",
+      "name": "Sloth",
+      "emoji": "🦥",
+      "fact": "Sloths move so slowly that algae grows on their fur, giving them a green color!"
+    }
+  ],
+  "difficulty_levels": {
+    "easy": {
+      "pairs": 6,
+      "gridCols": 4,
+      "description": "Perfect for beginners - 6 animal pairs"
+    },
+    "medium": {
+      "pairs": 8,
+      "gridCols": 4,
+      "description": "Intermediate challenge - 8 animal pairs"
+    },
+    "hard": {
+      "pairs": 12,
+      "gridCols": 6,
+      "description": "Expert level - all 12 animal pairs"
+    }
+  },
+  "pwa": {
+    "theme_color": "#2d5016",
+    "background_color": "#4a7c23",
+    "display": "standalone",
+    "orientation": "portrait",
+    "start_url": "/",
+    "scope": "/"
+  },
+  "accessibility": {
+    "keyboard_navigation": true,
+    "screen_reader_support": true,
+    "high_contrast_mode": true,
+    "reduced_motion_support": true
+  },
+  "performance": {
+    "lazy_loading": true,
+    "image_optimization": true,
+    "caching_strategy": "cache_first",
+    "offline_support": true
+  }
+}

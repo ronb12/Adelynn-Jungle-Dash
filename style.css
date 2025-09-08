@@ -238,7 +238,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 2px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -261,13 +261,13 @@ body {
 }
 
 .animal-image {
-    width: 120px;
-    height: 120px;
+    width: 125px;
+    height: 125px;
     object-fit: cover;
     border-radius: 0;
     background: transparent;
     border: none;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 
 .animal-name {
@@ -356,8 +356,8 @@ body {
     }
     
     .animal-image {
-        width: 95px;
-        height: 95px;
+        width: 98px;
+        height: 98px;
     }
     
     .animal-name {
@@ -384,8 +384,8 @@ body {
     }
     
     .animal-image {
-        width: 75px;
-        height: 75px;
+        width: 78px;
+        height: 78px;
     }
     
     .animal-name {

@@ -203,6 +203,8 @@ body {
     background: var(--white);
     color: var(--jungle-dark);
     transform: rotateY(180deg);
+    border: 3px solid var(--jungle-green);
+    box-shadow: inset 0 0 10px rgba(107, 166, 68, 0.2);
 }
 
 .card-back {
@@ -215,11 +217,13 @@ body {
 }
 
 .animal-image {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     margin-bottom: 10px;
     border-radius: 8px;
+    border: 2px solid var(--jungle-green);
+    background: rgba(107, 166, 68, 0.1);
 }
 
 .animal-name {
@@ -299,8 +303,8 @@ body {
     }
     
     .animal-image {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
     }
     
     .animal-name {
@@ -327,8 +331,8 @@ body {
     }
     
     .animal-image {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
     }
     
     .animal-name {

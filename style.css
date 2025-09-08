@@ -233,6 +233,13 @@ body {
     line-height: 1.2;
 }
 
+.animal-emoji {
+    font-size: 4rem !important;
+    margin-bottom: 10px;
+    display: block;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .card-pattern {
     font-size: 3rem;
     color: var(--jungle-yellow);

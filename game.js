@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 3.0.0 - Clean Card Implementation
+// Version 3.0.1 - Fix HTML Element References
 
 class JungleMemoryGame {
     constructor() {
@@ -38,6 +38,15 @@ class JungleMemoryGame {
     init() {
         this.bindEvents();
         this.newGame();
+        this.startTimer();
+    }
+
+    startTimer() {
+        setInterval(() => {
+            if (!this.gameState.isPaused && !this.gameState.gameWon) {
+                this.updateDisplay();
+            }
+        }, 1000);
     }
 
     bindEvents() {
@@ -204,9 +213,18 @@ class JungleMemoryGame {
     }
 
     updateDisplay() {
-        document.getElementById('moves').textContent = this.gameState.moves;
-        document.getElementById('score').textContent = this.gameState.score;
-        document.getElementById('matches').textContent = this.gameState.matchedPairs;
+        const movesEl = document.getElementById('moves');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        
+        if (movesEl) movesEl.textContent = this.gameState.moves;
+        if (scoreEl) scoreEl.textContent = this.gameState.score;
+        if (timerEl) {
+            const elapsed = Math.floor((Date.now() - this.gameState.timeStarted) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 4.0.2 - Add Debugging
+// Version 4.0.3 - Improve Card Flip Logic Debugging
 
 class JungleMemoryGame {
     constructor() {
@@ -271,12 +271,18 @@ class JungleMemoryGame {
             return;
         }
 
-        if (card.isFlipped || card.isMatched || this.gameState.flippedCards.length >= 2) {
-            console.log('🚫 Card flip blocked:', {
-                isFlipped: card.isFlipped,
-                isMatched: card.isMatched,
-                flippedCardsCount: this.gameState.flippedCards.length
-            });
+        if (card.isMatched) {
+            console.log('🚫 Card flip blocked - card is already matched:', card.animal.name);
+            return;
+        }
+
+        if (card.isFlipped) {
+            console.log('🚫 Card flip blocked - card is already flipped:', card.animal.name);
+            return;
+        }
+
+        if (this.gameState.flippedCards.length >= 2) {
+            console.log('🚫 Card flip blocked - too many cards flipped:', this.gameState.flippedCards.length);
             return;
         }
 
@@ -303,6 +309,11 @@ class JungleMemoryGame {
         const [card1, card2] = this.gameState.flippedCards;
 
         console.log('🔍 Checking for match:', card1.animal.name, 'vs', card2.animal.name);
+        console.log('🎯 Flipped cards state:', {
+            card1: { id: card1.id, isFlipped: card1.isFlipped, isMatched: card1.isMatched },
+            card2: { id: card2.id, isFlipped: card2.isFlipped, isMatched: card2.isMatched },
+            flippedCardsCount: this.gameState.flippedCards.length
+        });
 
         if (card1.animalId === card2.animalId) {
             // Match found!

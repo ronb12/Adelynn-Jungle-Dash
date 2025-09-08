@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 4.0.1 - Fix Syntax Error
+// Version 4.0.2 - Add Debugging
 
 class JungleMemoryGame {
     constructor() {
@@ -173,17 +173,27 @@ class JungleMemoryGame {
         gameBoard.className = `game-board ${this.gameState.difficulty}`;
         gameBoard.style.gridTemplateColumns = `repeat(${difficulty.gridCols}, 1fr)`;
 
+        console.log('🎯 Game board setup:', {
+            element: gameBoard,
+            className: gameBoard.className,
+            gridTemplate: gameBoard.style.gridTemplateColumns,
+            cardsToRender: this.gameState.cards.length
+        });
+
         // Create and add cards
         this.gameState.cards.forEach((card, index) => {
             const cardElement = this.createCardElement(card);
             gameBoard.appendChild(cardElement);
-            console.log(`🃏 Card ${index + 1}: ${card.animal.name} (${card.id})`);
+            console.log(`🃏 Card ${index + 1}: ${card.animal.name} (${card.id})`, cardElement);
         });
 
         console.log(`✅ Game board rendered with ${this.gameState.cards.length} cards`);
+        console.log('🎯 Final game board HTML:', gameBoard.innerHTML.substring(0, 200) + '...');
     }
 
     createCardElement(card) {
+        console.log('🃏 Creating card element for:', card.animal.name);
+        
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
         cardDiv.dataset.cardId = card.id;
@@ -211,14 +221,23 @@ class JungleMemoryGame {
             </div>
         `;
 
+        console.log('🎯 Card element created:', {
+            element: cardDiv,
+            className: cardDiv.className,
+            dataset: cardDiv.dataset,
+            innerHTML: cardDiv.innerHTML.substring(0, 100) + '...'
+        });
+
         // Add event listeners
         cardDiv.addEventListener('click', (e) => {
+            console.log('🖱️ Card clicked:', card.animal.name);
             e.preventDefault();
             this.flipCard(card.id);
         });
 
         cardDiv.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
+                console.log('⌨️ Card key pressed:', card.animal.name);
                 e.preventDefault();
                 this.flipCard(card.id);
             }
@@ -230,6 +249,7 @@ class JungleMemoryGame {
         }, { passive: false });
 
         cardDiv.addEventListener('touchend', (e) => {
+            console.log('👆 Card touched:', card.animal.name);
             e.preventDefault();
             this.flipCard(card.id);
         }, { passive: false });

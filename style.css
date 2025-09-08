@@ -247,7 +247,7 @@ body {
     background: var(--white);
     color: var(--jungle-dark);
     transform: rotateY(180deg);
-    border: 2px solid var(--jungle-green);
+    border: none;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -260,15 +260,6 @@ body {
     transform: rotateY(0deg);
 }
 
-.animal-image-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2px;
-    background: transparent;
-}
-
 .animal-image {
     width: 125px;
     height: 125px;
@@ -276,6 +267,7 @@ body {
     border-radius: 8px;
     background: transparent;
     border: none;
+    margin-bottom: 5px;
 }
 
 .animal-name {

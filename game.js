@@ -1,6 +1,6 @@
 // Adelynn's Jungle Memory Safari - Game Logic
 // Product of Bradley Virtual Solutions, LLC
-// Version 4.0.0 - Rebuilt Gameboard
+// Version 4.0.1 - Fix Syntax Error
 
 class JungleMemoryGame {
     constructor() {
@@ -397,5 +397,4 @@ class JungleMemoryGame {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM loaded, initializing game...');
     new JungleMemoryGame();
-});
 });

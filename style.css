@@ -263,7 +263,7 @@ body {
 .animal-image {
     width: 125px;
     height: 125px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 0;
     background: white;
     border: none;

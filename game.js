@@ -204,11 +204,13 @@ class JungleMemoryGame {
         cardDiv.innerHTML = `
             <div class="card-inner">
                 <div class="card-front">
-                    <img src="images/animals/${card.animal.id}.png" 
-                         alt="${card.animal.name}" 
-                         class="animal-image"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div class="animal-emoji" style="display:none; font-size: 4rem; margin-bottom: 10px;">${card.animal.emoji}</div>
+                    <div class="animal-image-container">
+                        <img src="images/animals/${card.animal.id}.png" 
+                             alt="${card.animal.name}" 
+                             class="animal-image"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="animal-emoji" style="display:none; font-size: 3rem;">${card.animal.emoji}</div>
+                    </div>
                     <div class="animal-name">${card.animal.name}</div>
                 </div>
                 <div class="card-back">

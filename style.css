@@ -239,7 +239,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 15px;
+    padding: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -247,8 +247,8 @@ body {
     background: var(--white);
     color: var(--jungle-dark);
     transform: rotateY(180deg);
-    border: 3px solid var(--jungle-green);
-    box-shadow: inset 0 0 10px rgba(107, 166, 68, 0.2);
+    border: 2px solid var(--jungle-green);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .card-back {
@@ -260,26 +260,35 @@ body {
     transform: rotateY(0deg);
 }
 
+.animal-image-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
 .animal-image {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
-    margin-bottom: 10px;
     border-radius: 8px;
-    border: 2px solid var(--jungle-green);
-    background: rgba(107, 166, 68, 0.1);
+    background: transparent;
+    border: none;
 }
 
 .animal-name {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.1;
+    color: var(--jungle-dark);
+    margin: 0;
+    padding: 0 5px;
 }
 
 .animal-emoji {
-    font-size: 4rem !important;
-    margin-bottom: 10px;
+    font-size: 3rem !important;
     display: block;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }

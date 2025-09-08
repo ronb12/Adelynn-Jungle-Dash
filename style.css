@@ -358,6 +358,18 @@ body::before {
     transform: rotateY(180deg);
 }
 
+.card.flipped .card-content {
+    transform: rotateY(0deg);
+}
+
+.card.flipped .animal-name {
+    transform: rotateY(0deg);
+}
+
+.card.flipped .animal-image {
+    transform: rotateY(0deg);
+}
+
 .card-front, .card-back {
     position: absolute;
     width: 100%;
@@ -1183,4 +1195,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 4.0.3 - Fix Card Visibility When Flipped */
+/* Cache busting - Version 4.0.4 - Fix Card Content Display When Flipped */

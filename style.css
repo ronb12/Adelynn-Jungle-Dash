@@ -369,7 +369,7 @@ body::before {
         #f8f9fa 50%, 
         #e9ecef 100%);
     color: var(--jungle-dark);
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
     box-shadow: 
         inset 0 2px 4px rgba(0, 0, 0, 0.1),
         inset 0 -2px 4px rgba(0, 0, 0, 0.05);
@@ -411,7 +411,7 @@ body::before {
         0 8px 20px rgba(0, 0, 0, 0.5),
         0 0 25px rgba(255, 215, 0, 0.4),
         0 0 0 2px rgba(255, 255, 255, 0.2);
-    transform: rotateY(180deg);
+    transform: rotateY(0deg);
 }
 
 .card-back::before {
@@ -1184,4 +1184,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 3.0.2 - Fix Card Front/Back Visibility */
+/* Cache busting - Version 3.0.3 - Fix Card Initial State */

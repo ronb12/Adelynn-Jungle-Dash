@@ -359,15 +359,15 @@ body::before {
 }
 
 .card.flipped .card-content {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
 }
 
 .card.flipped .animal-name {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
 }
 
 .card.flipped .animal-image {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
 }
 
 .card-front, .card-back {
@@ -1195,4 +1195,4 @@ body::before {
     }
 }
 
-/* Cache busting - Version 4.0.4 - Fix Card Content Display When Flipped */
+/* Cache busting - Version 4.0.5 - Fix Backwards Text on Flipped Cards */

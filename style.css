@@ -172,6 +172,12 @@ body {
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--border-radius);
     border: 3px solid var(--jungle-yellow);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
 }
 
 .game-board.easy {
@@ -645,6 +651,26 @@ body {
 }
 
 /* Responsive Design */
+
+/* Large Tablets and Small Laptops */
+@media (max-width: 1024px) {
+    .game-container {
+        max-width: 100%;
+        padding: 15px;
+    }
+    
+    .game-board.legendary {
+        max-width: 1000px;
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .game-board.expert {
+        max-width: 900px;
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Tablets (iPad, iPad Air, iPad Pro) */
 @media (max-width: 768px) {
     .game-title {
         font-size: 2rem;
@@ -682,6 +708,7 @@ body {
     }
 }
 
+/* Small Phones (iPhone SE, iPhone 12 mini, etc.) */
 @media (max-width: 480px) {
     .game-container {
         padding: 10px;
@@ -712,5 +739,113 @@ body {
     .game-board {
         gap: 10px;
         padding: 15px;
+    }
+}
+
+/* Very Small Screens (iPhone 5/5S/SE) */
+@media (max-width: 375px) {
+    .game-container {
+        padding: 8px;
+    }
+    
+    .game-title {
+        font-size: 1.6rem;
+    }
+    
+    .card {
+        width: 70px;
+        height: 110px;
+    }
+    
+    .animal-image {
+        width: 68px;
+        height: 68px;
+    }
+    
+    .animal-name {
+        font-size: 0.6rem;
+        padding: 1px;
+    }
+    
+    .game-board {
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .game-stats {
+        gap: 10px;
+    }
+    
+    .stat {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Landscape Orientation for Phones */
+@media (max-height: 500px) and (orientation: landscape) {
+    .game-container {
+        padding: 5px;
+    }
+    
+    .game-header {
+        margin-bottom: 15px;
+    }
+    
+    .game-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .game-stats {
+        margin-bottom: 10px;
+    }
+    
+    .game-controls {
+        margin-bottom: 10px;
+    }
+    
+    .card {
+        width: 60px;
+        height: 90px;
+    }
+    
+    .animal-image {
+        width: 58px;
+        height: 58px;
+    }
+    
+    .animal-name {
+        font-size: 0.5rem;
+    }
+    
+    .game-board {
+        gap: 5px;
+        padding: 10px;
+    }
+}
+
+/* iPad Pro and Large Tablets */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    .game-board.legendary {
+        max-width: 1200px;
+        grid-template-columns: repeat(10, 1fr);
+    }
+    
+    .game-board.expert {
+        max-width: 1000px;
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* Ultra-wide screens and large displays */
+@media (min-width: 1367px) {
+    .game-container {
+        max-width: 1400px;
+    }
+    
+    .game-board.legendary {
+        max-width: 1400px;
+        grid-template-columns: repeat(10, 1fr);
     }
 }

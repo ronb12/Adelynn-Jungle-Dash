@@ -719,30 +719,47 @@ body {
     }
     
     .card {
-        width: 80px;
-        height: 120px;
+        width: 65px;
+        height: 95px;
     }
     
     .animal-image {
-        width: 78px;
-        height: 78px;
+        width: 63px;
+        height: 63px;
     }
     
     .animal-name {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
+        padding: 2px;
     }
     
     .card-pattern {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .game-board {
-        gap: 10px;
-        padding: 15px;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    /* Ensure grid layouts fit on small screens */
+    .game-board.hard {
+        max-width: 400px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.expert {
+        max-width: 400px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.legendary {
+        max-width: 400px;
+        grid-template-columns: repeat(5, 1fr);
     }
 }
 
-/* Very Small Screens (iPhone 5/5S/SE) */
+/* Extra Small Phones (iPhone 5/5S/SE) */
 @media (max-width: 375px) {
     .game-container {
         padding: 8px;
@@ -753,23 +770,23 @@ body {
     }
     
     .card {
-        width: 70px;
-        height: 110px;
+        width: 60px;
+        height: 85px;
     }
     
     .animal-image {
-        width: 68px;
-        height: 68px;
+        width: 58px;
+        height: 58px;
     }
     
     .animal-name {
-        font-size: 0.6rem;
+        font-size: 0.55rem;
         padding: 1px;
     }
     
     .game-board {
-        gap: 8px;
-        padding: 10px;
+        gap: 6px;
+        padding: 8px;
     }
     
     .game-stats {
@@ -779,6 +796,22 @@ body {
     .stat {
         padding: 6px 10px;
         font-size: 0.8rem;
+    }
+    
+    /* Ensure grid layouts fit on small screens */
+    .game-board.hard {
+        max-width: 350px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.expert {
+        max-width: 350px;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.legendary {
+        max-width: 350px;
+        grid-template-columns: repeat(5, 1fr);
     }
 }
 

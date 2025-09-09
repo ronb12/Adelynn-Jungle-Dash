@@ -708,6 +708,61 @@ body {
     }
 }
 
+/* iPhone XS Max and similar large phones */
+@media (max-width: 414px) {
+    .game-container {
+        padding: 8px;
+        max-width: 100%;
+    }
+    
+    .game-title {
+        font-size: 1.7rem;
+    }
+    
+    .card {
+        width: 60px;
+        height: 85px;
+    }
+    
+    .animal-image {
+        width: 58px;
+        height: 58px;
+    }
+    
+    .animal-name {
+        font-size: 0.65rem;
+        padding: 2px;
+    }
+    
+    .card-pattern {
+        font-size: 1.9rem;
+    }
+    
+    .game-board {
+        gap: 6px;
+        padding: 10px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Ensure grid layouts fit on iPhone XS Max */
+    .game-board.hard {
+        max-width: 100%;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.expert {
+        max-width: 100%;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .game-board.legendary {
+        max-width: 100%;
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
 /* Small Phones (iPhone SE, iPhone 12 mini, etc.) */
 @media (max-width: 480px) {
     .game-container {
@@ -825,60 +880,4 @@ body {
         margin-bottom: 15px;
     }
     
-    .game-title {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-    }
-    
-    .game-stats {
-        margin-bottom: 10px;
-    }
-    
-    .game-controls {
-        margin-bottom: 10px;
-    }
-    
-    .card {
-        width: 60px;
-        height: 90px;
-    }
-    
-    .animal-image {
-        width: 58px;
-        height: 58px;
-    }
-    
-    .animal-name {
-        font-size: 0.5rem;
-    }
-    
-    .game-board {
-        gap: 5px;
-        padding: 10px;
-    }
-}
-
-/* iPad Pro and Large Tablets */
-@media (min-width: 1024px) and (max-width: 1366px) {
-    .game-board.legendary {
-        max-width: 1200px;
-        grid-template-columns: repeat(10, 1fr);
-    }
-    
-    .game-board.expert {
-        max-width: 1000px;
-        grid-template-columns: repeat(6, 1fr);
-    }
-}
-
-/* Ultra-wide screens and large displays */
-@media (min-width: 1367px) {
-    .game-container {
-        max-width: 1400px;
-    }
-    
-    .game-board.legendary {
-        max-width: 1400px;
-        grid-template-columns: repeat(10, 1fr);
-    }
-}
+    .game-ti

@@ -76,6 +76,7 @@
                 <input type="checkbox" id="sound-toggle" checked>
             </div>
             <button id="new-game-btn" class="btn btn-primary">New Game</button>
+            <button id="stats-btn" class="btn btn-secondary">📊 Stats</button>
         </div>
 
         <!-- Game Board -->
@@ -91,6 +92,70 @@
                 <h2 id="message-title"></h2>
                 <p id="message-text"></p>
                 <button id="message-btn" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="stats-modal hidden">
+        <div class="stats-content">
+            <div class="stats-header">
+                <h2>📊 Your Statistics</h2>
+                <button id="stats-close" class="stats-close">×</button>
+            </div>
+            <div class="stats-body">
+                <div class="stats-section">
+                    <h3>🎮 Game Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Games Played:</span>
+                            <span id="stat-games-played" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Games Won:</span>
+                            <span id="stat-games-won" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Win Rate:</span>
+                            <span id="stat-win-rate" class="stat-value">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Best Score:</span>
+                            <span id="stat-best-score" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Best Time:</span>
+                            <span id="stat-best-time" class="stat-value">--:--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Perfect Games:</span>
+                            <span id="stat-perfect-games" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-section">
+                    <h3>🐾 Learning Progress</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Animals Learned:</span>
+                            <span id="stat-animals-learned" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Current Streak:</span>
+                            <span id="stat-current-streak" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Longest Streak:</span>
+                            <span id="stat-longest-streak" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-section">
+                    <h3>🏆 Achievements</h3>
+                    <div id="achievements-list" class="achievements-list">
+                        <!-- Achievements will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

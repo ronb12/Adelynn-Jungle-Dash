@@ -22,15 +22,27 @@ class JungleMemoryGame {
             timeStarted: Date.now(),
             isPaused: false,
             gameWon: false,
-            difficulty: 'easy'
+            difficulty: 'easy',
+            streak: 0,
+            perfectMatches: 0
         };
+
+        // Statistics and achievements
+        this.stats = this.loadStats();
+        this.achievements = this.loadAchievements();
 
         // Sound system
         this.sounds = {
             cardFlip: null,
             matchSuccess: null,
             gameWin: null,
-            jungleAmbiance: null
+            jungleAmbiance: null,
+            cardHover: null,
+            levelUp: null,
+            achievement: null,
+            buttonClick: null,
+            timerTick: null,
+            perfectMatch: null
         };
         this.soundEnabled = true;
 
@@ -43,6 +55,7 @@ class JungleMemoryGame {
         this.bindEvents();
         this.newGame();
         this.startTimer();
+        this.updateStatsDisplay();
     }
 
     async loadContentData() {
@@ -77,6 +90,12 @@ class JungleMemoryGame {
         this.sounds.matchSuccess = new Audio('sounds/match-success.wav');
         this.sounds.gameWin = new Audio('sounds/game-win.wav');
         this.sounds.jungleAmbiance = new Audio('sounds/jungle-ambiance.wav');
+        this.sounds.cardHover = new Audio('sounds/card-hover.wav');
+        this.sounds.levelUp = new Audio('sounds/level-up.wav');
+        this.sounds.achievement = new Audio('sounds/achievement.wav');
+        this.sounds.buttonClick = new Audio('sounds/button-click.wav');
+        this.sounds.timerTick = new Audio('sounds/timer-tick.wav');
+        this.sounds.perfectMatch = new Audio('sounds/perfect-match.wav');
         
         // Set audio properties
         Object.values(this.sounds).forEach(audio => {
@@ -90,6 +109,11 @@ class JungleMemoryGame {
         if (this.sounds.jungleAmbiance) {
             this.sounds.jungleAmbiance.loop = true;
             this.sounds.jungleAmbiance.volume = 0.3;
+        }
+        
+        // Set lower volume for some sounds
+        if (this.sounds.timerTick) {
+            this.sounds.timerTick.volume = 0.2;
         }
     }
 
@@ -119,6 +143,10 @@ class JungleMemoryGame {
             this.gameState.difficulty = e.target.value;
             this.newGame();
         });
+        
+        // Statistics button
+        document.getElementById('stats-btn').addEventListener('click', () => this.showStats());
+        document.getElementById('stats-close').addEventListener('click', () => this.hideStats());
         
         // Sound toggle
         const soundToggle = document.getElementById('sound-toggle');
@@ -151,7 +179,9 @@ class JungleMemoryGame {
             timeStarted: Date.now(),
             isPaused: false,
             gameWon: false,
-            difficulty: this.gameState.difficulty
+            difficulty: this.gameState.difficulty,
+            streak: 0,
+            perfectMatches: 0
         };
 
         this.createCards();
@@ -298,6 +328,12 @@ class JungleMemoryGame {
             // Show educational fact
             this.showAnimalFact(card1.animal);
             
+            // Track animals learned
+            this.stats.animalsLearned.add(card1.animal.id);
+            
+            // Update streak
+            this.gameState.streak++;
+            
             this.gameState.flippedCards = [];
             
             // Check if game is won
@@ -360,14 +396,30 @@ class JungleMemoryGame {
         // Play game win sound
         this.playSound('gameWin');
         
+        // Update statistics
+        this.stats.gamesWon++;
+        this.stats.currentStreak++;
+        if (this.stats.currentStreak > this.stats.longestStreak) {
+            this.stats.longestStreak = this.stats.currentStreak;
+        }
+        
+        // Update difficulty stats
+        this.stats.difficultyStats[this.gameState.difficulty].won++;
+        
+        this.updateStats();
+        
         const timeElapsed = Date.now() - this.gameState.timeStarted;
         const minutes = Math.floor(timeElapsed / 60000);
         const seconds = Math.floor((timeElapsed % 60000) / 1000);
         
+        // Check for perfect game
+        const wrongMatches = this.gameState.moves - this.gameState.matchedPairs;
+        const perfectText = wrongMatches === 0 ? ' (Perfect Game!)' : '';
+        
         setTimeout(() => {
             this.showMessage(
                 '🎉 Congratulations!',
-                `You won in ${this.gameState.moves} moves and ${minutes}:${seconds.toString().padStart(2, '0')}! You've learned about ${this.gameState.matchedPairs} amazing animals!`
+                `You won in ${this.gameState.moves} moves and ${minutes}:${seconds.toString().padStart(2, '0')}!${perfectText} You've learned about ${this.gameState.matchedPairs} amazing animals!`
             );
         }, 500);
     }
@@ -405,6 +457,282 @@ class JungleMemoryGame {
             const seconds = elapsed % 60;
             timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
+    }
+
+    // Statistics and Achievement System
+    loadStats() {
+        const defaultStats = {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            totalMoves: 0,
+            totalTime: 0,
+            bestScore: 0,
+            bestTime: Infinity,
+            animalsLearned: new Set(),
+            perfectGames: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            difficultyStats: {
+                easy: { played: 0, won: 0, bestTime: Infinity },
+                medium: { played: 0, won: 0, bestTime: Infinity },
+                hard: { played: 0, won: 0, bestTime: Infinity },
+                expert: { played: 0, won: 0, bestTime: Infinity },
+                legendary: { played: 0, won: 0, bestTime: Infinity }
+            }
+        };
+
+        try {
+            const saved = localStorage.getItem('jungleMemoryStats');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Convert animalsLearned back to Set
+                if (parsed.animalsLearned) {
+                    parsed.animalsLearned = new Set(parsed.animalsLearned);
+                }
+                return { ...defaultStats, ...parsed };
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+        return defaultStats;
+    }
+
+    saveStats() {
+        try {
+            const statsToSave = {
+                ...this.stats,
+                animalsLearned: Array.from(this.stats.animalsLearned)
+            };
+            localStorage.setItem('jungleMemoryStats', JSON.stringify(statsToSave));
+        } catch (error) {
+            console.error('Error saving stats:', error);
+        }
+    }
+
+    loadAchievements() {
+        const defaultAchievements = {
+            firstGame: false,
+            firstWin: false,
+            perfectGame: false,
+            speedDemon: false,
+            animalExpert: false,
+            streakMaster: false,
+            difficultyMaster: false,
+            memoryChampion: false
+        };
+
+        try {
+            const saved = localStorage.getItem('jungleMemoryAchievements');
+            if (saved) {
+                return { ...defaultAchievements, ...JSON.parse(saved) };
+            }
+        } catch (error) {
+            console.error('Error loading achievements:', error);
+        }
+        return defaultAchievements;
+    }
+
+    saveAchievements() {
+        try {
+            localStorage.setItem('jungleMemoryAchievements', JSON.stringify(this.achievements));
+        } catch (error) {
+            console.error('Error saving achievements:', error);
+        }
+    }
+
+    updateStats() {
+        this.stats.gamesPlayed++;
+        this.stats.totalMoves += this.gameState.moves;
+        
+        const gameTime = Math.floor((Date.now() - this.gameState.timeStarted) / 1000);
+        this.stats.totalTime += gameTime;
+        
+        if (this.gameState.score > this.stats.bestScore) {
+            this.stats.bestScore = this.gameState.score;
+        }
+        
+        if (gameTime < this.stats.bestTime) {
+            this.stats.bestTime = gameTime;
+        }
+        
+        // Update difficulty stats
+        const diffStats = this.stats.difficultyStats[this.gameState.difficulty];
+        diffStats.played++;
+        if (gameTime < diffStats.bestTime) {
+            diffStats.bestTime = gameTime;
+        }
+        
+        // Check for perfect game (no wrong matches)
+        const wrongMatches = this.gameState.moves - this.gameState.matchedPairs;
+        if (wrongMatches === 0 && this.gameState.gameWon) {
+            this.stats.perfectGames++;
+            this.gameState.perfectMatches++;
+        }
+        
+        this.saveStats();
+        this.checkAchievements();
+    }
+
+    checkAchievements() {
+        const newAchievements = [];
+        
+        // First Game
+        if (!this.achievements.firstGame && this.stats.gamesPlayed >= 1) {
+            this.achievements.firstGame = true;
+            newAchievements.push({ id: 'firstGame', title: 'First Steps', description: 'Played your first game!' });
+        }
+        
+        // First Win
+        if (!this.achievements.firstWin && this.stats.gamesWon >= 1) {
+            this.achievements.firstWin = true;
+            newAchievements.push({ id: 'firstWin', title: 'Jungle Explorer', description: 'Won your first game!' });
+        }
+        
+        // Perfect Game
+        if (!this.achievements.perfectGame && this.stats.perfectGames >= 1) {
+            this.achievements.perfectGame = true;
+            newAchievements.push({ id: 'perfectGame', title: 'Memory Master', description: 'Completed a perfect game!' });
+        }
+        
+        // Speed Demon (win in under 2 minutes)
+        if (!this.achievements.speedDemon && this.stats.bestTime < 120) {
+            this.achievements.speedDemon = true;
+            newAchievements.push({ id: 'speedDemon', title: 'Speed Demon', description: 'Won a game in under 2 minutes!' });
+        }
+        
+        // Animal Expert (learn about 25+ animals)
+        if (!this.achievements.animalExpert && this.stats.animalsLearned.size >= 25) {
+            this.achievements.animalExpert = true;
+            newAchievements.push({ id: 'animalExpert', title: 'Animal Expert', description: 'Learned about 25+ animals!' });
+        }
+        
+        // Streak Master (5+ game winning streak)
+        if (!this.achievements.streakMaster && this.stats.longestStreak >= 5) {
+            this.achievements.streakMaster = true;
+            newAchievements.push({ id: 'streakMaster', title: 'Streak Master', description: 'Won 5 games in a row!' });
+        }
+        
+        // Difficulty Master (win on all difficulties)
+        const difficultiesWon = Object.values(this.stats.difficultyStats).filter(d => d.won > 0).length;
+        if (!this.achievements.difficultyMaster && difficultiesWon >= 5) {
+            this.achievements.difficultyMaster = true;
+            newAchievements.push({ id: 'difficultyMaster', title: 'Difficulty Master', description: 'Won on all difficulty levels!' });
+        }
+        
+        // Memory Champion (100+ games played)
+        if (!this.achievements.memoryChampion && this.stats.gamesPlayed >= 100) {
+            this.achievements.memoryChampion = true;
+            newAchievements.push({ id: 'memoryChampion', title: 'Memory Champion', description: 'Played 100+ games!' });
+        }
+        
+        if (newAchievements.length > 0) {
+            this.saveAchievements();
+            this.showAchievements(newAchievements);
+        }
+    }
+
+    showAchievements(achievements) {
+        achievements.forEach(achievement => {
+            setTimeout(() => {
+                this.showAchievement(achievement);
+            }, achievements.indexOf(achievement) * 1000);
+        });
+    }
+
+    showAchievement(achievement) {
+        const achievementEl = document.createElement('div');
+        achievementEl.className = 'achievement-popup';
+        achievementEl.innerHTML = `
+            <div class="achievement-content">
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-text">
+                    <h3>${achievement.title}</h3>
+                    <p>${achievement.description}</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(achievementEl);
+        
+        // Play achievement sound
+        this.playSound('achievement');
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            if (achievementEl.parentElement) {
+                achievementEl.remove();
+            }
+        }, 4000);
+    }
+
+    updateStatsDisplay() {
+        // This will be called to update any stats display in the UI
+        // For now, we'll add this functionality to the existing display
+    }
+
+    showStats() {
+        this.playSound('buttonClick');
+        const modal = document.getElementById('stats-modal');
+        modal.classList.remove('hidden');
+        this.populateStats();
+    }
+
+    hideStats() {
+        const modal = document.getElementById('stats-modal');
+        modal.classList.add('hidden');
+    }
+
+    populateStats() {
+        // Update game stats
+        document.getElementById('stat-games-played').textContent = this.stats.gamesPlayed;
+        document.getElementById('stat-games-won').textContent = this.stats.gamesWon;
+        
+        const winRate = this.stats.gamesPlayed > 0 ? 
+            Math.round((this.stats.gamesWon / this.stats.gamesPlayed) * 100) : 0;
+        document.getElementById('stat-win-rate').textContent = `${winRate}%`;
+        
+        document.getElementById('stat-best-score').textContent = this.stats.bestScore;
+        
+        const bestTime = this.stats.bestTime === Infinity ? '--:--' : 
+            `${Math.floor(this.stats.bestTime / 60)}:${(this.stats.bestTime % 60).toString().padStart(2, '0')}`;
+        document.getElementById('stat-best-time').textContent = bestTime;
+        
+        document.getElementById('stat-perfect-games').textContent = this.stats.perfectGames;
+        
+        // Update learning progress
+        document.getElementById('stat-animals-learned').textContent = this.stats.animalsLearned.size;
+        document.getElementById('stat-current-streak').textContent = this.stats.currentStreak;
+        document.getElementById('stat-longest-streak').textContent = this.stats.longestStreak;
+        
+        // Update achievements
+        this.populateAchievements();
+    }
+
+    populateAchievements() {
+        const achievementsList = document.getElementById('achievements-list');
+        achievementsList.innerHTML = '';
+        
+        const achievementData = [
+            { id: 'firstGame', title: 'First Steps', description: 'Played your first game!', icon: '👶' },
+            { id: 'firstWin', title: 'Jungle Explorer', description: 'Won your first game!', icon: '🏆' },
+            { id: 'perfectGame', title: 'Memory Master', description: 'Completed a perfect game!', icon: '⭐' },
+            { id: 'speedDemon', title: 'Speed Demon', description: 'Won a game in under 2 minutes!', icon: '⚡' },
+            { id: 'animalExpert', title: 'Animal Expert', description: 'Learned about 25+ animals!', icon: '🐾' },
+            { id: 'streakMaster', title: 'Streak Master', description: 'Won 5 games in a row!', icon: '🔥' },
+            { id: 'difficultyMaster', title: 'Difficulty Master', description: 'Won on all difficulty levels!', icon: '🎯' },
+            { id: 'memoryChampion', title: 'Memory Champion', description: 'Played 100+ games!', icon: '👑' }
+        ];
+        
+        achievementData.forEach(achievement => {
+            const achievementEl = document.createElement('div');
+            achievementEl.className = `achievement-item ${this.achievements[achievement.id] ? 'unlocked' : ''}`;
+            achievementEl.innerHTML = `
+                <div class="achievement-icon">${achievement.icon}</div>
+                <h4>${achievement.title}</h4>
+                <p>${achievement.description}</p>
+            `;
+            achievementsList.appendChild(achievementEl);
+        });
     }
 }
 

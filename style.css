@@ -158,6 +158,130 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
+.btn-secondary {
+    background: var(--white);
+    color: var(--jungle-dark);
+    border: 2px solid transparent;
+}
+
+.btn-secondary:hover {
+    border-color: var(--jungle-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.btn:disabled {
+    cursor: wait;
+    opacity: 0.75;
+    transform: none;
+}
+
+/* Reward and pack controls */
+.safari-rewards {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: 18px;
+    margin: 0 auto 28px;
+    max-width: 960px;
+}
+
+.reward-card,
+.pack-card {
+    background: rgba(0, 0, 0, 0.28);
+    border: 2px solid rgba(255, 215, 0, 0.75);
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.reward-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px;
+}
+
+.reward-card h2 {
+    color: var(--jungle-yellow);
+    font-size: 1.6rem;
+    margin: 3px 0 6px;
+}
+
+.reward-card p,
+.pack-status {
+    line-height: 1.45;
+}
+
+.eyebrow {
+    color: var(--jungle-yellow);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.reward-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    min-width: 185px;
+}
+
+.banana-bank {
+    align-items: center;
+    background: rgba(255, 215, 0, 0.16);
+    border: 2px solid var(--jungle-yellow);
+    border-radius: 999px;
+    color: var(--jungle-yellow);
+    display: flex;
+    font-weight: 800;
+    gap: 6px;
+    justify-content: center;
+    padding: 10px 14px;
+}
+
+.banana-bank::before {
+    content: "🍌";
+}
+
+.pack-card {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+}
+
+.pack-card label {
+    color: var(--jungle-yellow);
+    font-weight: 800;
+}
+
+.pack-card select {
+    background: var(--white);
+    border: 2px solid var(--jungle-yellow);
+    border-radius: var(--border-radius);
+    color: var(--jungle-dark);
+    font-weight: 700;
+    padding: 10px 12px;
+    width: 100%;
+}
+
+.pack-status {
+    color: var(--white);
+    font-size: 0.95rem;
+    min-height: 2.6em;
+}
+
+.sr-only {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
 /* Game Board */
 .game-board-container {
     display: flex;
@@ -207,8 +331,9 @@ body {
 
 /* Cards */
 .card {
-    width: 130px;
-    height: 170px;
+    width: min(130px, 100%);
+    aspect-ratio: 13 / 17;
+    min-height: 0;
     perspective: 1000px;
     cursor: pointer;
     transition: transform 0.3s ease;
@@ -230,6 +355,15 @@ body {
 
 .card:hover {
     transform: scale(1.05);
+}
+
+.card:focus-visible {
+    outline: 4px solid var(--jungle-yellow);
+    outline-offset: 4px;
+}
+
+.card[aria-disabled="true"] {
+    cursor: default;
 }
 
 .card-inner {
@@ -277,8 +411,9 @@ body {
 }
 
 .animal-image {
-    width: 125px;
-    height: 125px;
+    width: min(125px, 100%);
+    height: auto;
+    max-height: 74%;
     object-fit: contain;
     border-radius: 0;
     background: white;
@@ -688,15 +823,22 @@ body {
         flex-direction: column;
         gap: 15px;
     }
+
+    .safari-rewards {
+        grid-template-columns: 1fr;
+    }
+
+    .reward-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
     
     .card {
         width: 100px;
-        height: 140px;
     }
     
     .animal-image {
         width: 98px;
-        height: 98px;
     }
     
     .animal-name {
@@ -721,12 +863,10 @@ body {
     
     .card {
         width: 60px;
-        height: 85px;
     }
     
     .animal-image {
         width: 58px;
-        height: 58px;
     }
     
     .animal-name {
@@ -775,12 +915,10 @@ body {
     
     .card {
         width: 65px;
-        height: 95px;
     }
     
     .animal-image {
         width: 63px;
-        height: 63px;
     }
     
     .animal-name {
@@ -826,12 +964,10 @@ body {
     
     .card {
         width: 60px;
-        height: 85px;
     }
     
     .animal-image {
         width: 58px;
-        height: 58px;
     }
     
     .animal-name {
@@ -880,4 +1016,35 @@ body {
         margin-bottom: 15px;
     }
     
-    .game-ti
+    .game-title {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+
+    .game-controls,
+    .safari-rewards {
+        margin-bottom: 14px;
+    }
+
+    .safari-rewards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .reward-card,
+    .pack-card {
+        padding: 12px;
+    }
+
+    .reward-card h2 {
+        font-size: 1.2rem;
+    }
+
+    .game-board {
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .card {
+        width: 58px;
+    }
+}

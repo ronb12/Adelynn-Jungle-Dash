@@ -30,6 +30,8 @@ class JungleMemoryGame {
         // Statistics and achievements
         this.stats = this.loadStats();
         this.achievements = this.loadAchievements();
+        this.rewardState = this.loadRewardState();
+        this.cardPacks = [];
 
         // Sound system
         this.sounds = {
@@ -51,8 +53,11 @@ class JungleMemoryGame {
 
     async init() {
         await this.loadContentData();
+        this.buildCardPacks();
         this.initializeSounds();
         this.bindEvents();
+        this.renderPackOptions();
+        this.updateRewardDisplay();
         this.newGame();
         this.startTimer();
         this.updateStatsDisplay();
@@ -167,6 +172,27 @@ class JungleMemoryGame {
                 this.sounds.jungleAmbiance.play().catch(() => {});
             }
         }, { once: true });
+
+        const rewardButton = document.getElementById('reward-ad-btn');
+        if (rewardButton) {
+            rewardButton.addEventListener('click', () => this.startRewardBreak());
+        }
+
+        const packSelect = document.getElementById('animal-pack');
+        if (packSelect) {
+            packSelect.addEventListener('change', () => this.handlePackChange());
+        }
+
+        const unlockButton = document.getElementById('unlock-pack-btn');
+        if (unlockButton) {
+            unlockButton.addEventListener('click', () => this.unlockSelectedPack());
+        }
+
+        window.addEventListener('resize', () => {
+            if (this.gameState.cards.length > 0) {
+                this.renderBoard();
+            }
+        });
     }
 
     newGame() {
@@ -191,7 +217,7 @@ class JungleMemoryGame {
 
     createCards() {
         const difficulty = this.difficultySettings[this.gameState.difficulty];
-        const selectedAnimals = this.animals.slice(0, difficulty.pairs);
+        const selectedAnimals = this.getAnimalsForCurrentPack(difficulty.pairs);
         
         this.gameState.cards = [];
         
@@ -231,10 +257,11 @@ class JungleMemoryGame {
     renderBoard() {
         const gameBoard = document.getElementById('game-board');
         const difficulty = this.difficultySettings[this.gameState.difficulty];
+        const gridCols = this.getResponsiveGridColumns(difficulty.gridCols);
         
         gameBoard.innerHTML = '';
         gameBoard.className = `game-board ${this.gameState.difficulty}`;
-        gameBoard.style.gridTemplateColumns = `repeat(${difficulty.gridCols}, 1fr)`;
+        gameBoard.style.gridTemplateColumns = `repeat(${gridCols}, minmax(0, 1fr))`;
 
         this.gameState.cards.forEach((card) => {
             const cardElement = this.createCardElement(card);
@@ -242,10 +269,27 @@ class JungleMemoryGame {
         });
     }
 
+    getResponsiveGridColumns(defaultColumns) {
+        const width = window.innerWidth || document.documentElement.clientWidth;
+        if (width <= 480) {
+            return Math.min(defaultColumns, 4);
+        }
+        if (width <= 768) {
+            return Math.min(defaultColumns, 5);
+        }
+        if (width <= 1024) {
+            return Math.min(defaultColumns, 8);
+        }
+        return defaultColumns;
+    }
+
     createCardElement(card) {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
         cardDiv.dataset.cardId = card.id;
+        cardDiv.setAttribute('role', 'button');
+        cardDiv.setAttribute('tabindex', '0');
+        cardDiv.setAttribute('aria-label', `Hidden ${card.animal.name} card. Press Enter or Space to flip.`);
         
         cardDiv.innerHTML = `
             <div class="card-inner">
@@ -265,6 +309,12 @@ class JungleMemoryGame {
 
         cardDiv.addEventListener('click', () => {
             this.flipCard(card.id);
+        });
+        cardDiv.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                this.flipCard(card.id);
+            }
         });
         
         return cardDiv;
@@ -289,6 +339,7 @@ class JungleMemoryGame {
         // Flip the card
         card.isFlipped = true;
         cardElement.classList.add('flipped');
+        cardElement.setAttribute('aria-label', `${card.animal.name}. ${card.animal.fact}`);
         this.gameState.flippedCards.push(card);
         this.gameState.moves++;
 
@@ -322,11 +373,20 @@ class JungleMemoryGame {
             const card1Element = document.querySelector(`[data-card-id="${card1.id}"]`);
             const card2Element = document.querySelector(`[data-card-id="${card2.id}"]`);
             
-            if (card1Element) card1Element.classList.add('matched');
-            if (card2Element) card2Element.classList.add('matched');
+            if (card1Element) {
+                card1Element.classList.add('matched');
+                card1Element.setAttribute('aria-disabled', 'true');
+                card1Element.setAttribute('aria-label', `Matched ${card1.animal.name}`);
+            }
+            if (card2Element) {
+                card2Element.classList.add('matched');
+                card2Element.setAttribute('aria-disabled', 'true');
+                card2Element.setAttribute('aria-label', `Matched ${card2.animal.name}`);
+            }
             
             // Show educational fact
             this.showAnimalFact(card1.animal);
+            this.announce(`${card1.animal.name} matched. ${card1.animal.fact}`);
             
             // Track animals learned
             this.stats.animalsLearned.add(card1.animal.id);
@@ -350,8 +410,14 @@ class JungleMemoryGame {
                 const card1Element = document.querySelector(`[data-card-id="${card1.id}"]`);
                 const card2Element = document.querySelector(`[data-card-id="${card2.id}"]`);
                 
-                if (card1Element) card1Element.classList.remove('flipped');
-                if (card2Element) card2Element.classList.remove('flipped');
+                if (card1Element) {
+                    card1Element.classList.remove('flipped');
+                    card1Element.setAttribute('aria-label', `Hidden ${card1.animal.name} card. Press Enter or Space to flip.`);
+                }
+                if (card2Element) {
+                    card2Element.classList.remove('flipped');
+                    card2Element.setAttribute('aria-label', `Hidden ${card2.animal.name} card. Press Enter or Space to flip.`);
+                }
                 
                 this.gameState.flippedCards = [];
             }, 1000);
@@ -432,10 +498,185 @@ class JungleMemoryGame {
         titleEl.textContent = title;
         textEl.textContent = text;
         messageEl.classList.remove('hidden');
+        this.announce(`${title} ${text}`);
         
         document.getElementById('message-btn').addEventListener('click', () => {
             messageEl.classList.add('hidden');
         }, { once: true });
+    }
+
+    buildCardPacks() {
+        const categoryMap = this.animals.reduce((groups, animal) => {
+            const category = animal.category || 'Jungle Friends';
+            if (!groups[category]) groups[category] = [];
+            groups[category].push(animal.id);
+            return groups;
+        }, {});
+
+        this.cardPacks = [
+            { id: 'all', name: 'All Safari Animals', cost: 0, animalIds: this.animals.map(animal => animal.id), unlocked: true },
+            { id: 'starter', name: 'Starter Jungle Pack', cost: 0, animalIds: this.animals.slice(0, 12).map(animal => animal.id), unlocked: true },
+            { id: 'big-cats', name: 'Big Cats Pack', cost: 50, animalIds: categoryMap['Big Cats'] || [], unlocked: false },
+            { id: 'large-mammals', name: 'Giant Safari Pack', cost: 75, animalIds: categoryMap['Large Mammals'] || [], unlocked: false },
+            { id: 'birds-reptiles', name: 'Wings & Scales Pack', cost: 100, animalIds: [...(categoryMap.Birds || []), ...(categoryMap.Reptiles || []), ...(categoryMap.Amphibians || [])], unlocked: false }
+        ].filter(pack => pack.animalIds.length > 0);
+
+        this.rewardState.unlockedPacks = Array.from(new Set(['all', 'starter', ...this.rewardState.unlockedPacks]));
+        if (!this.cardPacks.some(pack => pack.id === this.rewardState.activePack)) {
+            this.rewardState.activePack = 'all';
+        }
+        this.saveRewardState();
+    }
+
+    loadRewardState() {
+        const defaultState = {
+            bananas: 0,
+            unlockedPacks: ['all', 'starter'],
+            activePack: 'all'
+        };
+
+        try {
+            const saved = localStorage.getItem('jungleMemoryRewards');
+            return saved ? { ...defaultState, ...JSON.parse(saved) } : defaultState;
+        } catch (error) {
+            console.error('Error loading reward state:', error);
+            return defaultState;
+        }
+    }
+
+    saveRewardState() {
+        try {
+            localStorage.setItem('jungleMemoryRewards', JSON.stringify(this.rewardState));
+        } catch (error) {
+            console.error('Error saving reward state:', error);
+        }
+    }
+
+    renderPackOptions() {
+        const packSelect = document.getElementById('animal-pack');
+        if (!packSelect) return;
+
+        packSelect.innerHTML = '';
+        this.cardPacks.forEach(pack => {
+            const isUnlocked = this.rewardState.unlockedPacks.includes(pack.id);
+            const option = document.createElement('option');
+            option.value = pack.id;
+            option.textContent = isUnlocked ? pack.name : `${pack.name} - ${pack.cost} bananas`;
+            packSelect.appendChild(option);
+        });
+        packSelect.value = this.rewardState.activePack;
+        this.updateRewardDisplay();
+    }
+
+    handlePackChange() {
+        const packSelect = document.getElementById('animal-pack');
+        if (!packSelect) return;
+
+        const selectedPack = this.cardPacks.find(pack => pack.id === packSelect.value);
+        if (!selectedPack) return;
+
+        if (!this.rewardState.unlockedPacks.includes(selectedPack.id)) {
+            this.updatePackStatus(`${selectedPack.name} is locked. Earn ${selectedPack.cost} bananas to unlock it.`);
+            this.updateRewardDisplay();
+            return;
+        }
+
+        this.rewardState.activePack = selectedPack.id;
+        this.saveRewardState();
+        this.updatePackStatus(`${selectedPack.name} selected.`);
+        this.newGame();
+    }
+
+    getAnimalsForCurrentPack(requiredPairs) {
+        const activePack = this.cardPacks.find(pack => pack.id === this.rewardState.activePack);
+        const packAnimals = activePack
+            ? this.animals.filter(animal => activePack.animalIds.includes(animal.id))
+            : this.animals;
+
+        const usableAnimals = packAnimals.length >= requiredPairs ? packAnimals : this.animals;
+        return this.shuffleArray(usableAnimals).slice(0, requiredPairs);
+    }
+
+    startRewardBreak() {
+        const rewardButton = document.getElementById('reward-ad-btn');
+        if (!rewardButton || rewardButton.disabled) return;
+
+        rewardButton.disabled = true;
+        rewardButton.textContent = 'Reward Break...';
+        this.updatePackStatus('Reward break started. Stay on the safari trail for 5 seconds.');
+
+        let secondsLeft = 5;
+        const countdown = setInterval(() => {
+            secondsLeft--;
+            rewardButton.textContent = `Reward Break ${secondsLeft}s`;
+            if (secondsLeft <= 0) {
+                clearInterval(countdown);
+                this.rewardState.bananas += 25;
+                this.saveRewardState();
+                rewardButton.disabled = false;
+                rewardButton.textContent = 'Watch Reward Break';
+                this.updateRewardDisplay();
+                this.updatePackStatus('Nice work! You earned 25 bananas.');
+                this.showMessage('🍌 Reward Earned', 'You earned 25 bananas toward new animal card packs!');
+            }
+        }, 1000);
+    }
+
+    unlockSelectedPack() {
+        const packSelect = document.getElementById('animal-pack');
+        if (!packSelect) return;
+
+        const pack = this.cardPacks.find(item => item.id === packSelect.value);
+        if (!pack) return;
+
+        if (this.rewardState.unlockedPacks.includes(pack.id)) {
+            this.rewardState.activePack = pack.id;
+            this.saveRewardState();
+            this.updatePackStatus(`${pack.name} is already unlocked and selected.`);
+            this.newGame();
+            return;
+        }
+
+        if (this.rewardState.bananas < pack.cost) {
+            this.updatePackStatus(`${pack.name} needs ${pack.cost} bananas. You have ${this.rewardState.bananas}.`);
+            return;
+        }
+
+        this.rewardState.bananas -= pack.cost;
+        this.rewardState.unlockedPacks.push(pack.id);
+        this.rewardState.activePack = pack.id;
+        this.saveRewardState();
+        this.renderPackOptions();
+        this.updatePackStatus(`${pack.name} unlocked! A fresh set of animals is ready.`);
+        this.showMessage('🎒 Pack Unlocked', `${pack.name} is now available for practice.`);
+        this.newGame();
+    }
+
+    updateRewardDisplay() {
+        const bananaCount = document.getElementById('banana-count');
+        const unlockButton = document.getElementById('unlock-pack-btn');
+        const packSelect = document.getElementById('animal-pack');
+        if (bananaCount) {
+            bananaCount.textContent = this.rewardState.bananas;
+        }
+        if (unlockButton && packSelect) {
+            const pack = this.cardPacks.find(item => item.id === packSelect.value);
+            const unlocked = pack && this.rewardState.unlockedPacks.includes(pack.id);
+            unlockButton.textContent = unlocked ? 'Select Pack' : 'Unlock Pack';
+            unlockButton.disabled = !pack;
+        }
+    }
+
+    updatePackStatus(message) {
+        const status = document.getElementById('pack-status');
+        if (status) status.textContent = message;
+        this.announce(message);
+        this.updateRewardDisplay();
+    }
+
+    announce(message) {
+        const announcer = document.getElementById('game-announcer');
+        if (announcer) announcer.textContent = message;
     }
 
     updateDisplay() {

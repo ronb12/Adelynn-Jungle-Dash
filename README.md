@@ -6,15 +6,19 @@ A fun and educational jungle animal memory matching game designed for children. 
 
 ### Core Gameplay
 - **Memory Matching**: Flip cards to find matching pairs of jungle animals
-- **Three Difficulty Levels**:
+- **Five Difficulty Levels**:
   - **Easy**: 6 pairs (12 cards) - Perfect for beginners
-  - **Medium**: 8 pairs (16 cards) - Intermediate challenge
-  - **Hard**: 12 pairs (24 cards) - Expert level
+  - **Medium**: 12 pairs (24 cards) - Intermediate challenge
+  - **Hard**: 20 pairs (40 cards) - Advanced practice
+  - **Expert**: 30 pairs (60 cards) - Big safari challenge
+  - **Legendary**: 50 pairs (100 cards) - Full memory safari
 - **Real-time Scoring**: Track your moves and completion time
 - **Progressive Web App**: Install and play offline
+- **Reward Safari**: Earn bananas from a parent-safe reward break
+- **Animal Card Packs**: Select starter animals or unlock themed packs
 
 ### Educational Value
-- **12 Jungle Animals**: Learn about different jungle creatures
+- **50+ Jungle Animals**: Learn about different jungle creatures
 - **Animal Facts**: Discover interesting information about each animal
 - **Visual Learning**: High-quality animal images and emoji fallbacks
 - **Memory Training**: Improve concentration and memory skills
@@ -34,6 +38,9 @@ A fun and educational jungle animal memory matching game designed for children. 
 11. **Morpho Butterfly** 🦋 - Brilliant blue-winged insect
 12. **Sloth** 🦥 - Slow-moving tree-dwelling mammal
 
+The full safari library now includes more than 50 animals across big cats,
+birds, reptiles, amphibians, mammals, insects, and ocean life.
+
 ## 🚀 How to Play
 
 1. **Start the Game**: Choose your difficulty level
@@ -41,6 +48,8 @@ A fun and educational jungle animal memory matching game designed for children. 
 3. **Find Matches**: Look for two cards with the same animal
 4. **Complete Pairs**: Match all animal pairs to win
 5. **Beat Your Score**: Try to complete the game in fewer moves
+6. **Earn Rewards**: Use Reward Safari to earn bananas
+7. **Unlock Packs**: Spend bananas on themed animal card packs
 
 ## 🎯 Game Rules
 
@@ -69,6 +78,8 @@ A fun and educational jungle animal memory matching game designed for children. 
 - **Screen Reader**: Compatible with assistive technologies
 - **High Contrast**: Clear visual distinction between elements
 - **Touch Friendly**: Optimized for touch devices
+- **Accessible Cards**: Cards can be flipped by mouse, touch, Enter, or Space
+- **Live Announcements**: Match and reward updates are announced for assistive technology
 
 ## 🎨 Visual Design
 
@@ -116,6 +127,7 @@ Track your progress with:
 - **Score System**: Earn points for successful matches
 - **Timer**: Track your completion time
 - **Difficulty Levels**: Challenge yourself with harder levels
+- **Banana Bank**: Track rewards earned toward card-pack unlocks
 
 ## 🎓 Educational Benefits
 
@@ -160,7 +172,7 @@ Challenge yourself to:
 - **Perfect Game**: Complete without any wrong matches
 - **Speed Run**: Finish in the fastest time possible
 - **Memory Master**: Complete all difficulty levels
-- **Animal Expert**: Learn all 12 jungle animals
+- **Animal Expert**: Learn 25+ animals
 
 ## 📄 License
 

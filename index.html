@@ -80,6 +80,32 @@
             <button id="stats-btn" class="btn btn-secondary">📊 Stats</button>
         </div>
 
+        <!-- Reward and Animal Packs -->
+        <section class="safari-rewards" aria-labelledby="safari-rewards-title">
+            <div class="reward-card">
+                <div>
+                    <p class="eyebrow">Parent-safe rewards</p>
+                    <h2 id="safari-rewards-title">Reward Safari</h2>
+                    <p>Complete a short, kid-safe reward break to earn bananas for animal card packs.</p>
+                </div>
+                <div class="reward-actions">
+                    <div class="banana-bank" aria-live="polite">
+                        <span id="banana-count">0</span>
+                        <span>bananas</span>
+                    </div>
+                    <button id="reward-ad-btn" class="btn btn-primary" type="button">Watch Reward Break</button>
+                </div>
+            </div>
+            <div class="pack-card">
+                <label for="animal-pack">Animal Pack:</label>
+                <select id="animal-pack"></select>
+                <button id="unlock-pack-btn" class="btn btn-secondary" type="button">Unlock Pack</button>
+                <p id="pack-status" class="pack-status" aria-live="polite">All animals are ready for safari.</p>
+            </div>
+        </section>
+
+        <div id="game-announcer" class="sr-only" aria-live="polite"></div>
+
         <!-- Game Board -->
         <div class="game-board-container">
             <div id="game-board" class="game-board">
